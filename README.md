@@ -11,11 +11,74 @@ In this Repo, you can easily fine-tune different variations of the Whisper model
 
 ## Auxilary files
 
-The required packages are listed in the "requirements.txt" file and you can easily install all of them using: 
-`pip install -r requirements.txt`
+The tested training packages are listed in `requirements-training.txt`:
+`pip install -r requirements-training.txt`
 
 It would be better to make a new Python environment using `python3 -m venv myenv` , after that, activate the venv using `source myenv/bin/activate` and then install the packages.
 
 To run on the servers by Slurm, you can use the [slurm_run.sh](slurm_run.sh) file.
 
 The "files_test.csv" and "files_train.csv" help us understand better the required files for testing and training.
+
+## Reproducible WAXAL experiments
+
+The completed Whisper Base Shona setup is stored in
+`configs/whisper-base-shona-3epochs.json`. It contains the model, manifests,
+preprocessing, hyperparameters, output path, and non-secret W&B metadata.
+
+Create the environment file once and add the W&B API key locally:
+
+```bash
+cp .env.example .env
+```
+
+Validate the configuration without training:
+
+```bash
+.venv/bin/python train_full.py \
+	--config configs/whisper-base-shona-3epochs.json \
+	--dry-run
+```
+
+Start or resume it in a connection-independent tmux session:
+
+```bash
+./run_full_detached.sh
+```
+
+The default output directory resumes its newest checkpoint. To rerun the same
+configuration from scratch without deleting or overwriting the original run,
+select a new output directory and session name:
+
+```bash
+WHISPER_OUTPUT_DIR=output_dir_whisper_base_shona_rerun_01 \
+TMUX_SESSION_NAME=whisper-base-shona-rerun-01 \
+./run_full_detached.sh
+```
+
+Select another experiment without editing Python:
+
+```bash
+WHISPER_CONFIG=configs/another-experiment.json \
+TMUX_SESSION_NAME=another-experiment \
+./run_full_detached.sh
+```
+
+The Whisper Medium config requires at least 20 GB of free GPU memory and will
+refuse to start rather than risk an out-of-memory failure:
+
+```bash
+WHISPER_CONFIG=configs/whisper-medium-shona-3epochs-eval1000.json \
+./run_full_detached.sh
+```
+
+After training completes, measure the corresponding pretrained model's
+zero-shot performance on the same test manifest:
+
+```bash
+.venv/bin/python evaluate_zero_shot.py \
+	--config configs/whisper-medium-shona-3epochs-eval1000.json
+```
+
+The evaluator reports raw and normalized WER for the full test split and for
+the subset whose speakers never appear in training, and saves every prediction.

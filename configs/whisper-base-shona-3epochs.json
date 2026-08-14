@@ -1,0 +1,53 @@
+{
+  "experiment_name": "whisper-base-shona-3epochs",
+  "model": {
+    "id": "openai/whisper-base",
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "data": {
+    "train_manifest": "/home/casper/Speech/data/waxal/sna_asr/train/sna_asr_train.normalized.json",
+    "validation_manifest": "/home/casper/Speech/data/waxal/sna_asr/validation/sna_asr_validation.normalized.json",
+    "test_manifest": "/home/casper/Speech/data/waxal/sna_asr/test/sna_asr_test.normalized.json",
+    "audio_column": "audio_filepath",
+    "text_column": "text",
+    "sampling_rate": 16000
+  },
+  "training": {
+    "num_train_epochs": 3.0,
+    "seed": 42,
+    "per_device_train_batch_size": 6,
+    "per_device_eval_batch_size": 6,
+    "gradient_accumulation_steps": 1,
+    "learning_rate": 1e-5,
+    "warmup_steps": 500,
+    "gradient_checkpointing": true,
+    "fp16": true,
+    "eval_strategy": "epoch",
+    "predict_with_generate": true,
+    "generation_max_length": 225,
+    "save_strategy": "epoch",
+    "save_total_limit": 2,
+    "logging_steps": 25,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "wer",
+    "greater_is_better": false
+  },
+  "output_dir": "output_dir_whisper_base_shona_3epochs",
+  "wandb": {
+    "project": "whisper-shona-multilingual",
+    "run_name": "whisper-base-shona-areffarhadi-3-epochs",
+    "job_type": "training",
+    "tags": [
+      "whisper-base",
+      "shona",
+      "waxal",
+      "3-epochs"
+    ],
+    "watch": "false",
+    "log_model": "false",
+    "resume_run_id": null
+  }
+}

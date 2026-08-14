@@ -1,0 +1,12 @@
+accelerate==1.1.1
+datasets[audio]==2.20.0
+evaluate==0.4.2
+jiwer==3.0.4
+librosa==0.11.0
+numpy==1.26.4
+python-dotenv==1.0.1
+soundfile==0.14.0
+tensorboard==2.18.0
+torch==2.5.1
+transformers==4.46.3
+wandb==0.28.2
