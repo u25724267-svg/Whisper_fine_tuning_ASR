@@ -1,6 +1,10 @@
 import argparse
+import hashlib
+import importlib.metadata
 import json
 import os
+import sys
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Union
@@ -47,6 +51,61 @@ def load_config(config_path: Path) -> Dict[str, Any]:
         config = json.load(config_file)
     config["config_path"] = str(resolved_path)
     return config
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_run_manifest(
+    config: Dict[str, Any], output_dir: Path, epochs: float, seed: int
+) -> None:
+    package_names = [
+        "accelerate",
+        "bitsandbytes",
+        "datasets",
+        "evaluate",
+        "jiwer",
+        "numpy",
+        "python-dotenv",
+        "torch",
+        "transformers",
+        "wandb",
+    ]
+    data_config = config["data"]
+    source_paths = {
+        "trainer": Path(__file__).resolve(),
+        "config": resolve_path(config["config_path"]),
+        "dependencies": ROOT_DIR / "requirements-training.txt",
+        "train_manifest": resolve_path(data_config["train_manifest"]),
+        "validation_manifest": resolve_path(data_config["validation_manifest"]),
+        "test_manifest": resolve_path(data_config["test_manifest"]),
+    }
+    manifest = {
+        "schema_version": 1,
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "experiment_name": config["experiment_name"],
+        "model": config["model"],
+        "effective_num_train_epochs": epochs,
+        "effective_seed": seed,
+        "effective_output_dir": str(output_dir),
+        "sha256": {name: sha256_file(path) for name, path in source_paths.items()},
+        "packages": {name: importlib.metadata.version(name) for name in package_names},
+        "runtime": {
+            "python": sys.version,
+            "torch": torch.__version__,
+            "cuda_runtime": torch.version.cuda,
+            "cuda_available": torch.cuda.is_available(),
+            "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+        },
+    }
+    (output_dir / "run_manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 def load_environment(require_api_key: bool, wandb_config: Dict[str, Any]) -> None:
@@ -148,7 +207,10 @@ def main() -> None:
     )
 
     processor = WhisperProcessor.from_pretrained(
-        model_config["id"], language=model_config["language"], task=model_config["task"]
+        model_config["id"],
+        revision=model_config["revision"],
+        language=model_config["language"],
+        task=model_config["task"],
     )
 
     def prepare_dataset(example: Dict[str, Any]) -> Dict[str, Any]:
@@ -184,6 +246,7 @@ def main() -> None:
     (output_dir / "experiment_config.json").write_text(
         json.dumps(resolved_config, indent=2) + "\n", encoding="utf-8"
     )
+    write_run_manifest(config, output_dir, epochs, seed)
     dataset = dataset.map(
         prepare_dataset,
         remove_columns=dataset["train"].column_names,
@@ -202,7 +265,9 @@ def main() -> None:
         label_text = processor.tokenizer.batch_decode(label_ids, skip_special_tokens=True)
         return {"wer": 100 * metric.compute(predictions=prediction_text, references=label_text)}
 
-    model = WhisperForConditionalGeneration.from_pretrained(model_config["id"])
+    model = WhisperForConditionalGeneration.from_pretrained(
+        model_config["id"], revision=model_config["revision"]
+    )
     if model_config.get("clear_forced_decoder_ids", False):
         model.config.forced_decoder_ids = None
         model.generation_config.forced_decoder_ids = None
@@ -229,7 +294,9 @@ def main() -> None:
         save_strategy=training_config["save_strategy"],
         save_steps=training_config.get("save_steps", 500),
         save_total_limit=training_config["save_total_limit"],
+        save_only_model=training_config.get("save_only_model", False),
         logging_steps=training_config["logging_steps"],
+        optim=training_config.get("optim", "adamw_torch"),
         report_to=["wandb"],
         run_name=wandb_config["run_name"],
         load_best_model_at_end=training_config["load_best_model_at_end"],
@@ -237,6 +304,8 @@ def main() -> None:
         greater_is_better=training_config["greater_is_better"],
         seed=seed,
         data_seed=seed,
+        full_determinism=training_config.get("full_determinism", False),
+        gradient_checkpointing_kwargs=training_config.get("gradient_checkpointing_kwargs"),
     )
 
     trainer = Seq2SeqTrainer(

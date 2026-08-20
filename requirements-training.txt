@@ -1,4 +1,5 @@
 accelerate==1.1.1
+bitsandbytes==0.45.5
 datasets[audio]==2.20.0
 evaluate==0.4.2
 jiwer==3.0.4

@@ -2,6 +2,7 @@
   "experiment_name": "whisper-base-shona-3epochs",
   "model": {
     "id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
     "language": "shona",
     "task": "transcribe",
     "clear_forced_decoder_ids": true,
