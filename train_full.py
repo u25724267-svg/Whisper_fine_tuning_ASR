@@ -7,6 +7,7 @@ import sys
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
+from types import MethodType
 from typing import Any, Dict, List, Union
 
 import evaluate
@@ -25,6 +26,7 @@ from transformers import (
 ROOT_DIR = Path(__file__).resolve().parent
 DEFAULT_CONFIG_FILE = ROOT_DIR / "configs" / "whisper-base-shona-3epochs.json"
 ENV_FILE = ROOT_DIR / ".env"
+WANDB_PROJECTS_FILE = ROOT_DIR / "configs" / "wandb-projects.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -85,12 +87,20 @@ def write_run_manifest(
         "validation_manifest": resolve_path(data_config["validation_manifest"]),
         "test_manifest": resolve_path(data_config["test_manifest"]),
     }
+    local_model_path = resolve_path(config["model"]["id"])
+    if local_model_path.is_dir():
+        for filename in ("model.safetensors", "config.json", "generation_config.json"):
+            model_file = local_model_path / filename
+            if model_file.is_file():
+                source_paths[f"parent_model_{filename}"] = model_file
     manifest = {
         "schema_version": 1,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_name": config["experiment_name"],
         "model": config["model"],
+        "augmentation": config.get("augmentation", {"type": "none", "enabled": False}),
         "effective_num_train_epochs": epochs,
+        "effective_max_steps": config["training"].get("max_steps", -1),
         "effective_seed": seed,
         "effective_output_dir": str(output_dir),
         "sha256": {name: sha256_file(path) for name, path in source_paths.items()},
@@ -112,6 +122,14 @@ def load_environment(require_api_key: bool, wandb_config: Dict[str, Any]) -> Non
     if not ENV_FILE.is_file():
         raise FileNotFoundError(f"Missing environment file: {ENV_FILE}")
     load_dotenv(ENV_FILE, override=True)
+
+    with WANDB_PROJECTS_FILE.open(encoding="utf-8") as projects_file:
+        allowed_projects = set(json.load(projects_file)["allowed_projects"])
+    if wandb_config["project"] not in allowed_projects:
+        raise ValueError(
+            f"W&B project '{wandb_config['project']}' is not approved. "
+            f"Allowed projects: {sorted(allowed_projects)}"
+        )
 
     os.environ["WANDB_PROJECT"] = wandb_config["project"]
     os.environ["WANDB_NAME"] = wandb_config["run_name"]
@@ -186,6 +204,46 @@ class DataCollatorSpeechSeq2SeqWithPadding:
 
         batch["labels"] = labels
         return batch
+
+
+def configure_augmentation(model: Any, augmentation_config: Dict[str, Any]) -> None:
+    if augmentation_config["type"] not in {"none", "specaugment"}:
+        raise ValueError(f"Unsupported augmentation type: {augmentation_config['type']}")
+
+    model.config.apply_spec_augment = bool(augmentation_config.get("enabled", False))
+    if not model.config.apply_spec_augment:
+        return
+
+    application_probability = float(augmentation_config.get("application_probability", 1.0))
+    if not 0.0 <= application_probability <= 1.0:
+        raise ValueError("SpecAugment application_probability must be between 0 and 1")
+
+    model.config.mask_time_prob = augmentation_config["mask_time_prob"]
+    model.config.mask_time_length = augmentation_config["mask_time_length"]
+    model.config.mask_time_min_masks = augmentation_config["mask_time_min_masks"]
+    model.config.mask_feature_prob = augmentation_config["mask_feature_prob"]
+    model.config.mask_feature_length = augmentation_config["mask_feature_length"]
+    model.config.mask_feature_min_masks = augmentation_config["mask_feature_min_masks"]
+    model.config.specaugment_application_probability = application_probability
+
+    if application_probability == 1.0:
+        return
+
+    original_mask_input_features = model.model._mask_input_features
+
+    def probabilistic_mask_input_features(
+        whisper_model: Any,
+        input_features: torch.Tensor,
+        attention_mask: torch.Tensor = None,
+    ) -> torch.Tensor:
+        if not whisper_model.training:
+            return input_features
+        clean_features = input_features.clone()
+        augmented_features = original_mask_input_features(input_features, attention_mask)
+        apply_mask = torch.rand(input_features.shape[0], device=input_features.device) < application_probability
+        return torch.where(apply_mask[:, None, None], augmented_features, clean_features)
+
+    model.model._mask_input_features = MethodType(probabilistic_mask_input_features, model.model)
 
 
 def main() -> None:
@@ -277,6 +335,9 @@ def main() -> None:
     model.generation_config.language = model_config["language"]
     model.generation_config.task = model_config["task"]
 
+    augmentation_config = config.get("augmentation", {"type": "none", "enabled": False})
+    configure_augmentation(model, augmentation_config)
+
     training_args = Seq2SeqTrainingArguments(
         output_dir=str(output_dir),
         per_device_train_batch_size=training_config["per_device_train_batch_size"],
@@ -285,6 +346,7 @@ def main() -> None:
         learning_rate=training_config["learning_rate"],
         warmup_steps=training_config["warmup_steps"],
         num_train_epochs=epochs,
+        max_steps=training_config.get("max_steps", -1),
         gradient_checkpointing=training_config["gradient_checkpointing"],
         fp16=training_config["fp16"],
         eval_strategy=training_config["eval_strategy"],

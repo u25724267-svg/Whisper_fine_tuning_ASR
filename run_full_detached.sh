@@ -48,7 +48,9 @@ if (( required_free_gpu_mb > 0 )); then
 fi
 
 if (( required_free_disk_gb > 0 )); then
-    free_disk_kb="$(df -Pk "$ROOT_DIR" | awk 'NR == 2 {print $4}')"
+    output_parent="$(dirname "$OUTPUT_DIR")"
+    mkdir -p "$output_parent"
+    free_disk_kb="$(df -Pk "$output_parent" | awk 'NR == 2 {print $4}')"
     required_disk_kb=$((required_free_disk_gb * 1024 * 1024))
     if (( free_disk_kb < required_disk_kb )); then
         echo "Insufficient free disk: ${free_disk_kb} KiB available, ${required_disk_kb} KiB required." >&2

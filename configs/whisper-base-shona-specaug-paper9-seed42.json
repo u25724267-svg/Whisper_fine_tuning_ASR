@@ -1,0 +1,66 @@
+{
+  "experiment_name": "whisper-base-shona-specaug-paper9-seed42",
+  "model": {
+    "id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "augmentation": {
+    "type": "specaugment",
+    "enabled": true,
+    "application_probability": 1.0,
+    "mask_time_prob": 0.05,
+    "mask_time_length": 8,
+    "mask_time_min_masks": 1,
+    "mask_feature_prob": 0.15,
+    "mask_feature_length": 15,
+    "mask_feature_min_masks": 3
+  },
+  "data": {
+    "train_manifest": "/home/casper/Speech/data/waxal/sna_asr/train/sna_asr_train.normalized.json",
+    "validation_manifest": "/home/casper/Speech/data/waxal/sna_asr/validation/sna_asr_validation.normalized.json",
+    "test_manifest": "/home/casper/Speech/data/waxal/sna_asr/test/sna_asr_test.normalized.json",
+    "audio_column": "audio_filepath",
+    "text_column": "text",
+    "sampling_rate": 16000,
+    "keep_preprocessed_in_memory": true
+  },
+  "training": {
+    "num_train_epochs": 3.0,
+    "seed": 42,
+    "per_device_train_batch_size": 6,
+    "per_device_eval_batch_size": 6,
+    "gradient_accumulation_steps": 1,
+    "learning_rate": 1e-5,
+    "warmup_steps": 500,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_kwargs": {"use_reentrant": false},
+    "fp16": true,
+    "full_determinism": true,
+    "eval_strategy": "steps",
+    "eval_steps": 1000,
+    "predict_with_generate": true,
+    "generation_max_length": 225,
+    "save_strategy": "steps",
+    "save_steps": 1000,
+    "save_total_limit": 1,
+    "logging_steps": 1000,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "wer",
+    "greater_is_better": false
+  },
+  "output_dir": "output_dir_whisper_base_shona_specaug_paper9_seed42",
+  "resources": {"min_free_gpu_mb": 20000, "min_free_disk_gb": 3},
+  "wandb": {
+    "project": "whisper-shona-multilingual",
+    "run_name": "whisper-base-shona-specaug-paper9-seed42",
+    "job_type": "training",
+    "tags": ["whisper-base", "shona", "waxal", "specaugment", "paper9", "seed-42"],
+    "watch": "false",
+    "log_model": "false",
+    "resume_run_id": null
+  }
+}

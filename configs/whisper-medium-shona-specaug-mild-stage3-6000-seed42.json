@@ -1,0 +1,76 @@
+{
+  "experiment_name": "whisper-medium-shona-specaug-mild-stage3-6000-seed42",
+  "model": {
+    "id": "output_dir_whisper_medium_shona_specaug_mild_stage2_2000_seed42",
+    "revision": null,
+    "parent_model": {
+      "experiment": "whisper-medium-shona-specaug-mild-stage2-2000-seed42",
+      "validation_wer": 22.52137297435243,
+      "test_wer": 22.766068629158685,
+      "cumulative_prior_steps": 8900
+    },
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "augmentation": {
+    "type": "specaugment",
+    "enabled": true,
+    "application_probability": 1.0,
+    "mask_time_prob": 0.05,
+    "mask_time_length": 8,
+    "mask_time_min_masks": 1,
+    "mask_feature_prob": 0.05,
+    "mask_feature_length": 8,
+    "mask_feature_min_masks": 1
+  },
+  "data": {
+    "train_manifest": "/home/casper/Speech/data/waxal/sna_asr/train/sna_asr_train.normalized.json",
+    "validation_manifest": "/home/casper/Speech/data/waxal/sna_asr/validation/sna_asr_validation.normalized.json",
+    "test_manifest": "/home/casper/Speech/data/waxal/sna_asr/test/sna_asr_test.normalized.json",
+    "audio_column": "audio_filepath",
+    "text_column": "text",
+    "sampling_rate": 16000,
+    "keep_preprocessed_in_memory": true
+  },
+  "training": {
+    "num_train_epochs": 3.0,
+    "max_steps": 6000,
+    "seed": 42,
+    "per_device_train_batch_size": 2,
+    "per_device_eval_batch_size": 2,
+    "gradient_accumulation_steps": 3,
+    "learning_rate": 5e-7,
+    "warmup_steps": 100,
+    "gradient_checkpointing": true,
+    "fp16": true,
+    "eval_strategy": "steps",
+    "eval_steps": 1000,
+    "predict_with_generate": true,
+    "generation_max_length": 225,
+    "save_strategy": "steps",
+    "save_steps": 1000,
+    "save_total_limit": 2,
+    "save_only_model": false,
+    "resume_supported": true,
+    "logging_steps": 1000,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "wer",
+    "greater_is_better": false
+  },
+  "output_dir": "/ext_data/casper/whisper_runs/output_dir_whisper_medium_shona_specaug_mild_stage3_6000_seed42",
+  "resources": {
+    "min_free_gpu_mb": 20000,
+    "min_free_disk_gb": 40
+  },
+  "wandb": {
+    "project": "whisper-shona-multilingual",
+    "run_name": "whisper-medium-shona-specaug-mild-stage3-6000-seed42",
+    "job_type": "training-continuation",
+    "tags": ["whisper-medium", "shona", "waxal", "specaugment", "mild", "stage-3", "6000-steps", "seed-42"],
+    "watch": "false",
+    "log_model": "false",
+    "resume_run_id": null
+  }
+}
