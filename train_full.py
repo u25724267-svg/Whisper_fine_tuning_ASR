@@ -87,6 +87,8 @@ def write_run_manifest(
         "validation_manifest": resolve_path(data_config["validation_manifest"]),
         "test_manifest": resolve_path(data_config["test_manifest"]),
     }
+    for name, path in data_config.get("evaluation_manifests", {}).items():
+        source_paths[f"evaluation_manifest_{name}"] = resolve_path(path)
     local_model_path = resolve_path(config["model"]["id"])
     if local_model_path.is_dir():
         for filename in ("model.safetensors", "config.json", "generation_config.json"):
@@ -180,6 +182,38 @@ def load_local_data(data_config: Dict[str, Any]) -> DatasetDict:
     return dataset
 
 
+def load_evaluation_data(data_config: Dict[str, Any]) -> DatasetDict:
+    evaluation_manifests = data_config.get("evaluation_manifests", {})
+    if not evaluation_manifests:
+        return DatasetDict()
+
+    manifest_paths = {
+        name: resolve_path(path) for name, path in evaluation_manifests.items()
+    }
+    missing_manifests = [str(path) for path in manifest_paths.values() if not path.is_file()]
+    if missing_manifests:
+        raise FileNotFoundError(f"Missing evaluation manifests: {missing_manifests}")
+
+    audio_column = data_config["audio_column"]
+    text_column = data_config["text_column"]
+    evaluation_splits = {}
+    for split_name, manifest_path in manifest_paths.items():
+        split_dataset = load_dataset(
+            "json", data_files={split_name: str(manifest_path)}
+        )[split_name]
+        missing_audio = [path for path in split_dataset[audio_column] if not Path(path).is_file()]
+        empty_text = [text for text in split_dataset[text_column] if not str(text).strip()]
+        if missing_audio or empty_text:
+            raise ValueError(
+                f"Invalid {split_name} data: {len(missing_audio)} missing audio files, "
+                f"{len(empty_text)} empty transcripts"
+            )
+        evaluation_splits[split_name] = split_dataset.cast_column(
+            audio_column, Audio(sampling_rate=data_config["sampling_rate"])
+        )
+    return DatasetDict(evaluation_splits)
+
+
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: Any
@@ -259,10 +293,16 @@ def main() -> None:
 
     load_environment(require_api_key=not args.dry_run, wandb_config=wandb_config)
     dataset = load_local_data(data_config)
+    evaluation_dataset = load_evaluation_data(data_config)
     print(
         f"Loaded {len(dataset['train'])} train, {len(dataset['validation'])} validation, "
         f"and {len(dataset['test'])} test examples"
     )
+    if evaluation_dataset:
+        print(
+            "Additional evaluation splits: "
+            + ", ".join(f"{name}={len(split)}" for name, split in evaluation_dataset.items())
+        )
 
     processor = WhisperProcessor.from_pretrained(
         model_config["id"],
@@ -286,6 +326,8 @@ def main() -> None:
 
     if args.dry_run:
         prepared = prepare_dataset(dataset["train"][0])
+        for split in evaluation_dataset.values():
+            prepare_dataset(split[0])
         print(
             f"Dry run passed: {len(prepared['input_features'])} mel bins, "
             f"{len(prepared['attention_mask'])} mask frames, {len(prepared['labels'])} label tokens, "
@@ -312,6 +354,14 @@ def main() -> None:
         keep_in_memory=data_config.get("keep_preprocessed_in_memory", False),
         desc="Extracting Whisper features",
     )
+    if evaluation_dataset:
+        evaluation_dataset = evaluation_dataset.map(
+            prepare_dataset,
+            remove_columns=next(iter(evaluation_dataset.values())).column_names,
+            num_proc=1,
+            keep_in_memory=data_config.get("keep_preprocessed_in_memory", False),
+            desc="Extracting additional evaluation features",
+        )
 
     metric = evaluate.load("wer")
 
@@ -392,6 +442,11 @@ def main() -> None:
     test_metrics = trainer.evaluate(dataset["test"], metric_key_prefix="test")
     trainer.log_metrics("test", test_metrics)
     trainer.save_metrics("test", test_metrics)
+
+    for split_name, split_dataset in evaluation_dataset.items():
+        split_metrics = trainer.evaluate(split_dataset, metric_key_prefix=split_name)
+        trainer.log_metrics(split_name, split_metrics)
+        trainer.save_metrics(split_name, split_metrics)
 
     trainer.save_model()
     processor.save_pretrained(output_dir)

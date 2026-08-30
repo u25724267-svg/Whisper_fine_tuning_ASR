@@ -82,3 +82,23 @@ zero-shot performance on the same test manifest:
 
 The evaluator reports raw and normalized WER for the full test split and for
 the subset whose speakers never appear in training, and saves every prediction.
+
+## Combined WAXAL and FLEURS Shona experiment
+
+Prepare the pinned Google FLEURS `sn_zw` corpus, apply the same ASR text
+normalization to FLEURS and WAXAL, and launch the reproducible Whisper Base run:
+
+```bash
+./run_waxal_fleurs.sh
+```
+
+The preparation step lowercases text, removes Unicode punctuation, numbers,
+symbols, and control characters, and collapses whitespace. It preserves the
+official train, validation, and test boundaries and writes corpus-specific and
+combined manifests plus hashes and dataset provenance under
+`/ext_data/casper/whisper_data/waxal_fleurs/sna_asr`.
+
+The experiment uses the original Whisper Base three-epoch hyperparameters and
+the existing `whisper-shona-multilingual` W&B project. Final metrics are saved
+for the combined data and separately for WAXAL and FLEURS validation and test
+splits.
