@@ -37,9 +37,10 @@ treatments use a separate runner and shared tested sampler modules.
 
 | Item | Status | Evidence or blocker |
 |---|---|---|
-| Speaker-disjoint Shona protocol | Complete | Split summary and manifests under `/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v1` |
-| RQ1-C0 random control, seed 42 | Running | Central output contains checkpoint 3,000; final metrics are not yet available |
-| Item-level prediction exporter | Not started | Required before C0 is analysis-complete |
+| Speaker-disjoint Shona protocol v1 | Diagnostic only | Zero overlap, but one speaker supplies 51.1% of validation and one supplies 35.1% of test |
+| RQ1-C0 random control, seed 42 | Diagnostic pilot complete | Validation 30.1819%, test 28.2441%; checkpoint 6,000 restored although training reached 6,891 |
+| Item-level prediction exporter | Complete | C0 validation/test predictions and hashes are stored with the run |
+| Speaker-disjoint Shona protocol v2 | Not started | Must constrain held-out speaker concentration before confirmatory training |
 | Acoustic metadata for new splits | Not started | Required before C2, C3, C4, and C7 |
 | Static curriculum runner | Not started | Required before C1-C4/C4R |
 | Dynamic curriculum runner | Not started | Required before C5-C7 |
@@ -48,16 +49,18 @@ treatments use a separate runner and shared tested sampler modules.
 
 ## Immediate engineering sequence
 
-1. Allow C0 to finish and preserve its output unchanged.
-2. Build a standalone evaluator that saves validation/test IDs, speakers,
-   references, predictions, and word/character error counts.
-3. Run the evaluator on C0 and hash its prediction artifacts.
-4. Compute or verify duration, SNR proxy, active-speech ratio, and audio hashes
+1. Preserve the diagnostic C0 output unchanged.
+2. Build speaker-disjoint protocol v2 with balanced rows/hours and a maximum
+  20% contribution from any held-out speaker.
+3. Configure evaluation and saving at epoch boundaries so the final epoch is
+  always eligible for best-model selection.
+4. Rerun C0 on protocol v2 and export item-level predictions.
+5. Compute or verify duration, SNR proxy, active-speech ratio, and audio hashes
    for every speaker-disjoint row.
-5. Implement and test the shared curriculum sampler interface.
-6. Validate exact coverage, deterministic ordering, score-to-ID alignment,
+6. Implement and test the shared curriculum sampler interface.
+7. Validate exact coverage, deterministic ordering, score-to-ID alignment,
    epoch transitions, and unchanged validation/test behavior.
-7. Launch C1 only after these checks pass.
+8. Launch C1 only after these checks pass.
 
 ## RQ1 curriculum screen
 
