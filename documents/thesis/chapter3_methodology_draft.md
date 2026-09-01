@@ -170,13 +170,15 @@ expanded using English assumptions.
 
 ### 3.3.5 Experimental data protocols
 
-Three related data protocols appeared across the experiments:
+Five related data protocols appeared across the experiments:
 
 | Protocol | Purpose | Train | Validation | Test |
 |---|---|---:|---:|---:|
 | Archival cleaned protocol | Earlier model and dynamic-curriculum experiments | 13,343 | 1,620 | 1,635 |
 | SDE-normalized full protocol | Reproducible baselines and augmentation | 13,799 | 1,683 | 1,711 |
 | SDE curriculum-ready protocol | Static cumulative curriculum | 13,206 | 1,683 | 1,711 |
+| Speaker-disjoint v1 | Diagnostic confirmatory-phase pilot | 13,778 | 1,696 | 1,719 |
+| Speaker-disjoint v2 | Confirmatory curriculum experiments | 13,807 | 1,715 | 1,671 |
 
 The archival protocol read separate `*.cleaned.json` manifests and then retained
 audio between 0.1 and 30 seconds. It predates the SDE-normalized protocol and is
@@ -217,6 +219,14 @@ spoken by speakers represented during training. The reported experiments
 therefore measure in-domain recognition more strongly than generalization to
 unseen speakers. A speaker-disjoint split is required before making claims about
 speaker-independent generalization.
+
+The first speaker-disjoint assignment achieved zero overlap but concentrated
+51.1% of validation rows in one speaker and 35.1% of test rows in one speaker.
+It was therefore retained as a diagnostic pilot rather than the confirmatory
+protocol. Version 2 used 113 training, 24 validation, and 24 test speakers and
+constrained any held-out speaker to at most 20% of split rows and hours. Its
+largest realized row shares were 19.5% in validation and 17.2% in test, with
+zero speaker overlap across all splits.
 
 ### 3.3.8 Related-language speech
 
@@ -579,6 +589,15 @@ optimizer steps; Base used epoch-based evaluation in the original baseline and
 effects were interpreted only against the same model size and data protocol.
 Changes smaller than 0.5 absolute WER points were predeclared as requiring
 additional evidence rather than being treated as practically meaningful.
+
+All confirmatory curriculum runs evaluate and save at epoch boundaries. This
+ensures that the final epoch is eligible for best-model selection and prevents
+mid-epoch checkpoints from representing systematically different exposure under
+random and easy-to-hard schedules. For the v2 Base protocol, epoch checkpoints
+occur at optimizer steps 2,302, 4,604, and 6,906. All three are retained, and
+the checkpoint with the lowest validation WER is used for final test prediction.
+Curriculum score state and the next epoch order are stored with curriculum
+checkpoints; exact resume is supported only at epoch boundaries.
 
 The seed-42 curriculum screen is used only to remove clearly unpromising
 strategies. Confirmatory comparisons use seeds 42, 43, and 44, shared across

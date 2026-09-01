@@ -21,9 +21,11 @@ its data-quality gate passes.
 
 - Primary screen model: pinned multilingual `openai/whisper-base`.
 - Confirmation model: Whisper Medium only after a replicated Base effect.
-- Shona protocol: `waxal_shona_speaker_disjoint_v1`.
-- Split sizes: 13,778 train, 1,696 validation, and 1,719 test utterances.
-- Speaker counts: 129 train, 16 validation, and 16 test, with zero overlap.
+- Shona protocol: `waxal_shona_speaker_disjoint_v2`.
+- Split sizes: 13,807 train, 1,715 validation, and 1,671 test utterances.
+- Speaker counts: 113 train, 24 validation, and 24 test, with zero overlap.
+- Maximum held-out speaker share: 20% of rows and hours.
+- Evaluation and saving: epoch boundaries; all three checkpoints retained.
 - Confirmatory seeds: 42, 43, and 44.
 - Existing W&B project: `whisper-shona-multilingual`.
 - Output root: `/ext_data/casper/asr_experiment_outputs`.
@@ -40,7 +42,9 @@ treatments use a separate runner and shared tested sampler modules.
 | Speaker-disjoint Shona protocol v1 | Diagnostic only | Zero overlap, but one speaker supplies 51.1% of validation and one supplies 35.1% of test |
 | RQ1-C0 random control, seed 42 | Diagnostic pilot complete | Validation 30.1819%, test 28.2441%; checkpoint 6,000 restored although training reached 6,891 |
 | Item-level prediction exporter | Complete | C0 validation/test predictions and hashes are stored with the run |
-| Speaker-disjoint Shona protocol v2 | Not started | Must constrain held-out speaker concentration before confirmatory training |
+| Speaker-disjoint Shona protocol v2 | Complete | Maximum speaker row share is 19.5% validation and 17.2% test; zero overlap |
+| RQ1-C0 v2 random control, seed 42 | Complete | Validation 32.5262%, test 31.3400%; epoch 3 selected and item predictions exported |
+| Matched non-disjoint diagnostic | Running | Uses official overlapping manifests with the same epoch-checkpoint policy |
 | Acoustic metadata for new splits | Not started | Required before C2, C3, C4, and C7 |
 | Static curriculum runner | Not started | Required before C1-C4/C4R |
 | Dynamic curriculum runner | Not started | Required before C5-C7 |
@@ -50,17 +54,14 @@ treatments use a separate runner and shared tested sampler modules.
 ## Immediate engineering sequence
 
 1. Preserve the diagnostic C0 output unchanged.
-2. Build speaker-disjoint protocol v2 with balanced rows/hours and a maximum
-  20% contribution from any held-out speaker.
-3. Configure evaluation and saving at epoch boundaries so the final epoch is
-  always eligible for best-model selection.
-4. Rerun C0 on protocol v2 and export item-level predictions.
-5. Compute or verify duration, SNR proxy, active-speech ratio, and audio hashes
+2. Run the full C0-v2 dry-run and launch it through its standalone script.
+3. Export and hash C0-v2 item-level predictions after training.
+4. Compute or verify duration, SNR proxy, active-speech ratio, and audio hashes
    for every speaker-disjoint row.
-6. Implement and test the shared curriculum sampler interface.
-7. Validate exact coverage, deterministic ordering, score-to-ID alignment,
+5. Implement and test the shared curriculum sampler interface.
+6. Validate exact coverage, deterministic ordering, score-to-ID alignment,
    epoch transitions, and unchanged validation/test behavior.
-8. Launch C1 only after these checks pass.
+7. Launch C1 only after these checks pass.
 
 ## RQ1 curriculum screen
 
