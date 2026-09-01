@@ -102,3 +102,10 @@ The experiment uses the original Whisper Base three-epoch hyperparameters and
 the existing `whisper-shona-multilingual` W&B project. Final metrics are saved
 for the combined data and separately for WAXAL and FLEURS validation and test
 splits.
+
+Run the FLEURS-only Whisper Base control baseline with the established
+1,000-step evaluation protocol:
+
+```bash
+./run_fleurs_only.sh
+```
