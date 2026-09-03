@@ -23,6 +23,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument(
+        "--output-dir",
+        type=Path,
+        help="Prediction artifact directory; defaults to MODEL_DIR/item_predictions.",
+    )
+    parser.add_argument(
         "--splits",
         nargs="+",
         default=["validation", "test"],
@@ -68,16 +73,28 @@ def main() -> None:
     model_config = config["model"]
     data_config = config["data"]
     training_config = config["training"]
-    output_dir = model_dir / "item_predictions"
-    if output_dir.exists():
-        raise FileExistsError(f"Prediction output already exists: {output_dir}")
-    output_dir.mkdir(parents=True)
-
-    processor = WhisperProcessor.from_pretrained(
-        model_dir,
-        language=model_config["language"],
-        task=model_config["task"],
+    output_dir = (
+        args.output_dir.expanduser().resolve()
+        if args.output_dir
+        else model_dir / "item_predictions"
     )
+    if output_dir.exists() and any(output_dir.iterdir()):
+        raise FileExistsError(f"Prediction output already exists: {output_dir}")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        processor = WhisperProcessor.from_pretrained(
+            model_dir,
+            language=model_config["language"],
+            task=model_config["task"],
+        )
+    except OSError:
+        processor = WhisperProcessor.from_pretrained(
+            model_config["id"],
+            revision=model_config["revision"],
+            language=model_config["language"],
+            task=model_config["task"],
+        )
     model = WhisperForConditionalGeneration.from_pretrained(model_dir)
     model.generation_config.language = model_config["language"]
     model.generation_config.task = model_config["task"]

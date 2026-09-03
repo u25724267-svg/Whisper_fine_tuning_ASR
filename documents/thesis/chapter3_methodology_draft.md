@@ -8,16 +8,15 @@
 
 ## 3.1 Introduction
 
-This chapter describes the methodology used to investigate curriculum learning
-for automatic speech recognition (ASR) in Shona, a comparatively low-resource
-African language. The study used pretrained multilingual speech models and
-evaluated whether controlling the order and difficulty of training examples
-could improve recognition performance. The methodology was organized around a
-sequence of experimental conditions rather than the chronological order in
-which the experiments were conducted. A conventional fine-tuning baseline was
-first established, after which curriculum-learning strategies, data
-augmentation, multilingual transfer, and proposed pseudo-labeling were treated
-as separate experimental factors.
+This chapter describes completed exploratory work and the preregistered
+confirmatory methodology for curriculum learning in automatic speech recognition
+(ASR) for Shona, a comparatively low-resource African language. Completed work
+used pretrained multilingual speech models to examine whether controlling the
+order and difficulty of training examples could improve recognition. The
+confirmatory methodology is organized around experimental conditions rather
+than chronology. It covers conventional fine-tuning, curriculum learning,
+synthetic augmentation, cross-language transfer, and a pseudo-labeling study
+that remains contingent on identifying suitable unlabelled Shona speech.
 
 Two generations of experiments contributed to the study. The first was an
 exploratory, notebook-based investigation containing model-scaling,
@@ -56,14 +55,28 @@ The methodology was guided by four research questions:
 - **RQ4:** To what extent can confidence-filtered pseudo-labeling improve Shona
   ASR performance beyond an otherwise matched supervised system?
 
-The experimental logic was therefore:
+Construction and validation of the speaker-disjoint data protocol is a
+precondition for the confirmatory sequence. The experimental logic is therefore:
 
-1. establish a non-curriculum baseline on one fixed Shona data protocol;
-2. compare static acoustic, dynamic model-based, and hybrid curriculum
+1. freeze the speaker-disjoint manifests, normalization, and acoustic metadata;
+2. establish a non-curriculum baseline on that fixed Shona protocol;
+3. compare static acoustic, dynamic model-based, and hybrid curriculum
   strategies;
-3. cross the selected curriculum with one fixed synthetic augmentation policy;
-4. transfer the frozen Shona curriculum to Tshivenda; and
-5. evaluate pseudo-labelled speech using the selected supervised system.
+4. cross the selected curriculum with one fixed synthetic augmentation policy;
+5. transfer the frozen Shona curriculum to Tshivenda; and
+6. evaluate pseudo-labelled speech if the unlabelled-data gate passes.
+
+```mermaid
+flowchart LR
+  A[Data audit and speaker-disjoint protocol] --> B[Random baseline]
+  B --> C[Static and dynamic curriculum screen]
+  C --> D[Three-seed confirmation]
+  D --> E[Curriculum and waveform augmentation factorial]
+  D --> F[Shona-to-Tshivenda transfer]
+  D --> G{Unlabelled Shona gate}
+  G -->|Pass| H[Pseudo-labeling comparison]
+  G -->|Fail| I[Feasibility result]
+```
 
 Only comparisons in which the model, dataset, training budget, random seed,
 decoding configuration, and evaluation split were held constant were interpreted
@@ -71,8 +84,12 @@ as controlled comparisons. Earlier archival runs that changed more than one of
 these factors were retained as exploratory evidence but were not used to make
 causal claims about curriculum learning. Most completed experiments used one
 random seed (42). The new confirmatory experiments therefore use seeds 42, 43,
-and 44. Small differences are not interpreted as conclusive without replication
-and paired uncertainty estimates.
+and 44, which are shared across conditions as a paired design. Three seeds are
+the minimum used here to expose gross run-to-run instability and provide a
+non-degenerate empirical spread; inferential claims rely primarily on paired
+item-level uncertainty rather than the seed sample alone. Small differences are
+not interpreted as conclusive without replication and paired uncertainty
+estimates.
 
 ## 3.3 Dataset and Data Preparation
 
@@ -189,6 +206,12 @@ and 9.93 hours of test speech. The curriculum-ready training subset excluded
 them separately for audit rather than deleting them. No additional record met
 the hard rejection rules after silence trimming and normalization.
 
+The 593-record exclusion belongs only to the exploratory static cumulative
+experiment. Confirmatory speaker-disjoint protocols pool the complete
+SDE-normalized manifests and do not inherit that exclusion. Consequently,
+legacy cumulative results and confirmatory curriculum results use different
+training populations and are not direct replications.
+
 Before model training, the newer pipeline verified that every referenced audio
 file existed and every transcription was non-empty. SHA-256 hashes of all three
 manifests were stored in each run manifest.
@@ -228,17 +251,48 @@ constrained any held-out speaker to at most 20% of split rows and hours. Its
 largest realized row shares were 19.5% in validation and 17.2% in test, with
 zero speaker overlap across all splits.
 
-### 3.3.8 Related-language speech
+### 3.3.8 Speaker-disjoint split construction
+
+Speaker-disjoint construction pooled the three original normalized WAXAL
+manifests and grouped all 17,193 utterances by speaker before assignment. No
+speaker group was divided. Version 1 evaluated 20,000 seeded random assignments
+and minimized imbalance in split row counts and durations. Its concentration
+failure motivated version 2, which evaluated 50,000 assignments with 24 speakers
+allocated to each held-out split.
+
+For candidate assignment $a$, with target split proportion $r_k$, row count
+$n_k(a)$, duration in hours $h_k(a)$, total rows $N$, and total duration $H$,
+the optimization objective was
+
+$$
+J(a)=\sum_{k\in\{\mathrm{train,val,test}\}}
+\left[
+\left(\frac{n_k(a)-r_kN}{r_kN}\right)^2+
+\left(\frac{h_k(a)-r_kH}{r_kH}\right)^2
+\right].
+$$
+
+Only candidates in which no validation or test speaker contributed more than
+20% of that split's rows or hours were eligible. The minimum-objective eligible
+assignment produced 13,807 training, 1,715 validation, and 1,671 test
+utterances, with 113, 24, and 24 speakers respectively. Assertions verified
+complete utterance coverage, unique utterance IDs, existing audio, non-empty
+text, and zero speaker overlap. Source and output manifests, assignments,
+constraints, and hashes were stored in the protocol summary.
+
+### 3.3.9 Related-language speech
 
 Exploratory multilingual experiments supplemented Shona with Tshivenda and
-isiZulu speech from the African Next Voices dataset. Auxiliary-language records
-were retained when their duration was between 1 and 30 seconds, their character
-rate was between 1 and 25 characters per second, their word rate did not exceed
-four words per second, and their transcription was non-empty. The two-language
-training set contained 36,286 examples. The three-language set contained 53,186
-examples and approximately 75.60 hours of Shona, 100.00 hours of Tshivenda, and
-89.19 hours of recoverable isiZulu speech. These multilingual experiments were
-exploratory and were not curriculum-learning controls.
+isiZulu speech from a corpus referred to in the notebooks as African Next
+Voices; its formal published title and primary citation must be verified before
+submission. Auxiliary-language records were retained when their duration was
+between 1 and 30 seconds, their character rate was between 1 and 25 characters
+per second, their word rate did not exceed four words per second, and their
+transcription was non-empty. The two-language training set contained 36,286
+examples. The three-language set contained 53,186 examples and approximately
+75.60 hours of Shona, 100.00 hours of Tshivenda, and 89.19 hours of recoverable
+isiZulu speech. These multilingual experiments were exploratory and were not
+curriculum-learning controls.
 
 The exploratory multilingual notebooks did not constitute a curriculum-transfer
 experiment. In particular, the training and evaluation language prompts were not
@@ -248,7 +302,7 @@ curriculum, and a Tshivenda-derived curriculum. Because Whisper does not provide
 a dedicated Tshivenda language token, the same documented language-neutral
 decoder prefix is used in every Tshivenda condition.
 
-### 3.3.9 FLEURS out-of-domain evaluation data
+### 3.3.10 FLEURS out-of-domain evaluation data
 
 The Shona configuration (`sn_zw`) of Google FLEURS contains 2,463 training, 393
 validation, and 925 test utterances. FLEURS is read speech from a different
@@ -257,14 +311,26 @@ natural out-of-domain evaluation corpus for RQ2. No FLEURS utterance is included
 in the confirmatory RQ2 training data or used to select its curriculum or
 augmentation hyperparameters.
 
+The corrected FLEURS protocol uses the WAXAL text contract: Unicode NFC
+normalization, case-folding, standardized apostrophes and dashes, retention of
+letters, Unicode numbers, combining marks, and apostrophes, replacement of other
+punctuation and symbols with spaces, and whitespace collapse. The original
+transcription is retained separately.
+
 An initial exploratory preparation removed digits as well as punctuation. This
 affected 531 FLEURS training records and created potential mismatches where a
 spoken number had been deleted from its target. Runs made with that preparation
-are retained as pilots but excluded from confirmatory comparisons. The corrected
-FLEURS protocol uses the WAXAL text contract: Unicode NFC normalization,
-case-folding, standardized apostrophes and dashes, retention of letters, digits,
-and apostrophes, replacement of other punctuation and symbols with spaces, and
-whitespace collapse. The original transcription is retained separately.
+are retained as pilots but excluded from confirmatory comparisons. The initial
+manifests also reused sentence IDs for multiple recordings. Version 2 assigns a
+unique audio-derived utterance ID while retaining the earlier ID and source
+sentence ID as provenance fields.
+
+All 3,781 official utterances and their split memberships were retained. An
+audit verified 16 kHz mono audio, exact manifest durations, unique utterance
+IDs, no duplicate audio within or across FLEURS splits, and no decoded-PCM audio
+overlap with WAXAL. The corrected manifests and audit are frozen before model
+comparison; no FLEURS corpus metric is inspected until the RQ1 curriculum choice
+is fixed using WAXAL validation only.
 
 ## 3.4 Baseline ASR Model
 
@@ -283,6 +349,15 @@ and the default suppressed-token list were cleared consistently across the
 controlled runs. Predictions were generated greedily with a maximum sequence
 length of 225 tokens.
 
+Each pretrained checkpoint was also eligible for zero-shot evaluation before
+fine-tuning, using the same manifests, language/task prompt, decoding limit, and
+text contract as its fine-tuned counterpart. Greedy decoding was fixed across
+controlled conditions because it is deterministic, computationally cheaper than
+beam search, and avoids introducing a decoding-search factor into training
+comparisons. The study does not claim equivalence with beam search; any decoding
+sensitivity analysis is reported separately and is not used to select training
+conditions.
+
 The normalized baseline protocol fine-tuned each model for three epochs using a
 learning rate of $1 \times 10^{-5}$, 500 warm-up steps, FP16 precision, gradient
 checkpointing, and an effective batch size of six. Base used a physical batch
@@ -293,10 +368,10 @@ best checkpoint.
 
 The model-scaling experiments established the appropriate capacity for later
 experiments; differences between model sizes were not attributed to curriculum
-or augmentation. A `facebook/wav2vec2-base` CTC system was also trained in the
-legacy archive as a secondary architectural benchmark. Its text normalization
-and CTC objective differed from the Whisper protocol, so its WER was used only
-as contextual evidence rather than a direct controlled comparison.
+or augmentation. A legacy `facebook/wav2vec2-base` CTC system and an incomplete
+XLS-R attempt are treated as contextual archival evidence because architecture
+comparison is not a research question and their text and optimization protocols
+differed from the confirmatory Whisper protocol.
 
 ## 3.5 Curriculum Learning Framework
 
@@ -354,6 +429,15 @@ for confirmation, a single preregistered sensitivity condition using weights
 0.3 and 0.7 is evaluated to determine whether the conclusion depends strongly
 on the equal-weight choice. No broader coefficient sweep is performed.
 
+The two-signal confirmatory score is intentionally different from the legacy
+four-signal static score below. It isolates the two acoustic variables named in
+the confirmatory ablation, limits researcher degrees of freedom, and excludes
+the transcript-derived word-rate deviation. Active-speech ratio remains an
+audited quality variable and evaluation slice but is not part of the primary
+confirmatory ranking score. Confirmatory SNR ordering, joint ordering, cumulative
+C4 pacing, and the acoustic component of C7 all use the two-signal definition;
+the four-signal definition is retained only to describe the archival static run.
+
 ### 3.5.1 Static cumulative curriculum
 
 The static curriculum was constructed from the SDE-normalized training data.
@@ -397,10 +481,24 @@ s_i^{\mathrm{S2S}} =
 \frac{-\sum_{t=1}^{T_i}\log p_\theta(y_{i,t}\mid y_{i,<t},x_i)}{d_i}.
 $$
 
+The S2S-margin name is retained for continuity with the archival experiments,
+but the operational quantity is duration-normalized sequence negative
+log-likelihood rather than a margin between competing hypotheses. Scores are
+captured online during each example's training forward pass, before the
+corresponding optimizer update, rather than by rescoring the complete training
+set from one frozen epoch-boundary checkpoint. The resulting ranking is
+therefore intentionally model-dependent and path-dependent.
+
 At the next epoch boundary, examples were ranked from lower to higher score,
-with duration and original index used as deterministic tie-breakers. Scores
-were recomputed as the model changed, making this a dynamic, model-dependent
-curriculum.
+with duration, utterance ID, and original index used as deterministic
+tie-breakers. Scores were recomputed as the model changed, making this a
+dynamic, model-dependent curriculum.
+
+Duration ordering in the first epoch was an intentional bootstrap choice in the
+archival implementation because no model-derived score yet existed. In the
+confirmatory C5 and C7 conditions, epoch 1 instead uses the same seeded random
+order as C0 while collecting S2S scores. This prevents the dynamic treatment
+from inheriting the SortaGrad intervention tested separately in C1.
 
 ### 3.5.4 WER-margin curriculum
 
@@ -419,6 +517,11 @@ Scores were min-max normalized within the completed scoring period and used to
 rank the next epoch. This method more directly represented recognition
 difficulty than duration, but it added generation overhead to training.
 
+Confirmatory C6 also uses the C0 seeded random order in epoch 1 while collecting
+WER scores. Its computational overhead is measured directly as GPU time and
+wall-clock time relative to C0 rather than assumed in advance. Cost-effectiveness
+is reported alongside recognition performance.
+
 ### 3.5.5 Uniform difficulty mixing
 
 The dynamic margin curricula divided the ranked examples into easy, medium, and
@@ -428,6 +531,10 @@ tiers. Of the replacement examples, 40% came from the medium tier and 60% from
 the hard tier. With 13,343 examples, this injected approximately 356 medium and
 533 hard examples into the early portion of each completed epoch. Sampling used
 a deterministic seed.
+
+Uniform difficulty mixing is an archival regularizer only. Confirmatory C5, C6,
+and C7 use strict deterministic ordering without the 20% exchange so that the
+difficulty criterion remains the only changed factor.
 
 The archival curriculum experiments are valuable for comparing candidate
 mechanisms, but they do not form a complete causal ablation because training
@@ -452,6 +559,8 @@ remain interpretable under this outcome and are not presented as attempts to
 rescue a preferred curriculum conclusion.
 
 ## 3.6 Data Augmentation
+
+### 3.6.1 Feature-level augmentation
 
 Feature-level augmentation was investigated using SpecAugment applied to Whisper's
 log-Mel input features. Time warping was omitted; only time masking and frequency
@@ -483,17 +592,11 @@ training schedule, effective batch size, decoding, and evaluation fixed. A mild
 always-on policy was completed for Base and Medium, and the Base mixed policy
 was also completed. A stronger literature-derived policy was configured but
 should not be described as executed unless run artifacts are confirmed.
+Exploratory Medium continuation stages and their outcomes are reported in
+Chapter 4 because continuation is not part of the confirmatory curriculum or
+augmentation design.
 
-An exploratory continuation study was also performed after the three-epoch
-Medium mild-SpecAugment run. The selected model was first trained for 2,000
-additional optimizer steps with a learning rate of $2 \times 10^{-6}$ and 100
-warm-up steps. It was then trained for a further 6,000 steps with a learning
-rate of $5 \times 10^{-7}$ and 100 warm-up steps. Both stages retained the same
-effective batch size of six and the same always-on mild augmentation policy.
-Because the parent checkpoints contained model weights but not optimizer and
-scheduler states, each continuation used a fresh AdamW optimizer and linear
-schedule. These stages were therefore treated as new optimization phases, not
-exact resumptions of the original trajectory.
+### 3.6.2 Synthetic waveform augmentation for RQ2
 
 RQ2 uses synthetic waveform augmentation rather than treating SpecAugment as
 synthetic audio. The planned policy combines additive non-speech noise at a
@@ -507,8 +610,11 @@ $2\times2$ factorial: conventional clean training, curriculum only,
 augmentation only, and curriculum plus augmentation. Model initialization,
 training data, total updates, batch size, optimizer, seed set, decoding, and
 checkpoint selection are identical across cells. SpecAugment is disabled in all
-four cells so that the interaction estimates waveform augmentation specifically.
-The FLEURS test split is evaluated only after all choices are frozen.
+four cells so that the interaction estimates waveform augmentation specifically
+without introducing a third augmentation factor. Stacking SpecAugment with the
+selected waveform policy is reserved as a later sensitivity analysis only if the
+factorial first establishes a benefit. The FLEURS test split is evaluated only
+after all choices are frozen.
 
 ## 3.7 Pseudo-Labeling
 
@@ -524,6 +630,13 @@ for an unlabelled speech pool. The unlabelled pool must first be checked for
 audio duplication and speaker overlap with the validation and test sets. Test
 audio must never enter teacher selection, confidence-threshold selection, or
 student training.
+
+No suitable unlabelled Shona corpus has yet been selected. Candidate sources are
+not named as committed study data until their language composition, licensing,
+speaker metadata, recording provenance, and usable duration have been verified.
+Failure to identify at least 20--40 usable hours after filtering is reported as
+a feasibility outcome rather than bypassed by treating labelled WAXAL or FLEURS
+speech as unlabelled.
 
 For each unlabelled utterance $x_j$, the teacher generates a deterministic
 transcription $\hat{y}_j$ from unaugmented audio and a length-normalized token
@@ -543,7 +656,11 @@ The pseudo-label study proceeds only if a licensed Shona pool remains large
 enough after deduplication and filtering to provide a meaningful addition to the
 gold corpus. A stratified manual audit estimates label error across sources,
 durations, and confidence ranges before student training. Gold examples retain
-at least equal sampling weight, and the initial pseudo-label loss weight is 0.5.
+at least equal sampling weight. The initial pseudo-label loss weight of 0.5 is a
+conservative preregistered starting value intended to reduce the influence of
+noisy targets; it is not treated as a universal literature-derived optimum. If
+the filtered condition improves validation performance, weights 0.25 and 1.0
+form a limited sensitivity analysis without test-based tuning.
 
 The RQ4 comparison contains a gold-only control, gold plus unfiltered
 pseudo-labels, gold plus confidence-filtered labels, and an optional
@@ -560,20 +677,20 @@ errors.
 
 The experiments were organized into the following matrix:
 
-| Family | Conditions | Protocol | Evidential role |
-|---|---|---|---|
-| Model baseline | Whisper Tiny, Base, Small, Medium, Large, Large-v3 | Legacy | Exploratory capacity study |
-| Reproducible baseline | Whisper Base, Medium, Large; three epochs | Normalized | Non-curriculum reference |
-| Static curriculum | Cumulative tiers v1 and v2 | Legacy | Exploratory curriculum |
-| Ordering curriculum | SortaGrad | Legacy | Exploratory curriculum |
-| Dynamic curriculum | S2S-M and WER-M | Legacy | Exploratory strategy comparison |
-| CTC baseline | Wav2Vec2 Base; partial XLS-R | Legacy | Secondary architecture benchmark |
-| Multilingual transfer | Shona+Tshivenda; Shona+Tshivenda+isiZulu | Legacy | Exploratory transfer study |
-| Augmentation | Clean, always-on mild, 50/50 mixed | Normalized | Controlled augmentation study |
-| RQ1 curriculum screen | Shuffle, SortaGrad, SNR, SNR-duration, cumulative, C4R random pacing, S2S-M, WER-M, hybrid | Fixed confirmatory protocol | In progress |
-| RQ2 curriculum + synthesis | $2\times2$ curriculum-by-waveform-augmentation factorial | WAXAL train; WAXAL and FLEURS evaluation | Planned |
-| RQ3 curriculum transfer | Tshivenda random, Shona-derived, Tshivenda-derived | Fixed Tshivenda protocol | Planned |
-| RQ4 pseudo-labeling | Gold, unfiltered, filtered, confidence-paced | Fixed after unlabelled corpus selection | Planned |
+| Family | Conditions | Protocol | Status | Evidential role |
+|---|---|---|---|---|
+| Model baseline | Whisper Tiny, Base, Small, Medium, Large, Large-v3 | Legacy | Completed and partial runs | Exploratory capacity study |
+| Reproducible baseline | Whisper Base, Medium, Large; three epochs | Normalized | Completed | Non-curriculum reference |
+| Static curriculum | Cumulative tiers v1 and v2 | Legacy | Completed | Exploratory curriculum |
+| Ordering curriculum | SortaGrad | Legacy | Partial | Exploratory curriculum |
+| Dynamic curriculum | S2S-M and WER-M | Legacy | Completed | Exploratory strategy comparison |
+| CTC baseline | Wav2Vec2 Base; partial XLS-R | Legacy | Mixed | Contextual architecture evidence |
+| Multilingual transfer | Shona+Tshivenda; Shona+Tshivenda+isiZulu | Legacy | Completed pilots | Exploratory transfer study |
+| Feature augmentation | Clean, always-on mild, 50/50 mixed | Normalized | Completed and configured runs | Controlled SpecAugment study |
+| RQ1 curriculum screen | Shuffle, SortaGrad, SNR, SNR-duration, cumulative, C4R random pacing, S2S-M, WER-M, hybrid | Fixed confirmatory protocol | In progress | Primary confirmatory study |
+| RQ2 curriculum + synthesis | $2\times2$ curriculum-by-waveform-augmentation factorial | WAXAL train; WAXAL and FLEURS evaluation | Planned | Confirmatory interaction study |
+| RQ3 curriculum transfer | Tshivenda random, Shona-derived, Tshivenda-derived | Fixed Tshivenda protocol | Planned | Confirmatory transfer study |
+| RQ4 pseudo-labeling | Gold, unfiltered, filtered, confidence-paced | Fixed after unlabelled corpus selection | Contingent | Confirmatory or feasibility study |
 
 For controlled experiments, the validation set was evaluated periodically and
 the checkpoint with the lowest validation WER was selected. The test set was
@@ -618,6 +735,17 @@ references, predictions, and per-item error counts for validation and test.
 These artifacts are produced by a standalone post-training evaluator when the
 training runner does not emit predictions directly. A run is not considered
 analysis-complete until these prediction files and their hashes are present.
+The implemented evaluator is `evaluate_predictions.py`; it writes separate
+validation and test JSONL files plus a hash-bearing summary.
+
+Based on observed runs on one RTX 4090, a Whisper Base condition requires
+approximately 0.6--1.0 GPU hours including periodic evaluation, while a Whisper
+Medium condition requires approximately 2.5--3.0 GPU hours. The seed-42 RQ1
+screen therefore requires approximately 6--10 GPU hours before additional
+WER-M decoding overhead. The planned confirmatory program excluding
+pseudo-label generation is expected to require roughly 40--60 GPU hours. Actual
+runtime, preprocessing, evaluation, and failed-run costs are reported from run
+manifests rather than replaced by these planning estimates.
 
 ## 3.9 Evaluation Metrics
 
@@ -654,7 +782,19 @@ speaker-disjoint evaluation before making generalization claims.
 
 Character error rate was reported as a secondary metric because Shona and
 Tshivenda are morphologically rich and word-level errors may obscure smaller
-orthographic improvements. RQ1 additionally reports WER and CER by duration and
+orthographic improvements. It was calculated as
+
+$$
+\mathrm{CER}=\frac{S_c+D_c+I_c}{N_c}\times 100\%,
+$$
+
+where $S_c$, $D_c$, $I_c$, and $N_c$ are character substitutions, deletions,
+insertions, and reference characters. WER and CER are computed by summing edit
+counts over the complete corpus or analysis slice. Single-word references are
+retained without special treatment; per-utterance error percentages are not
+averaged because doing so would give short references disproportionate weight.
+
+RQ1 additionally reports WER and CER by duration and
 SNR quartile and convergence against optimizer updates and audio hours seen.
 RQ2 reports clean WAXAL, corrupted WAXAL, and natural OOD FLEURS performance.
 RQ3 reports the transfer efficiency
@@ -665,7 +805,10 @@ $$
 {\mathrm{WER}_{\mathrm{random}}-\mathrm{WER}_{\mathrm{Tshivenda\ native}}},
 $$
 
-when the denominator is positive. RQ4 reports retained pseudo-labelled hours,
+when the denominator is positive. If the Tshivenda-native curriculum does not
+beat random and the denominator is zero or negative, transfer efficiency is
+reported as undefined; the random, transferred, and native WERs and their paired
+differences are reported directly. RQ4 reports retained pseudo-labelled hours,
 estimated label error, insertion/deletion/substitution rates, empty-output rate,
 and repeated n-grams in addition to downstream WER and CER.
 
@@ -693,13 +836,14 @@ recorded package versions, Python and PyTorch versions, CUDA availability, GPU
 model, effective seed, training duration, and output directory. W&B logging was
 restricted to an approved existing project.
 
-The confirmatory phase additionally used one standalone experiment directory
-per run and a centralized output root. The original baseline trainer was kept
-unchanged for the random control. Static and dynamic curriculum treatments use
-a separate curriculum runner with tested sampler and epoch-boundary scoring
-interfaces. Before SNR-dependent runs, duration, SNR proxy, and active-speech
-metadata are recomputed or verified for every speaker-disjoint manifest row;
-missing, duplicate, or non-finite values cause preflight failure.
+The confirmatory phase currently uses one standalone experiment directory per
+run and a centralized output root. The original baseline trainer remains
+unchanged for random controls, and the standalone item-prediction evaluator is
+implemented. Planned static and dynamic treatments will use a separate
+curriculum runner with tested sampler and epoch-boundary scoring interfaces.
+Before SNR-dependent runs begin, duration, SNR proxy, and active-speech metadata
+will be recomputed or verified for every speaker-disjoint manifest row; missing,
+duplicate, or non-finite values will cause preflight failure.
 
 The archival notebook experiments predated this infrastructure. Their methods
 were reconstructed from notebook source cells, saved `trainer_state.json`
@@ -708,6 +852,20 @@ trainer-state files were treated as stronger evidence than displayed notebook
 outputs because some notebooks contained stale or copied output cells. Runs
 interrupted by out-of-memory errors or manual termination were identified as
 partial rather than completed experiments.
+
+### 3.10.1 Licensing and ethical considerations
+
+FLEURS is distributed under CC-BY 4.0, and its required attribution is retained
+in study records. Public availability alone is not treated as proof that every
+corpus permits the intended processing or redistribution. Before confirmatory
+use, the exact WAXAL and related-language release terms, attribution
+requirements, consent statements, and any institutional ethical-review
+requirements will be verified and cited from their primary documentation.
+Audio and manifests are stored on access-controlled research infrastructure and
+are not redistributed through model-output directories. Speaker identifiers
+are used only to prevent split leakage and support clustered evaluation; the
+study does not attempt speaker identification or infer unprovided demographic
+attributes.
 
 ## 3.11 Chapter Summary
 
@@ -719,10 +877,12 @@ defined static acoustic, dynamic model-based, and hybrid curricula. The revised
 design tests curriculum effects in Shona, interaction with synthetic waveform
 augmentation under OOD evaluation, transfer to Tshivenda, and confidence-filtered
 pseudo-labeling. WER is the primary metric, supplemented by CER, difficulty
-slices, item-level errors, and paired uncertainty estimates. Severe speaker
-overlap in WAXAL v1, mostly single-seed historical runs, inconsistent archival
-budgets, the flawed exploratory FLEURS normalization, and the absence of a
-validated unlabelled Shona pool remain explicit constraints on final claims.
+slices, item-level errors, and paired uncertainty estimates. The optimized
+speaker-disjoint protocol is a positive methodological contribution that
+replaces the leakage-prone official split for confirmatory generalization
+analysis. Mostly single-seed historical runs, inconsistent archival budgets,
+the flawed exploratory FLEURS normalization, and the absence of a validated
+unlabelled Shona pool remain explicit constraints on final claims.
 
 ## Author Notes Before Final Submission
 
@@ -735,7 +895,8 @@ validated unlabelled Shona pool remain explicit constraints on final claims.
 - Transfer the verified Base 50/50 and Medium Stage-3 outcomes to Chapter 4.
 - Freeze the SNR estimator, speaker-disjoint splits, and corrected FLEURS
   manifests before confirmatory training.
-- Export and hash item-level predictions for C0 before comparative analysis.
+- Continue exporting and hashing item-level predictions for every confirmatory
+  run before comparative analysis.
 - Treat C4R as a required pacing control rather than an optional follow-up.
 - Validate the curriculum sampler and per-example score alignment before C1-C7.
 - Run the matched RQ1 curriculum screen and replicate only selected strategies.

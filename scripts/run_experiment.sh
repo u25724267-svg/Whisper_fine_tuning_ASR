@@ -29,6 +29,26 @@ if value.is_absolute() or ".." in value.parts or str(value) in {"", "."}:
     raise SystemExit("output_dir must be a non-empty relative path without ..")
 print(value)
 ' "$CONFIG_FILE")"
+runner="$($PYTHON -c '
+import json
+import sys
+
+runner = json.load(open(sys.argv[1])).get("runner", "train_full.py")
+allowed = {
+    "train_full.py",
+    "train_s2s_curriculum.py",
+    "train_snr_curriculum.py",
+    "train_sortagrad.py",
+}
+if runner not in allowed:
+    raise SystemExit(f"Unsupported experiment runner: {runner}")
+print(runner)
+' "$CONFIG_FILE")"
+RUNNER_FILE="$ROOT_DIR/$runner"
+if [[ ! -f "$RUNNER_FILE" ]]; then
+    echo "Experiment runner not found at $RUNNER_FILE" >&2
+    exit 1
+fi
 OUTPUT_DIR="$ASR_OUTPUT_ROOT/$relative_output"
 LOG_DIR="$OUTPUT_DIR/logs"
 WANDB_DIR="$OUTPUT_DIR/wandb"
@@ -76,7 +96,7 @@ train_command=(
     "WANDB_DIR=$WANDB_DIR"
     "$PYTHON"
     -u
-    "$ROOT_DIR/train_full.py"
+    "$RUNNER_FILE"
     --config "$CONFIG_FILE"
     --output-dir "$OUTPUT_DIR"
 )
@@ -89,6 +109,7 @@ tmux set-window-option -t "$SESSION_NAME" remain-on-exit on >/dev/null
 
 echo "Started experiment: $SESSION_NAME"
 echo "Config: $CONFIG_FILE"
+echo "Runner: $RUNNER_FILE"
 echo "Output: $OUTPUT_DIR"
 echo "Log: $LOG_FILE"
 echo "Attach: tmux attach -t $SESSION_NAME"

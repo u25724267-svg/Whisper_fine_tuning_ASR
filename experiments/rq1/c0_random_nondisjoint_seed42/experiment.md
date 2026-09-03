@@ -28,11 +28,34 @@ cannot replace the speaker-disjoint control for generalization claims.
 
 ## Status
 
-Launched on 2026-09-01 in tmux session
-`rq1-c0-random-nondisjoint-seed42`.
+Completed on 2026-09-01.
 
 - Output: `/ext_data/casper/asr_experiment_outputs/rq1/c0_random_nondisjoint_seed42`
 - Log: `/ext_data/casper/asr_experiment_outputs/rq1/c0_random_nondisjoint_seed42/logs/train.log`
+- Best checkpoint: epoch 2, step 4,600
+- Validation WER: 29.2918%
+- Test WER: 28.7307%
+- Item-level validation WER/CER: 29.2995% / 6.6919%
+- Item-level test WER/CER: 28.7232% / 6.2297%
 
-Results must not be added until metric and item-prediction artifacts are
-present.
+Metric and hashed item-prediction artifacts are present.
+
+## Comparison and interpretation
+
+| Run | Validation WER | Test WER |
+|---|---:|---:|
+| Original official-split Base | 29.0647% | 28.4893% |
+| Matched official-split diagnostic | 29.2918% | 28.7307% |
+| Speaker-disjoint C0-v2 | 32.5262% | 31.3400% |
+
+The matched official-split diagnostic differs from the original baseline by
+only +0.2271 validation and +0.2414 test WER points, both below the
+preregistered 0.5-point practical threshold. Relative to the matched diagnostic,
+speaker-disjoint v2 is higher by 3.2343 validation and 2.6093 test points.
+
+This strongly supports the speaker-disjoint protocol as the source of the
+performance disparity rather than model, optimizer, or checkpointing drift.
+The difference should be interpreted as the combined effect of evaluating
+unseen speakers and changing the held-out speaker composition, not as a pure
+causal estimate of speaker familiarity. The official-split run remains a
+secondary in-domain benchmark; C0-v2 remains the confirmatory RQ1 control.
