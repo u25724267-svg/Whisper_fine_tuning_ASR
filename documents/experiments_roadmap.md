@@ -108,7 +108,17 @@ Replication execution is sequential. C0 seed 43 is complete with item-level
 validation/test WER 33.4422/30.7891. C3 seed 43 is complete with item-level
 validation/test WER 32.8368/30.4564; all model and prediction hashes exactly
 match C3 seed 42 because strict ordering and zero dropout make its seed inactive.
-C5 seed 43 is running on W&B run `1710akai`.
+C5 seed 43 is complete with item-level validation/test WER 33.6891/32.6201,
+including a 1.8310-point test degradation versus C0 seed 43. C0 seed 44 is
+complete with item-level validation/test WER 32.7572/30.9887. C5 seed 44, the
+final planned RQ1 training replication, is complete with item-level
+validation/test WER 34.1963/31.4118.
+
+RQ1 aggregate analysis is complete. C3 is selected for the RQ2 curriculum
+factor: mean test improvement 0.5882 WER points across matched C0 seeds, with a
+mean validation improvement of 0.0690 points. C5 is rejected after mean test and
+validation degradations of 0.7381 and 1.0010 points. The frozen analysis is in
+`documents/rq1_final_analysis.md`.
 
 After C5 seed-43 item evaluation, run C0 seed 44 and C5 seed 44. Do not spend a
 third full run on C3 seed 44 under the unchanged deterministic definition; reuse
@@ -163,6 +173,16 @@ three seeds; with valid reuse, six newly trained augmented runs remain.
 Evaluation includes speaker-disjoint WAXAL, fixed corrupted WAXAL variants, and
 corrected FLEURS as natural OOD speech. FLEURS test is opened only after the
 augmentation policy and curriculum choice are frozen.
+
+The RQ2 policy is frozen as `rq2-waveform-mild-v1` using Apache-2.0 SLR28
+point-source noises and simulated RIRs. Seed-42 materialization passed the full
+13,807-row audit. A2 seed 42 ran on W&B run `e4dwoxn2`; SpecAugment was disabled
+and clean validation/test audio was unchanged.
+
+A2 seed-42 training completed with Trainer validation/test WER
+33.1687/31.5875; item-level export is pending because another user's process
+currently occupies the GPU. A3 seed 42 is fully validated and reproduces the
+frozen C3 order hash `86ff768edcc8`; it launches only after A2 is fully closed.
 
 ## RQ3 Shona-to-Tshivenda curriculum transfer
 

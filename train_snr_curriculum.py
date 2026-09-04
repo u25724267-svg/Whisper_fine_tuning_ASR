@@ -120,11 +120,17 @@ class CumulativePacingTrainer(Seq2SeqTrainer):
 
 
 def load_train_snr(path: Path, train_ids: list[str]) -> list[float]:
+    return load_train_metadata_field(path, train_ids, "snr_proxy_db")
+
+
+def load_train_metadata_field(
+    path: Path, train_ids: list[str], field_name: str
+) -> list[float]:
     if not path.is_file():
         raise FileNotFoundError(f"Missing acoustic metadata: {path}")
     with path.open(encoding="utf-8", newline="") as source:
         rows = [row for row in csv.DictReader(source) if row["split"] == "train"]
-    by_id = {str(row["id"]): float(row["snr_proxy_db"]) for row in rows}
+    by_id = {str(row["id"]): float(row[field_name]) for row in rows}
     if len(by_id) != len(rows):
         raise ValueError("Acoustic metadata contains duplicate training IDs")
     missing = [utterance_id for utterance_id in train_ids if utterance_id not in by_id]
@@ -182,7 +188,17 @@ def main() -> None:
     dataset = load_local_data(data_config)
     evaluation_dataset = load_evaluation_data(data_config)
     train_ids = [str(utterance_id) for utterance_id in dataset["train"]["id"]]
-    train_durations = [float(duration) for duration in dataset["train"]["duration"]]
+    duration_source = curriculum_config.get("duration_source", "train_manifest")
+    if duration_source == "train_manifest":
+        train_durations = [
+            float(duration) for duration in dataset["train"]["duration"]
+        ]
+    elif duration_source == "acoustic_metadata_manifest_duration":
+        train_durations = load_train_metadata_field(
+            metadata_path, train_ids, "manifest_duration"
+        )
+    else:
+        raise ValueError(f"Unsupported curriculum duration source: {duration_source}")
     snr_values = load_train_snr(metadata_path, train_ids)
     snr_percentiles = percentile_ranks(snr_values)
     duration_percentiles = percentile_ranks(train_durations)

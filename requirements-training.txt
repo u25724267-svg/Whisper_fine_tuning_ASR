@@ -6,6 +6,7 @@ jiwer==3.0.4
 librosa==0.11.0
 numpy==1.26.4
 python-dotenv==1.0.1
+scipy==1.15.3
 soundfile==0.14.0
 tensorboard==2.18.0
 torch==2.5.1

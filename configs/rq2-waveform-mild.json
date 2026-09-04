@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "name": "rq2-waveform-mild-v1",
+  "sampling_rate": 16000,
+  "noise": {
+    "probability": 0.5,
+    "snr_db_min": 10.0,
+    "snr_db_max": 25.0,
+    "asset_glob": "pointsource_noises/*.wav"
+  },
+  "rir": {
+    "probability": 0.3,
+    "asset_glob": "simulated_rirs/**/*.wav",
+    "preserve_length": true
+  },
+  "speed": {
+    "probability": 0.5,
+    "factors": [0.9, 1.1]
+  },
+  "peak_limit": 0.99,
+  "transform_order": ["speed", "rir", "noise", "anti_clipping"],
+  "asset_archive_sha256": "3b50cfde915b3984738169b4beb341e9f6b8062ae4c2076146c5db71c2c05dc7"
+}

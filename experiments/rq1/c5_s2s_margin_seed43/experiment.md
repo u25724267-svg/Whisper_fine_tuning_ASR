@@ -29,3 +29,10 @@ or CUDA errors.
 - W&B run: `1710akai`
 - Output: `/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43`
 - Log: `/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/logs/train.log`
+
+Training, final Trainer evaluation, and hashed item-level prediction export
+completed successfully.
+
+- Validation WER/CER: 33.6891 / 7.9079
+- Test WER/CER: 32.6201 / 8.1526
+- Test WER change versus C0 seed 43: 1.8310 points worse

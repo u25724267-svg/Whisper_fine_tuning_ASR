@@ -605,6 +605,14 @@ perturbation. Transform parameters and random seeds are recorded per utterance.
 Validation, WAXAL test, and FLEURS audio remain unmodified; fixed corrupted WAXAL
 test sets are generated separately for robustness analysis.
 
+The frozen primary policy uses the Apache-2.0 OpenSLR SLR28 point-source noise
+and simulated-RIR subsets. Additive noise is applied with probability 0.5 at a
+target SNR sampled uniformly from 10 to 25 dB, simulated RIR convolution with
+probability 0.3, and speed perturbation with probability 0.5 using 0.9 or 1.1
+with equal probability. Transform order is speed, RIR, noise, then anti-clipping
+gain. A seed-specific immutable training set and parameter audit are generated
+before training; full asset and manifest hashes are retained.
+
 The selected curriculum is crossed with this one fixed waveform policy in a
 $2\times2$ factorial: conventional clean training, curriculum only,
 augmentation only, and curriculum plus augmentation. Model initialization,
