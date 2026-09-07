@@ -49,7 +49,7 @@ treatments use a separate runner and shared tested sampler modules.
 | Static curriculum runner | Complete | C1-C4/C4R implemented with audited epoch orders |
 | Dynamic curriculum runner | S2S and WER implemented | C5 running; C6 validated and ready |
 | Corrected FLEURS OOD protocol | Complete and locked | All 3,781 rows retained; numbers restored, IDs unique, and zero WAXAL audio overlap |
-| Licensed unlabelled Shona pool | Not selected | Blocks RQ4 pseudo-label training |
+| Licensed unlabelled Shona pool | WAXAL candidate selected | `sna_asr/unlabeled`, CC-BY-SA-4.0, 85,384 rows; download and admission audit pending |
 
 ## Immediate engineering sequence
 
@@ -179,14 +179,26 @@ point-source noises and simulated RIRs. Seed-42 materialization passed the full
 13,807-row audit. A2 seed 42 ran on W&B run `e4dwoxn2`; SpecAugment was disabled
 and clean validation/test audio was unchanged.
 
-A2 seed-42 training completed with Trainer validation/test WER
-33.1687/31.5875; item-level export is pending because another user's process
-currently occupies the GPU. A3 seed 42 is fully validated and reproduces the
-frozen C3 order hash `86ff768edcc8`; it launches only after A2 is fully closed.
+All six newly trained A2/A3 runs for seeds 42--44 are complete with hashed
+item-level predictions. All 18 matched speaker-bootstrap comparisons and the
+descriptive factorial aggregate are complete. The primary decision is frozen:
+`rq2-waveform-mild-v1` is not promoted, and clean C3 remains the selected
+supervised condition. Mean validation WER was 32.9058 (A0), 32.8368 (A1),
+33.0607 (A2), and 33.0351 (A3). Augmentation changed validation WER by -0.1549
+points without curriculum and -0.1983 points with C3; the interaction was
+-0.0434 points. See `documents/rq2_final_analysis.md` for uncertainty results
+and the A1 reuse limitation. After this decision was frozen, corrected FLEURS
+validation/test inference completed for all 10 distinct A0--A3 checkpoints.
+Mean FLEURS test WER was 58.3099 (A0), 59.2294 (A1), 59.4879 (A2), and 60.1009
+(A3); these OOD results do not rescue augmentation. Corrupted-WAXAL remains
+unimplemented and cannot alter the primary decision.
 
 ## RQ3 Shona-to-Tshivenda curriculum transfer
 
 The curriculum is selected using Shona only and frozen before Tshivenda runs.
+No licensed Tshivenda corpus is present in the local data roots, and Google
+FLEURS does not provide Tshivenda. RQ3 training remains blocked on corpus
+selection and preparation; no substitute language is used silently.
 
 | ID | Tshivenda condition |
 |---|---|
@@ -214,6 +226,23 @@ and gold plus confidence-filtered pseudo-labels. Confidence-paced training is
 added only if filtering already improves the student. Gold exposure and total
 optimizer updates are matched across conditions. If the gate fails, RQ4 is
 reported as a feasibility study or removed before final submission.
+
+The pinned WAXAL `sna_asr/unlabeled` candidate is now under admission audit. The
+bounded 1,000-row inventory passed: all rows were Shona, all transcriptions were
+empty, all audio headers were valid, and 104 nonempty speaker IDs were observed.
+The original full stream stalled on CDN reads and was replaced by a resumable
+shard-by-shard audit. The replacement completed all 52 shards and 85,384 rows:
+475.71 hours, 219 nonempty speaker IDs, no non-Shona rows, no nonempty
+transcriptions, no invalid audio headers, and no duplicate IDs or compressed
+audio hashes. The immutable summary SHA-256 is
+`7d09f69262272411b2823d402976d71beccb3808189836fb3f9cc0360821cf79`.
+The model-independent admission builder is running in detached tmux session
+`rq4-admission-v1`. It computes canonical decoded-PCM hashes, removes gold and
+FLEURS overlap, excludes validation/test speakers, applies the 1--30 second
+duration gate, and checkpoints each source shard. Teacher inference remains
+blocked until its immutable summary passes. The reviewed proxy-agreement method
+and proposed student controls are frozen in
+`documents/data/rq4_pseudolabel_method_review.md`.
 
 ## Analysis and decision rules
 

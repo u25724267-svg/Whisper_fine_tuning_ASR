@@ -1,0 +1,94 @@
+{
+  "research_question": "RQ2",
+  "experiment_id": "rq2-a2-waveform-random-seed43",
+  "hypothesis": "Mild waveform augmentation improves clean and out-of-distribution ASR relative to matched clean random training.",
+  "control_experiment": "rq1-c0-random-seed43-v2",
+  "experiment_name": "rq2-a2-waveform-random-seed43",
+  "model": {
+    "id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "curriculum": {
+    "type": "random",
+    "sampler": "transformers_random_sampler"
+  },
+  "augmentation": {
+    "type": "none",
+    "enabled": false
+  },
+  "waveform_augmentation": {
+    "enabled": true,
+    "materialized": true,
+    "policy": "configs/rq2-waveform-mild.json",
+    "policy_name": "rq2-waveform-mild-v1",
+    "policy_sha256": "b50d74488cdc2aa9e9a5886dae21ebb23a4ab9a647bc8bc6fea326f0916e4def",
+    "asset_archive_sha256": "3b50cfde915b3984738169b4beb341e9f6b8062ae4c2076146c5db71c2c05dc7",
+    "train_manifest_sha256": "f69965ec6b870c17f1388f8deae62b5c28b3f32ebb33e9249c2310c0fcd3cbfe",
+    "parameters_sha256": "1349b617532a5d522f6b51c8bb20f7c0e221cf96548e292323466297f25617ff",
+    "materialization_seed": 43,
+    "specaugment_enabled": false
+  },
+  "data": {
+    "protocol": "waxal_shona_speaker_disjoint_v2_rq2_waveform_mild_seed43",
+    "protocol_summary": "/ext_data/casper/asr_data/rq2_waveform_mild_seed43/summary.json",
+    "train_manifest": "/ext_data/casper/asr_data/rq2_waveform_mild_seed43/train.jsonl",
+    "validation_manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/validation.jsonl",
+    "test_manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/test.jsonl",
+    "audio_column": "audio_filepath",
+    "text_column": "text",
+    "sampling_rate": 16000,
+    "keep_preprocessed_in_memory": true
+  },
+  "training": {
+    "num_train_epochs": 3.0,
+    "seed": 43,
+    "per_device_train_batch_size": 6,
+    "per_device_eval_batch_size": 6,
+    "gradient_accumulation_steps": 1,
+    "learning_rate": 1e-05,
+    "warmup_steps": 500,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_kwargs": {
+      "use_reentrant": false
+    },
+    "fp16": true,
+    "full_determinism": true,
+    "eval_strategy": "epoch",
+    "predict_with_generate": true,
+    "generation_max_length": 225,
+    "save_strategy": "epoch",
+    "save_total_limit": 3,
+    "logging_steps": 250,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "wer",
+    "greater_is_better": false
+  },
+  "output_dir": "rq2/a2_waveform_random_seed43",
+  "resources": {
+    "min_free_gpu_mb": 20000,
+    "min_free_disk_gb": 8
+  },
+  "wandb": {
+    "project": "whisper-shona-multilingual",
+    "run_name": "rq2-a2-waveform-random-seed43",
+    "job_type": "waveform-augmentation-replication",
+    "tags": [
+      "rq2",
+      "a2",
+      "waveform-augmentation",
+      "random",
+      "whisper-base",
+      "shona",
+      "speaker-disjoint-v2",
+      "seed-43",
+      "replication"
+    ],
+    "watch": "false",
+    "log_model": "false",
+    "resume_run_id": null
+  }
+}

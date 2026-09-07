@@ -23,3 +23,17 @@ and SNR ranks from the clean acoustic metadata.
 Validated and ready on 2026-09-04. The full 13,807-row augmented-data dry run
 passed and reproduced C3's clean-order hash `86ff768edcc8`. Not launched;
 waiting for A2 seed-42 item evaluation and GPU availability.
+
+Updated on 2026-09-06: A3 launched as the sole CUDA workload and progressed
+beyond optimizer step 35 without data, curriculum, runtime, or CUDA errors.
+
+- W&B project: `whisper-shona-multilingual`
+- W&B run: `nda2m164`
+- Output: `/ext_data/casper/asr_experiment_outputs/rq2/a3_waveform_c3_seed42`
+- Log: `/ext_data/casper/asr_experiment_outputs/rq2/a3_waveform_c3_seed42/logs/train.log`
+
+Training, final Trainer evaluation, and hashed item-level prediction export
+completed successfully.
+
+- Validation WER/CER: 33.0705 / 7.7326
+- Test WER/CER: 31.3639 / 7.2139

@@ -40,6 +40,11 @@ progressed beyond optimizer step 200 without data, runtime, or CUDA errors.
 - Output: `/ext_data/casper/asr_experiment_outputs/rq2/a2_waveform_random_seed42`
 - Log: `/ext_data/casper/asr_experiment_outputs/rq2/a2_waveform_random_seed42/logs/train.log`
 
+Hashed item-level validation/test export completed. Compared with C0 seed 42,
+the test WER change was -0.2635 points with a speaker-clustered 95% interval of
+[-1.2848, 0.5120]; this is practically unresolved and does not support a clean
+WAXAL benefit from waveform augmentation alone.
+
 Training and final Trainer evaluation completed successfully on 2026-09-04.
 Hashed item-level prediction export is pending GPU availability.
 

@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -30,8 +31,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--splits",
         nargs="+",
-        default=["validation", "test"],
+        default=None,
         choices=["validation", "test"],
+    )
+    parser.add_argument(
+        "--manifest",
+        action="append",
+        default=[],
+        metavar="NAME=PATH",
+        help=(
+            "Evaluate an arbitrary named manifest. Repeat for multiple manifests. "
+            "When supplied without --splits, only named manifests are evaluated."
+        ),
     )
     return parser.parse_args()
 
@@ -60,6 +71,38 @@ def error_metrics(references: List[str], predictions: List[str]) -> Dict[str, fl
     }
 
 
+def evaluation_manifests(
+    split_names: List[str] | None,
+    manifest_arguments: List[str],
+    data_config: Dict[str, Any],
+) -> List[tuple[str, Path]]:
+    selected_splits = (
+        split_names
+        if split_names is not None
+        else ([] if manifest_arguments else ["validation", "test"])
+    )
+    manifests = [
+        (split_name, Path(data_config[f"{split_name}_manifest"]).expanduser().resolve())
+        for split_name in selected_splits
+    ]
+    for argument in manifest_arguments:
+        if "=" not in argument:
+            raise ValueError(f"Manifest must use NAME=PATH syntax: {argument}")
+        name, value = argument.split("=", 1)
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", name):
+            raise ValueError(f"Invalid manifest name: {name}")
+        manifests.append((name, Path(value).expanduser().resolve()))
+    names = [name for name, _ in manifests]
+    if len(names) != len(set(names)):
+        raise ValueError("Evaluation manifest names must be unique")
+    for name, path in manifests:
+        if not path.is_file():
+            raise FileNotFoundError(f"Missing evaluation manifest '{name}': {path}")
+    if not manifests:
+        raise ValueError("At least one split or named manifest is required")
+    return manifests
+
+
 def main() -> None:
     args = parse_args()
     config_path = args.config.expanduser().resolve()
@@ -73,6 +116,9 @@ def main() -> None:
     model_config = config["model"]
     data_config = config["data"]
     training_config = config["training"]
+    manifests = evaluation_manifests(
+        args.splits, args.manifest, data_config
+    )
     output_dir = (
         args.output_dir.expanduser().resolve()
         if args.output_dir
@@ -142,8 +188,7 @@ def main() -> None:
         "splits": {},
     }
 
-    for split_name in args.splits:
-        manifest_path = Path(data_config[f"{split_name}_manifest"]).expanduser().resolve()
+    for split_name, manifest_path in manifests:
         dataset = load_dataset(
             "json", data_files={split_name: str(manifest_path)}
         )[split_name]

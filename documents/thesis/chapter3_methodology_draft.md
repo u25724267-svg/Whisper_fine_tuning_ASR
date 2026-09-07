@@ -380,6 +380,15 @@ examples so that optimization begins with examples considered easier and
 progressively incorporates more difficult material. Let the labelled training
 set be
 
+This easy-to-hard principle follows Bengio et al. (2009). Duration-based
+ordering follows the SortaGrad precedent in Deep Speech 2 (Amodei et al.,
+2016), while static acoustic, model-loss, recognition-error, and pacing
+criteria are motivated by Braun et al. (2017), Kuznetsova et al. (2022), and
+Karakasidis et al. (2022, 2024). Except for the close C1 SortaGrad transfer,
+the conditions below are literature-informed adaptations rather than direct
+replications. The condition-by-condition classification and primary source list
+are recorded in `documents/rq1_rq2_literature_defensibility.md`.
+
 $$
 \mathcal{D} = \{(x_i, y_i, d_i)\}_{i=1}^{N},
 $$
@@ -412,6 +421,10 @@ $$
 s_{i,e}^{\mathrm{hybrid}} =
 0.5s_i^{\mathrm{acoustic}}+0.5q_{i,e}^{\mathrm{S2S}}.
 $$
+
+The percentile transformations, equal weights, and strict every-epoch C3
+ordering are study-specific operational choices. No cited source establishes
+this exact composite as an optimal ASR difficulty function.
 
 A strict curriculum presents examples from lower to higher score with utterance
 ID as the final deterministic tie-breaker. It does not use length grouping,
@@ -468,6 +481,8 @@ During the first epoch, examples were stably ordered from shortest to longest.
 Subsequent epochs used seeded random permutations. No examples were removed or
 oversampled. This strategy tested whether presenting shorter utterances first
 could stabilize early optimization without repeatedly imposing a curriculum.
+It closely transfers the Deep Speech 2 SortaGrad algorithm to Whisper, but does
+not claim architectural replication of that CTC-style system.
 
 ### 3.5.3 Sequence-to-sequence margin curriculum
 
@@ -488,6 +503,11 @@ captured online during each example's training forward pass, before the
 corresponding optimizer update, rather than by rescoring the complete training
 set from one frozen epoch-boundary checkpoint. The resulting ranking is
 therefore intentionally model-dependent and path-dependent.
+
+This criterion adapts the model-loss curricula of Karakasidis et al. rather
+than reproducing them: duration normalization, online pre-update collection,
+strict no-mixing order, and the Whisper sequence-to-sequence model are local
+design choices.
 
 At the next epoch boundary, examples were ranked from lower to higher score,
 with duration, utterance ID, and original index used as deterministic
@@ -516,6 +536,10 @@ counts for utterance $i$, and $N_i$ is the number of words in its reference.
 Scores were min-max normalized within the completed scoring period and used to
 rank the next epoch. This method more directly represented recognition
 difficulty than duration, but it added generation overhead to training.
+
+Utterance WER is the closest direct dynamic criterion to Karakasidis et al.,
+but greedy Whisper decoding and removal of their uniform difficulty-mixing
+regularizer make C6 an implementation adaptation.
 
 Confirmatory C6 also uses the C0 seeded random order in epoch 1 while collecting
 WER scores. Its computational overhead is measured directly as GPU time and
@@ -548,11 +572,12 @@ SNR-only ordering, joint SNR-duration ordering, cumulative acoustic tiers, its
 mandatory random-pacing control C4R, S2S-M, WER-M, and the acoustic-plus-S2S
 hybrid. Only the strongest static and dynamic strategies are repeated with seeds
 43 and 44. Whisper Base is used for screening; promotion to Whisper Medium
-occurs only after a replicated effect.
+occurs only after an improvement that is consistent across additional training
+seeds and paired uncertainty analyses.
 
 The null outcome is specified in advance. If no curriculum produces a
-replicated improvement over conventional shuffle and the paired uncertainty
-intervals include a negligible effect, RQ1 is answered as evidence that the
+consistent improvement over conventional shuffle across validation, additional
+seeds, and paired uncertainty analyses, RQ1 is answered as evidence that the
 investigated curricula do not materially improve Whisper fine-tuning under this
 speaker-disjoint low-resource protocol. Augmentation and transfer experiments
 remain interpretable under this outcome and are not presented as attempts to
@@ -600,18 +625,24 @@ augmentation design.
 
 RQ2 uses synthetic waveform augmentation rather than treating SpecAugment as
 synthetic audio. The planned policy combines additive non-speech noise at a
-recorded target SNR, room-impulse-response convolution, and mild speed
+recorded target SNR, room-impulse-response convolution, and mild tempo
 perturbation. Transform parameters and random seeds are recorded per utterance.
 Validation, WAXAL test, and FLEURS audio remain unmodified; fixed corrupted WAXAL
 test sets are generated separately for robustness analysis.
 
-The frozen primary policy uses the Apache-2.0 OpenSLR SLR28 point-source noise
-and simulated-RIR subsets. Additive noise is applied with probability 0.5 at a
+The transform families follow established ASR augmentation work: Ko et al.
+(2015) motivate 0.9/1.0/1.1 factors, and Ko et al. (2017) and OpenSLR SLR28
+provide the basis for simulated-RIR and point-source-noise augmentation. The
+frozen primary policy uses the Apache-2.0 SLR28 point-source noise and
+simulated-RIR subsets. Additive noise is applied with probability 0.5 at a
 target SNR sampled uniformly from 10 to 25 dB, simulated RIR convolution with
-probability 0.3, and speed perturbation with probability 0.5 using 0.9 or 1.1
-with equal probability. Transform order is speed, RIR, noise, then anti-clipping
-gain. A seed-specific immutable training set and parameter audit are generated
-before training; full asset and manifest hashes are retained.
+probability 0.3, and pitch-preserving tempo perturbation with probability 0.5
+using factors 0.9 or 1.1 with equal probability. Transform order is tempo, RIR,
+noise, then anti-clipping gain. These probabilities, the 10--25 dB range,
+one-view materialization, asset subset, and composition order are frozen
+study-specific choices, not literature-established optima. A seed-specific
+immutable training set and parameter audit are generated before training; full
+asset and manifest hashes are retained.
 
 The selected curriculum is crossed with this one fixed waveform policy in a
 $2\times2$ factorial: conventional clean training, curriculum only,
@@ -639,12 +670,15 @@ audio duplication and speaker overlap with the validation and test sets. Test
 audio must never enter teacher selection, confidence-threshold selection, or
 student training.
 
-No suitable unlabelled Shona corpus has yet been selected. Candidate sources are
-not named as committed study data until their language composition, licensing,
-speaker metadata, recording provenance, and usable duration have been verified.
-Failure to identify at least 20--40 usable hours after filtering is reported as
-a feasibility outcome rather than bypassed by treating labelled WAXAL or FLEURS
-speech as unlabelled.
+The `unlabeled` split of `google/WaxalNLP` configuration `sna_asr` is selected as
+the candidate source at pinned revision
+`5f4d8ca24f2b9d168b2ee545f1febaaff4b40580`. The dataset server reports 85,384
+rows, and the Shona provider data are released under CC-BY-SA-4.0. Selection as
+a candidate does not imply admission: language composition, absent
+transcriptions, speaker metadata, recording provenance, decoded-audio overlap,
+and usable duration must be audited first. Failure to retain at least 20--40
+usable hours after filtering is reported as a feasibility outcome rather than
+bypassed by treating labelled WAXAL or FLEURS speech as unlabelled.
 
 For each unlabelled utterance $x_j$, the teacher generates a deterministic
 transcription $\hat{y}_j$ from unaugmented audio and a length-normalized token
