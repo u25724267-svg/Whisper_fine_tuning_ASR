@@ -16,7 +16,7 @@ fixed-budget CER-consensus study while remaining feasible on one RTX 4090.
 
 | Study | Method | Evidence | Decision for RQ4 |
 |---|---|---|---|
-| Waheed et al., uDistil-Whisper, NAACL 2025 | Proxy WER against SeamlessM4T, SONAR similarity, confidence, entropy, NLL, or PESQ | Proxy AUC 0.82 and SONAR 0.77 versus confidence 0.68; demonstrated on Swahili | Adopt proxy agreement; do not use confidence alone |
+| Waheed et al., uDistil-Whisper, NAACL 2025 | Proxy WER against SeamlessM4T, SONAR similarity, confidence, entropy, NLL, or PESQ | For the true-WER-above-80% target, proxy AUC 0.82 and SONAR 0.77 versus confidence 0.68 | Adopt proxy agreement; do not transfer the 80% target or a proxy threshold without Shona calibration |
 | Rangappa et al., Interspeech 2025 | Average pairwise CER among Whisper, Zipformer, and Parakeet; retain CER below 5% | A selected 100 hours matched or exceeded full 1,800--7,500 hour training | Adopt fixed-budget character agreement, but calibrate a Shona threshold |
 | Khurana et al., DUST, ICASSP 2021 | One deterministic and three dropout hypotheses; retain when maximum normalized edit distance is below 0.3 | Recovered 60--80% of the supervised-domain gap | Do not reproduce strict DUST: the frozen Whisper teacher has zero dropout |
 | Park et al., Improved Noisy Student, Interspeech 2020 | Iterative, development-calibrated confidence filtering plus stronger student augmentation | Strong LibriSpeech gains | Reuse calibration principle only; full multi-generation TPU recipe is infeasible and RQ2 augmentation was negative |
@@ -36,7 +36,7 @@ fixed-budget CER-consensus study while remaining feasible on one RTX 4090.
 3. Generate deterministic greedy Shona transcripts from unaugmented audio and
    record token probabilities, no-speech probability, output length, repetition,
    compression ratio, and speaking rate.
-4. Apply fixed hallucination gates, then create a speaker-capped 100-hour
+4. Apply calibrated hallucination gates, then create a speaker-capped 160-hour
    shortlist using teacher confidence.
 5. Run SeamlessM4T-v2 Shona ASR only on the shortlist. Its CC-BY-NC-4.0 model
    license must be recorded and institutional noncommercial use confirmed.
@@ -55,16 +55,18 @@ $$
 
    and maximum character disagreement under two frozen, label-preserving
    waveform perturbations. This is acoustic consistency, not DUST uncertainty.
-8. Calibrate the selector using speaker-cross-fitted predictions from labeled
-   training data. Use nested speaker-grouped resampling when choosing thresholds
-   and estimating quality. Do not use WAXAL test or FLEURS.
+8. Calibrate the selector using speaker-cross-fitted predictions from labelled
+   training data. The primary poor-label target is utterance WER above 50%, with
+   40% and 80% sensitivity targets. Use nested speaker-grouped resampling when
+   choosing thresholds and estimating quality. Do not use WAXAL test or FLEURS.
 9. Retain Seamless proxy agreement only if it predicts poor teacher labels with
-   held-out AUC at least 0.70 and outperforms confidence alone. Otherwise fall
+   held-out AUC at least 0.70 and outperforms confidence alone. The 0.70 gate is
+   study-specific, not a uDistil constant. Otherwise fall
    back to the calibrated confidence/consistency selector and report the proxy
    qualification failure.
-10. Select a final speaker-capped 40-hour pool. If fewer than 20 hours pass the
-    frozen gates, report a feasibility failure rather than relaxing them after
-    seeing results.
+10. Select among final speaker-capped 20-, 40-, and 80-hour pools on grouped
+    development evidence. If fewer than 20 hours pass the frozen gates, report a
+    feasibility failure rather than relaxing them after seeing results.
 11. Conduct a blinded, probability-based manual audit of 200 accepted examples
     plus 50 boundary-rejected examples. Estimate accepted-pool WER with sampling
     weights. The audit is go/no-go only and cannot retune thresholds.
@@ -74,9 +76,9 @@ $$
 Use the full gold training set in every condition:
 
 - gold only;
-- gold plus a random 40-hour pseudo-labeled pool from the same eligible source;
-- gold plus the confidence-only top 40 hours;
-- gold plus the proxy/hybrid-filtered 40 hours.
+- gold plus a random pseudo-labelled pool from the same eligible source;
+- gold plus the confidence-only top fixed-budget pool;
+- gold plus the proxy/hybrid-filtered fixed-budget pool.
 
 Match speaker caps and duration distributions across pseudo-label conditions.
 Run student seeds 42--44. Hold gold draws and optimizer updates fixed; pseudo

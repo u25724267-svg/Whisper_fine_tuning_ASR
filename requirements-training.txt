@@ -3,10 +3,12 @@ bitsandbytes==0.45.5
 datasets[audio]==2.20.0
 evaluate==0.4.2
 jiwer==3.0.4
+joblib==1.5.3
 librosa==0.11.0
 numpy==1.26.4
 python-dotenv==1.0.1
 scipy==1.15.3
+scikit-learn==1.7.2
 soundfile==0.14.0
 tensorboard==2.18.0
 torch==2.5.1

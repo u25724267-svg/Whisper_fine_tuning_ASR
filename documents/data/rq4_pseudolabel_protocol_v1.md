@@ -54,17 +54,26 @@ Before full inference:
 
 ## Stage 2: shortlist and proxy agreement
 
-After Stage 1 is complete, fixed hallucination gates create a speaker-capped
-100-hour shortlist. SeamlessM4T-v2 is used only as an independent Shona proxy;
+After Stage 1 is complete, calibrated hallucination gates create a speaker-capped
+160-hour shortlist. SeamlessM4T-v2 is used only as an independent Shona proxy;
 its CC-BY-NC-4.0 license must be approved for institutional noncommercial use.
 Normalized character disagreement is the primary proxy signal. Thresholds are
 calibrated with speaker-cross-fitted predictions on labelled WAXAL training,
 never WAXAL test or FLEURS.
 
-The proxy is retained only if held-out AUC is at least 0.70 and exceeds
-confidence alone. The final pool is speaker-capped at 40 hours. Fewer than 20
-passing hours is a feasibility failure; thresholds must not be relaxed after
-observing the outcome.
+The shortlist is the union of independently speaker-capped top-80-hour rankings
+from confidence and the calibrated diagnostic model. This guarantees coverage
+for the largest candidate pool from each selector while bounding proxy compute
+at 160 hours. The exact model features, regularization grid, dual 2% speaker
+caps, and selection rules are frozen in the v2 parameter-sweep amendment.
+
+The primary poor-label target is utterance WER above 50%, with 40% and 80%
+sensitivity targets. The proxy is retained only if held-out AUC is at least 0.70
+and exceeds confidence alone; 0.70 is a local minimum-usefulness gate. Final
+speaker-capped pool candidates are 20, 40, and 80 hours. Fewer than 20 passing
+hours is a feasibility failure; thresholds must not be relaxed after observing
+the outcome. Exact sweep rules are frozen in
+`documents/data/rq2_rq4_parameter_sweep_amendment_v2.md`.
 
 ## Stage 3: student comparison
 
