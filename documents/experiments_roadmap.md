@@ -60,7 +60,9 @@ sweep or documented as a measured engineering constraint before use.
 | RQ3 Tshivenda transfer | Blocked | No suitable licensed corpus is currently available |
 | RQ4 admission | Complete | 60,677 eligible utterances, 320.83 hours, 177 speakers after overlap/duration gates |
 | RQ4 C0 teacher inference | Complete | 60,677 labels in 238 chunks; prediction SHA-256 `86c7decb9334...e74e079` |
-| RQ4 filtering/student study | Prospective | Grouped calibration, 160-hour proxy shortlist, manual audit, and matched students remain |
+| RQ4 diagnostic calibration | Complete | Nested speaker-grouped primary ROC-AUC 0.8086 versus confidence 0.7738 |
+| RQ4 proxy shortlist | Complete | 97.69-hour confidence/diagnostic union, 19,407 rows, 160 speakers |
+| RQ4 proxy/student study | License-gated/prospective | Seamless labelled qualification, manual audit, and matched students remain |
 
 ## Immediate engineering sequence
 
@@ -270,9 +272,10 @@ selection. The remaining sequence is:
   seeds 42--44.
 
 The 160-hour shortlist is the union of independently capped top-80-hour
-confidence and diagnostic-model rankings. Each component permits at most 1.6
-hours and 302 rows per speaker; the union therefore permits at most 3.2 hours
-and 604 rows per speaker. This rule was frozen before full calibration results.
+confidence and diagnostic-model rankings. Each component permits at most 2.0
+hours and 378 rows per speaker; the union therefore permits at most 4.0 hours
+and 756 rows per speaker. The 2.5% value is the smallest label-blind feasible
+candidate; the initial 2% proposal could supply at most 79.12 hours.
 
 Pseudo-label loss weights 0.25/0.50/1.00 form one validation-only sensitivity
 grid and are frozen before confirmation. The AUC threshold, pool sizes, audit

@@ -64,7 +64,7 @@ never WAXAL test or FLEURS.
 The shortlist is the union of independently speaker-capped top-80-hour rankings
 from confidence and the calibrated diagnostic model. This guarantees coverage
 for the largest candidate pool from each selector while bounding proxy compute
-at 160 hours. The exact model features, regularization grid, dual 2% speaker
+at 160 hours. The exact model features, regularization grid, dual 2.5% speaker
 caps, and selection rules are frozen in the v2 parameter-sweep amendment.
 
 The primary poor-label target is utterance WER above 50%, with 40% and 80%

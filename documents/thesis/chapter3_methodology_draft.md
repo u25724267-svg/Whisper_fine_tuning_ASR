@@ -770,10 +770,12 @@ fixed-budget consensus work, not an asserted optimum.
 
 The shortlist is the union of independently speaker-capped top-80-hour rankings
 from confidence and the calibrated diagnostic model. Each component limits one
-speaker to 1.6 hours and 302 rows; the union limits one speaker to 3.2 hours and
-604 rows. The 2% dual cap guarantees at least 50 contributing speakers by either
-measure and was verified label-blind against all 177 admitted speakers. This is
-a local diversity control rather than a published uDistil or Rangappa setting.
+speaker to 2.0 hours and 378 rows; the union limits one speaker to 4.0 hours and
+756 rows. The 2.5% dual cap guarantees at least 40 contributing speakers by
+either measure. A label-blind feasibility calculation rejected the initial 2%
+proposal because its maximum possible capacity was 79.12 hours; 2.5% was the
+smallest evaluated value exceeding 80 hours. This is a local diversity control
+rather than a published uDistil or Rangappa setting.
 
 SeamlessM4T-v2 supplies only an independent Shona transcript proxy after its
 CC-BY-NC-4.0 license is approved for institutional noncommercial use. The

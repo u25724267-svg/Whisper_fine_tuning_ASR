@@ -26,8 +26,8 @@ AMENDMENT_PATH = (
     ROOT_DIR / "documents" / "data" / "rq2_rq4_parameter_sweep_amendment_v2.md"
 )
 COMPONENT_TARGET_SECONDS = 80 * 3600
-COMPONENT_SPEAKER_SECONDS = 1.6 * 3600
-COMPONENT_SPEAKER_ROWS = 302
+COMPONENT_SPEAKER_SECONDS = 2.0 * 3600
+COMPONENT_SPEAKER_ROWS = 378
 
 
 def parse_args() -> argparse.Namespace:
@@ -205,12 +205,12 @@ def main() -> None:
         if str(row["id"]) in union_ids
     ]
     union_summary = selection_summary(eligible_rows, union_ids)
-    if union_summary["maximum_speaker_hours"] > 3.2 + 1e-9:
+    if union_summary["maximum_speaker_hours"] > 4.0 + 1e-9:
         raise RuntimeError("Union duration cap exceeded")
-    if union_summary["maximum_speaker_rows"] > 604:
+    if union_summary["maximum_speaker_rows"] > 756:
         raise RuntimeError("Union row cap exceeded")
-    if union_summary["speakers"] < 50:
-        raise RuntimeError("Shortlist must contain at least 50 speakers")
+    if union_summary["speakers"] < 40:
+        raise RuntimeError("Shortlist must contain at least 40 speakers")
 
     try:
         staging_dir.mkdir(parents=True)

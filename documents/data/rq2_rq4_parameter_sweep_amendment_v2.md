@@ -73,24 +73,30 @@ candidate. This leaves rejection capacity after proxy scoring; the earlier
 The shortlist is the union of two independently capped selections: the best 80
 hours by confidence-only score and the best 80 hours by the calibrated
 diagnostic model. Each component applies the 80-hour cap below. Their union is
-therefore at most 160 hours, 3.2 hours per speaker, and 604 rows per speaker.
+therefore at most 160 hours, 4.0 hours per speaker, and 756 rows per speaker.
 Overlap reduces proxy compute without removing the top-80-hour support of either
 selector. This union rule is frozen before full calibration results are read.
 
-Each target pool uses a 2% dual per-speaker cap on duration and expected row
+Each target pool uses a 2.5% dual per-speaker cap on duration and expected row
 count:
 
 | Pool | Duration cap per speaker | Expected rows | Row cap per speaker |
 |---:|---:|---:|---:|
-| 20 h | 0.4 h | 3,782 | 75 |
-| 40 h | 0.8 h | 7,565 | 151 |
-| 80 h | 1.6 h | 15,130 | 302 |
-| 160 h shortlist | 3.2 h | 30,260 | 605 |
+| 20 h | 0.5 h | 3,782 | 94 |
+| 40 h | 1.0 h | 7,565 | 189 |
+| 80 h | 2.0 h | 15,130 | 378 |
+| 160 h shortlist | 4.0 h | 30,260 | 756 |
 
 Expected rows use the admitted-pool mean duration of 19.035 seconds. The cap is
-a label-blind diversity control guaranteeing at least 50 contributing speakers
+a label-blind diversity control guaranteeing at least 40 contributing speakers
 by either measure. Random, confidence-only, and hybrid pools must match the
 observed speaker-duration distribution.
+
+The original 2% proposal was rejected before shortlist creation because a
+label-blind capacity calculation showed that it could supply at most 79.12
+hours under the dual cap. Candidate 2.5% supplies up to 91.58 hours and is the
+smallest evaluated feasible value. This correction uses only admitted speaker
+durations and counts, not calibration scores, proxy outputs, or student results.
 
 ## RQ4 proxy qualification and student sweeps
 
