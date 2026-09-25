@@ -5,3 +5,4 @@ logs/
 wandb/
 output_dir*/
 artifacts/experiment_outputs/**/*.jsonl
+artifacts/experiment_outputs/**/*.log

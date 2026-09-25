@@ -1,0 +1,18 @@
+{
+    "epoch": 3.0,
+    "test_loss": 0.34337344765663147,
+    "test_runtime": 353.7079,
+    "test_samples_per_second": 4.724,
+    "test_steps_per_second": 0.789,
+    "test_wer": 31.63539587491683,
+    "total_flos": 2.68656590094336e+18,
+    "train_loss": 0.5759434764916194,
+    "train_runtime": 2263.3649,
+    "train_samples_per_second": 18.301,
+    "train_steps_per_second": 3.051,
+    "validation_loss": 0.3815055787563324,
+    "validation_runtime": 358.8199,
+    "validation_samples_per_second": 4.78,
+    "validation_steps_per_second": 0.797,
+    "validation_wer": 32.68812065211619
+}

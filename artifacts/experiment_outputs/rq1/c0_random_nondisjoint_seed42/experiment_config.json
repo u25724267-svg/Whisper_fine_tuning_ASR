@@ -1,0 +1,84 @@
+{
+  "research_question": "RQ1 diagnostic",
+  "experiment_id": "rq1-c0-random-nondisjoint-seed42",
+  "hypothesis": "The overlapping official WAXAL split yields lower WER than the speaker-disjoint protocol under otherwise matched training.",
+  "control_experiment": "rq1-c0-random-seed42-v2",
+  "experiment_name": "rq1-c0-random-nondisjoint-seed42",
+  "model": {
+    "id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "curriculum": {
+    "type": "random",
+    "sampler": "transformers_random_sampler"
+  },
+  "augmentation": {
+    "type": "none",
+    "enabled": false
+  },
+  "data": {
+    "protocol": "waxal_sde_normalized_official_v1",
+    "train_manifest": "/home/casper/Speech/data/waxal/sna_asr/train/sna_asr_train.normalized.json",
+    "validation_manifest": "/home/casper/Speech/data/waxal/sna_asr/validation/sna_asr_validation.normalized.json",
+    "test_manifest": "/home/casper/Speech/data/waxal/sna_asr/test/sna_asr_test.normalized.json",
+    "audio_column": "audio_filepath",
+    "text_column": "text",
+    "sampling_rate": 16000,
+    "keep_preprocessed_in_memory": true
+  },
+  "training": {
+    "num_train_epochs": 3.0,
+    "seed": 42,
+    "per_device_train_batch_size": 6,
+    "per_device_eval_batch_size": 6,
+    "gradient_accumulation_steps": 1,
+    "learning_rate": 1e-05,
+    "warmup_steps": 500,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_kwargs": {
+      "use_reentrant": false
+    },
+    "fp16": true,
+    "full_determinism": true,
+    "eval_strategy": "epoch",
+    "predict_with_generate": true,
+    "generation_max_length": 225,
+    "save_strategy": "epoch",
+    "save_total_limit": 3,
+    "logging_steps": 250,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "wer",
+    "greater_is_better": false
+  },
+  "output_dir": "rq1/c0_random_nondisjoint_seed42",
+  "resources": {
+    "min_free_gpu_mb": 20000,
+    "min_free_disk_gb": 8
+  },
+  "wandb": {
+    "project": "whisper-shona-multilingual",
+    "run_name": "rq1-c0-random-nondisjoint-seed42",
+    "job_type": "diagnostic-training",
+    "tags": [
+      "rq1",
+      "diagnostic",
+      "random",
+      "whisper-base",
+      "shona",
+      "official-overlapping-split",
+      "epoch-checkpoints",
+      "seed-42"
+    ],
+    "watch": "false",
+    "log_model": "false",
+    "resume_run_id": null
+  },
+  "config_path": "/home/casper/asr_experiments/Whisper_fine_tuning_ASR/experiments/rq1/c0_random_nondisjoint_seed42/config.json",
+  "effective_num_train_epochs": 3.0,
+  "effective_seed": 42,
+  "effective_output_dir": "/ext_data/casper/asr_experiment_outputs/rq1/c0_random_nondisjoint_seed42"
+}

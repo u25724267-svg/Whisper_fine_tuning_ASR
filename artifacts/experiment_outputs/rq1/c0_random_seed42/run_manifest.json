@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-09-01T12:36:38.869980+00:00",
+  "experiment_name": "rq1-c0-random-seed42",
+  "model": {
+    "id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "augmentation": {
+    "type": "none",
+    "enabled": false
+  },
+  "effective_num_train_epochs": 3.0,
+  "effective_max_steps": -1,
+  "effective_seed": 42,
+  "effective_output_dir": "/ext_data/casper/asr_experiment_outputs/rq1/c0_random_seed42",
+  "sha256": {
+    "trainer": "506781947776d5ef852bd2054c9f54101970102652001b2937f9b046dda95b02",
+    "config": "a5c8b3939b04913912ed77b895cf2c002634810af82c2e2ac2c6b7219a382718",
+    "dependencies": "1eefe5d5d2fd57e5bb4b2cd0d709cf0934779fc3410ed988975eba3ab4c7e873",
+    "train_manifest": "865c4fef9865684ac35857494583e68cace61f2b699670a20bb1934691e6510d",
+    "validation_manifest": "33d6b65dfc94ae4bae342a9f29878735619a458d0196a2df01e4d4a09471e34a",
+    "test_manifest": "57e18d6a9c22566b5b722f8395a4ea4ead752d7b09902642c3d2cbd14f691714"
+  },
+  "packages": {
+    "accelerate": "1.1.1",
+    "bitsandbytes": "0.45.5",
+    "datasets": "2.20.0",
+    "evaluate": "0.4.2",
+    "jiwer": "3.0.4",
+    "numpy": "1.26.4",
+    "python-dotenv": "1.0.1",
+    "torch": "2.5.1",
+    "transformers": "4.46.3",
+    "wandb": "0.28.2"
+  },
+  "runtime": {
+    "python": "3.10.12 (main, Jun 22 2026, 18:55:27) [GCC 11.4.0]",
+    "torch": "2.5.1+cu124",
+    "cuda_runtime": "12.4",
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 4090"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "baseline": "/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed42/fleurs_corrected_v2/fleurs_test.jsonl",
+  "baseline_sha256": "dfdda13133804e254b44f06768dd0446bdfac3164ab28ab26ef11347ed0e2aad",
+  "candidate": "/ext_data/casper/asr_experiment_outputs/rq2/a3_waveform_c3_seed42/fleurs_corrected_v2/fleurs_test.jsonl",
+  "candidate_sha256": "b32e0fa88164aa6af8e3064e2377976cd88ad69ed6ce9de0a949f43e1bca0016",
+  "rows": 925,
+  "speakers": null,
+  "clusters": 348,
+  "cluster_field": "source_id",
+  "reference_words": 15987,
+  "baseline_wer": 59.22937386626634,
+  "candidate_wer": 62.2255582660912,
+  "observed_improvement": -2.9961843998248554,
+  "replicates": 10000,
+  "seed": 42,
+  "confidence_interval_95": [
+    -6.711905013961772,
+    0.8177499520109712
+  ],
+  "probability_improvement": 0.0581,
+  "practical_threshold": 0.5,
+  "probability_practical_improvement": 0.0353,
+  "cluster_manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/test.jsonl",
+  "cluster_manifest_sha256": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3"
+}

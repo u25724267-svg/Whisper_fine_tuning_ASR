@@ -8,12 +8,16 @@ Included artifact families:
 
 - `item_predictions/` validation/test predictions and summaries;
 - `fleurs_corrected_v2/` corrected FLEURS predictions and summaries;
-- RQ2 aggregate, comparison, and FLEURS aggregate reports.
+- curriculum order and score audits;
+- root-level train/validation/test result, Trainer-state, experiment-config, and
+	run-manifest JSON files;
+- RQ1/RQ2 aggregate, comparison, and FLEURS aggregate reports; and
+- centralized per-run logs.
 
-Model weights, optimizer states, checkpoints, feature caches, and training logs
-remain on external storage. JSONL prediction rows are ignored by Git because
-they are generated and comparatively large; hash-bearing JSON/Markdown summaries
-remain available for version control and analysis.
+Model weights, optimizer states, checkpoints, tokenizers, feature caches, and
+training-argument binaries remain on external storage. Generated JSONL rows and
+logs are ignored by Git because they are comparatively large; hash-bearing
+JSON/Markdown summaries remain available for version control and analysis.
 
 The external files remain authoritative. Re-copy artifacts only from immutable
 completed output directories, and verify summary SHA-256 fields before analysis.
