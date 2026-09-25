@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "experiment_id": "rq2-a3-waveform-c3-seed44",
+  "model_dir": "/ext_data/casper/asr_experiment_outputs/rq2/a3_waveform_c3_seed44",
+  "config": "/home/casper/asr_experiments/Whisper_fine_tuning_ASR/experiments/rq2/a3_waveform_c3_seed44/config.json",
+  "config_sha256": "4db2570dfa57cafeaa352dcae3562f9e3e2fb3d8ff7e6989c5e6754af75d505b",
+  "splits": {
+    "fleurs_validation": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/validation.jsonl",
+      "manifest_sha256": "fb516a0cdf110ce4f1b8a1694eec5e999555e240012a975ea6be4f2bb271907f",
+      "rows": 393,
+      "wer": 58.115585613280054,
+      "cer": 20.38012621232711,
+      "substitutions": 2967,
+      "deletions": 314,
+      "insertions": 500,
+      "hits": 3225,
+      "reference_words": 6506,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/rq2/a3_waveform_c3_seed44/fleurs_corrected_v2/fleurs_validation.jsonl",
+      "predictions_sha256": "003c85b4bcd48aa8f0c5348d7ba7a7adaa4408bfe6b350a5d7260718372d222e"
+    },
+    "fleurs_test": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/test.jsonl",
+      "manifest_sha256": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3",
+      "rows": 925,
+      "wer": 58.15975480077563,
+      "cer": 18.770009060706734,
+      "substitutions": 7453,
+      "deletions": 650,
+      "insertions": 1195,
+      "hits": 7884,
+      "reference_words": 15987,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/rq2/a3_waveform_c3_seed44/fleurs_corrected_v2/fleurs_test.jsonl",
+      "predictions_sha256": "4b5dfac30bd631841bd9948adedb1b4e1dd4c36413e61aabf1011a308c95367e"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "experiment_id": "rq1-c7-acoustic-s2s-hybrid-seed42",
+  "model_dir": "/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42",
+  "config": "/home/casper/asr_experiments/Whisper_fine_tuning_ASR/experiments/rq1/c7_acoustic_s2s_hybrid_seed42/config.json",
+  "config_sha256": "1b0a101228d31e78b6052d0199de26851f211f8dd655727ad03d5a86b1347bb3",
+  "splits": {
+    "validation": {
+      "manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/validation.jsonl",
+      "manifest_sha256": "c8e00a0751c93d177e7c0a4217e80e77ae44ee9862d42b48c6467f579e249c92",
+      "rows": 1715,
+      "wer": 34.5228612394456,
+      "cer": 8.413450389266192,
+      "substitutions": 9348,
+      "deletions": 1476,
+      "insertions": 2178,
+      "hits": 26838,
+      "reference_words": 37662,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/item_predictions/validation.jsonl",
+      "predictions_sha256": "1ae56b0aba51abf25344a95a0702ad2e22b3b9a45cc290e10390699087b8569a"
+    },
+    "test": {
+      "manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/test.jsonl",
+      "manifest_sha256": "fe7c790d5914c2cf28f0f4bf24316b7b6eb857db39a79ee337052e4d710aef4d",
+      "rows": 1671,
+      "wer": 32.19161676646707,
+      "cer": 7.569705053301394,
+      "substitutions": 8765,
+      "deletions": 1302,
+      "insertions": 2029,
+      "hits": 27508,
+      "reference_words": 37575,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/item_predictions/test.jsonl",
+      "predictions_sha256": "755d175afa22e9c087941eca99622a43b86136bad72eeab121086f13078a6139"
+    }
+  }
+}

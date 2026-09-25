@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "baseline": "/ext_data/casper/asr_experiment_outputs/rq1/c0_random_seed42_v2/item_predictions/test.jsonl",
+  "baseline_sha256": "3e51b58b85fdf7a843eb3455a7550fe1c651f3649099fe84d67549f4e250e053",
+  "candidate": "/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed42/item_predictions/test.jsonl",
+  "candidate_sha256": "f25798c6371693a68bceaac82fd5903800fc9efca9ad6f4fb205aaa5878e9526",
+  "rows": 1671,
+  "speakers": 24,
+  "reference_words": 37575,
+  "baseline_wer": 31.35595475715236,
+  "candidate_wer": 30.456420492348634,
+  "observed_improvement": 0.8995342648037266,
+  "replicates": 10000,
+  "seed": 42,
+  "confidence_interval_95": [
+    0.3134682976334998,
+    1.3897078350253487
+  ],
+  "probability_improvement": 0.9999,
+  "practical_threshold": 0.5,
+  "probability_practical_improvement": 0.9083
+}

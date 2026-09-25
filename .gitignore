@@ -4,3 +4,4 @@ __pycache__/
 logs/
 wandb/
 output_dir*/
+artifacts/experiment_outputs/**/*.jsonl

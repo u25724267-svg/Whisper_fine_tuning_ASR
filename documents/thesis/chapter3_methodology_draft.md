@@ -78,13 +78,8 @@ flowchart LR
   A[Data audit and speaker-disjoint protocol] --> B[Random baseline]
   B --> C[Static and dynamic curriculum screen]
   C --> D[Three-seed confirmation]
-  D --> E[Completed A-series waveform factorial]
-  E --> J[Mechanism-isolating B-series]
-  D --> F[Shona-to-Tshivenda transfer]
-  D --> G{Unlabelled Shona gate}
-  G -->|Pass| H[Teacher labels and proxy filtering]
-  H --> K[Matched pseudo-label students]
-  G -->|Fail| I[Feasibility result]
+  D --> E[Completed waveform factorial]
+  E --> J[Mechanism-isolating]
 ```
 
 Only comparisons in which the model, dataset, training budget, random seed,
