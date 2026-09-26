@@ -1,0 +1,8 @@
+{
+    "epoch": 3.0,
+    "validation_loss": 0.3853101134300232,
+    "validation_runtime": 367.4285,
+    "validation_samples_per_second": 4.668,
+    "validation_steps_per_second": 0.778,
+    "validation_wer": 33.112952047156284
+}

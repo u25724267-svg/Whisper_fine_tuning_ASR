@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-09-25T22:41:28.479382+00:00",
+  "experiment_name": "rq1-c3-snr-duration-seed44",
+  "model": {
+    "id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "augmentation": {
+    "type": "none",
+    "enabled": false
+  },
+  "effective_num_train_epochs": 3.0,
+  "effective_max_steps": -1,
+  "effective_seed": 44,
+  "effective_output_dir": "/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44",
+  "sha256": {
+    "trainer": "506781947776d5ef852bd2054c9f54101970102652001b2937f9b046dda95b02",
+    "config": "11b6e96294eeaa018d6812a8a562270fb14e6ae76b2e5d68873880873a74c1ec",
+    "dependencies": "00d9f52de8c8445af9adc204c1fcff61b0cba91fd0eb216b3259e6897d487e52",
+    "train_manifest": "38bb70aa18bb0ebd8d00321ebf9b463f21a35f5507f74e2b2279bdb3caf56b4c",
+    "validation_manifest": "c8e00a0751c93d177e7c0a4217e80e77ae44ee9862d42b48c6467f579e249c92",
+    "test_manifest": "fe7c790d5914c2cf28f0f4bf24316b7b6eb857db39a79ee337052e4d710aef4d",
+    "curriculum_runner": "f840488824570a5645ec8e8617383c14dd236b64dd733dd2c75565d2fb07c467",
+    "curriculum_sampler": "1d1c5fc9f6f0e1e8833f0040dd3ca40964bac74e2e71e4424dd31066cb222dbc",
+    "acoustic_metadata": "8e0e82cd604af6f6c899f64736082d2b36c44250397c85377d74f1b6e00cf5f5"
+  },
+  "packages": {
+    "accelerate": "1.1.1",
+    "bitsandbytes": "0.45.5",
+    "datasets": "2.20.0",
+    "evaluate": "0.4.2",
+    "jiwer": "3.0.4",
+    "numpy": "1.26.4",
+    "python-dotenv": "1.0.1",
+    "torch": "2.5.1",
+    "transformers": "4.46.3",
+    "wandb": "0.28.2"
+  },
+  "runtime": {
+    "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+    "torch": "2.5.1+cu124",
+    "cuda_runtime": "12.4",
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 4090"
+  },
+  "curriculum": {
+    "type": "snr_duration",
+    "metadata_path": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/acoustic_metadata.csv",
+    "score": "0.5 * training_duration_percentile + 0.5 * (1 - training_snr_percentile)",
+    "order": "difficulty_ascending",
+    "tie_break": [
+      "utterance_id",
+      "dataset_index"
+    ],
+    "apply_each_epoch": true,
+    "save_epoch_orders": true
+  }
+}

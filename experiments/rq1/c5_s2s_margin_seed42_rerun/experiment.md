@@ -36,5 +36,14 @@ alignment, or CUDA errors.
 Training and Trainer evaluation completed successfully. The final model and
 all three checkpoint model files are byte-identical to the original C5 run;
 validation WER 33.8245 and test WER 31.3480 also match exactly. Item-level
-prediction export is still running. This confirms deterministic repeatability
-but does not provide an independent replication.
+prediction export completed and reproduced the original validation/test WER,
+CER, edit counts, and prediction SHA-256 hashes exactly:
+
+- Validation WER/CER: 33.8352 / 7.9178
+- Test WER/CER: 31.3160 / 6.9650
+
+Curriculum order and score files are byte-identical at every epoch. Runtime and
+Trainer-state hashes differ because timing/log-history fields differ between
+executions; this does not indicate a scientific-output difference. The rerun
+confirms deterministic repeatability but is not an independent-seed
+replication and does not increase the inferential sample size.

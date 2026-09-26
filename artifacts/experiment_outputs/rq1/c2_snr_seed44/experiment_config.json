@@ -1,0 +1,110 @@
+{
+  "research_question": "RQ1",
+  "experiment_id": "rq1-c2-snr-seed44",
+  "hypothesis": "C2 strict SNR seed-42 behavior is stable under matched seed 44.",
+  "control_experiment": "rq1-c0-random-seed44-v2",
+  "experiment_name": "rq1-c2-snr-seed44",
+  "runner": "train_snr_curriculum.py",
+  "model": {
+    "id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
+    "language": "shona",
+    "task": "transcribe",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "curriculum": {
+    "type": "snr",
+    "metadata_path": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/acoustic_metadata.csv",
+    "score": "1 - training_split_average_rank_percentile(snr_proxy_db)",
+    "order": "difficulty_ascending_equivalent_to_snr_descending",
+    "tie_break": [
+      "utterance_id",
+      "dataset_index"
+    ],
+    "apply_each_epoch": true,
+    "save_epoch_orders": true
+  },
+  "augmentation": {
+    "type": "none",
+    "enabled": false
+  },
+  "data": {
+    "protocol": "waxal_shona_speaker_disjoint_v2",
+    "protocol_summary": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/split_summary.json",
+    "train_manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/train.jsonl",
+    "validation_manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/validation.jsonl",
+    "test_manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/test.jsonl",
+    "audio_column": "audio_filepath",
+    "text_column": "text",
+    "sampling_rate": 16000,
+    "keep_preprocessed_in_memory": true
+  },
+  "training": {
+    "num_train_epochs": 3.0,
+    "seed": 44,
+    "per_device_train_batch_size": 6,
+    "per_device_eval_batch_size": 6,
+    "gradient_accumulation_steps": 1,
+    "learning_rate": 1e-05,
+    "warmup_steps": 500,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_kwargs": {
+      "use_reentrant": false
+    },
+    "fp16": true,
+    "full_determinism": true,
+    "eval_strategy": "epoch",
+    "predict_with_generate": true,
+    "generation_max_length": 225,
+    "save_strategy": "epoch",
+    "save_total_limit": 3,
+    "logging_steps": 250,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "wer",
+    "greater_is_better": false
+  },
+  "output_dir": "rq1/c2_snr_seed44",
+  "resources": {
+    "min_free_gpu_mb": 20000,
+    "min_free_disk_gb": 8
+  },
+  "wandb": {
+    "project": "whisper-shona-multilingual",
+    "run_name": "rq1-c2-snr-seed44",
+    "job_type": "posthoc-seed-replication",
+    "tags": [
+      "rq1",
+      "c2",
+      "snr-curriculum",
+      "whisper-base",
+      "shona",
+      "speaker-disjoint-v2",
+      "epoch-checkpoints",
+      "seed-44",
+      "posthoc-replication"
+    ],
+    "watch": "false",
+    "log_model": "false",
+    "resume_run_id": null
+  },
+  "config_path": "/home/casper/asr_experiments/Whisper_fine_tuning_ASR/experiments/rq1/c2_snr_seed44/config.json",
+  "effective_num_train_epochs": 3.0,
+  "effective_seed": 44,
+  "effective_output_dir": "/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44",
+  "epoch_order_sha256": {
+    "epoch_1": "d9d39af1d8120649f3065960b49af91826e20a7babd3cc92de914e030d84797a",
+    "epoch_2": "d9d39af1d8120649f3065960b49af91826e20a7babd3cc92de914e030d84797a",
+    "epoch_3": "d9d39af1d8120649f3065960b49af91826e20a7babd3cc92de914e030d84797a"
+  },
+  "snr_summary": {
+    "minimum_db": 7.675968308993779,
+    "maximum_db": 60.0,
+    "capped_at_60_db_rows": 2665
+  },
+  "duration_summary": {
+    "minimum_seconds": 3.62675,
+    "maximum_seconds": 35.90675
+  },
+  "pacing_unique_rows": null
+}
