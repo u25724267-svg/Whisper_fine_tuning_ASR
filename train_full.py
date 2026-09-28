@@ -240,17 +240,222 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
+def _required_integer(
+    augmentation_config: Dict[str, Any], name: str, minimum: int
+) -> int:
+    value = augmentation_config.get(name)
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise ValueError(f"SpecAugment {name} must be an integer >= {minimum}")
+    return value
+
+
+def validate_augmentation_config(
+    augmentation_config: Dict[str, Any], num_mel_bins: int = 80
+) -> None:
+    augmentation_type = augmentation_config.get("type")
+    supported_types = {"none", "specaugment", "specaugment_paper_masks"}
+    if augmentation_type not in supported_types:
+        raise ValueError(f"Unsupported augmentation type: {augmentation_type}")
+    if augmentation_type == "none":
+        if augmentation_config.get("enabled", False):
+            raise ValueError("Augmentation type 'none' cannot be enabled")
+        return
+    if not augmentation_config.get("enabled", False):
+        return
+
+    application_probability = float(
+        augmentation_config.get("application_probability", 1.0)
+    )
+    if not 0.0 <= application_probability <= 1.0:
+        raise ValueError("SpecAugment application_probability must be between 0 and 1")
+
+    if augmentation_type == "specaugment":
+        for name in ("mask_time_prob", "mask_feature_prob"):
+            value = float(augmentation_config[name])
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"SpecAugment {name} must be between 0 and 1")
+        _required_integer(augmentation_config, "mask_time_length", 1)
+        _required_integer(augmentation_config, "mask_time_min_masks", 0)
+        feature_length = _required_integer(
+            augmentation_config, "mask_feature_length", 1
+        )
+        _required_integer(augmentation_config, "mask_feature_min_masks", 0)
+        if feature_length > num_mel_bins:
+            raise ValueError("SpecAugment mask_feature_length exceeds Mel bins")
+        return
+
+    if augmentation_type == "specaugment_paper_masks":
+        frequency_count = _required_integer(
+            augmentation_config, "frequency_mask_count", 0
+        )
+        frequency_width = _required_integer(
+            augmentation_config, "frequency_mask_max_width", 0
+        )
+        time_count = _required_integer(augmentation_config, "time_mask_count", 0)
+        time_width = _required_integer(
+            augmentation_config, "time_mask_max_width", 0
+        )
+        time_proportion = float(augmentation_config["time_mask_max_proportion"])
+        if not 0.0 < time_proportion <= 1.0:
+            raise ValueError(
+                "SpecAugment time_mask_max_proportion must be in (0, 1]"
+            )
+        if frequency_count and not frequency_width:
+            raise ValueError("Frequency masks require a positive maximum width")
+        if time_count and not time_width:
+            raise ValueError("Time masks require a positive maximum width")
+        if frequency_width > num_mel_bins:
+            raise ValueError("Frequency mask maximum width exceeds Mel bins")
+
+
+def apply_paper_specaugment_masks(
+    input_features: torch.Tensor,
+    attention_mask: torch.Tensor = None,
+    *,
+    application_probability: float,
+    frequency_mask_count: int,
+    frequency_mask_max_width: int,
+    time_mask_count: int,
+    time_mask_max_width: int,
+    time_mask_max_proportion: float,
+) -> torch.Tensor:
+    masked_features = input_features.clone()
+    batch_size, mel_bins, sequence_length = masked_features.shape
+    if application_probability == 0.0:
+        return masked_features
+    if attention_mask is not None and attention_mask.shape != (
+        batch_size,
+        sequence_length,
+    ):
+        raise ValueError("SpecAugment attention mask is not aligned with features")
+
+    if application_probability == 1.0:
+        apply_to_example = torch.ones(
+            batch_size, dtype=torch.bool, device=masked_features.device
+        )
+    else:
+        apply_to_example = (
+            torch.rand(batch_size, device=masked_features.device)
+            < application_probability
+        )
+
+    for batch_index in range(batch_size):
+        if not bool(apply_to_example[batch_index]):
+            continue
+        valid_frames = (
+            int(attention_mask[batch_index].sum().item())
+            if attention_mask is not None
+            else sequence_length
+        )
+        valid_frames = max(0, min(sequence_length, valid_frames))
+
+        for _ in range(frequency_mask_count):
+            width = int(
+                torch.randint(
+                    0,
+                    frequency_mask_max_width + 1,
+                    (1,),
+                    device=masked_features.device,
+                ).item()
+            )
+            if width == 0:
+                continue
+            start = int(
+                torch.randint(
+                    0,
+                    mel_bins - width + 1,
+                    (1,),
+                    device=masked_features.device,
+                ).item()
+            )
+            masked_features[batch_index, start : start + width, :] = 0
+
+        maximum_time_width = min(
+            time_mask_max_width,
+            int(time_mask_max_proportion * valid_frames),
+            valid_frames,
+        )
+        for _ in range(time_mask_count):
+            if maximum_time_width == 0:
+                continue
+            width = int(
+                torch.randint(
+                    0,
+                    maximum_time_width + 1,
+                    (1,),
+                    device=masked_features.device,
+                ).item()
+            )
+            if width == 0:
+                continue
+            start = int(
+                torch.randint(
+                    0,
+                    valid_frames - width + 1,
+                    (1,),
+                    device=masked_features.device,
+                ).item()
+            )
+            masked_features[batch_index, :, start : start + width] = 0
+
+    return masked_features
+
+
 def configure_augmentation(model: Any, augmentation_config: Dict[str, Any]) -> None:
-    if augmentation_config["type"] not in {"none", "specaugment"}:
-        raise ValueError(f"Unsupported augmentation type: {augmentation_config['type']}")
+    validate_augmentation_config(
+        augmentation_config, num_mel_bins=int(model.config.num_mel_bins)
+    )
 
     model.config.apply_spec_augment = bool(augmentation_config.get("enabled", False))
     if not model.config.apply_spec_augment:
         return
 
     application_probability = float(augmentation_config.get("application_probability", 1.0))
-    if not 0.0 <= application_probability <= 1.0:
-        raise ValueError("SpecAugment application_probability must be between 0 and 1")
+    if augmentation_config["type"] == "specaugment_paper_masks":
+        model.config.specaugment_implementation = "paper_masks_without_time_warp"
+        model.config.specaugment_application_probability = application_probability
+        model.config.frequency_mask_count = augmentation_config[
+            "frequency_mask_count"
+        ]
+        model.config.frequency_mask_max_width = augmentation_config[
+            "frequency_mask_max_width"
+        ]
+        model.config.time_mask_count = augmentation_config["time_mask_count"]
+        model.config.time_mask_max_width = augmentation_config[
+            "time_mask_max_width"
+        ]
+        model.config.time_mask_max_proportion = augmentation_config[
+            "time_mask_max_proportion"
+        ]
+
+        def paper_mask_input_features(
+            whisper_model: Any,
+            input_features: torch.Tensor,
+            attention_mask: torch.Tensor = None,
+        ) -> torch.Tensor:
+            if not whisper_model.training:
+                return input_features
+            return apply_paper_specaugment_masks(
+                input_features,
+                attention_mask,
+                application_probability=application_probability,
+                frequency_mask_count=augmentation_config[
+                    "frequency_mask_count"
+                ],
+                frequency_mask_max_width=augmentation_config[
+                    "frequency_mask_max_width"
+                ],
+                time_mask_count=augmentation_config["time_mask_count"],
+                time_mask_max_width=augmentation_config["time_mask_max_width"],
+                time_mask_max_proportion=augmentation_config[
+                    "time_mask_max_proportion"
+                ],
+            )
+
+        model.model._mask_input_features = MethodType(
+            paper_mask_input_features, model.model
+        )
+        return
 
     model.config.mask_time_prob = augmentation_config["mask_time_prob"]
     model.config.mask_time_length = augmentation_config["mask_time_length"]
@@ -309,6 +514,10 @@ def main() -> None:
         revision=model_config["revision"],
         language=model_config["language"],
         task=model_config["task"],
+    )
+    validate_augmentation_config(
+        config.get("augmentation", {"type": "none", "enabled": False}),
+        num_mel_bins=int(processor.feature_extractor.feature_size),
     )
 
     def prepare_dataset(example: Dict[str, Any]) -> Dict[str, Any]:

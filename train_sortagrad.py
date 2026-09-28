@@ -25,6 +25,7 @@ from train_full import (
     parse_args,
     resolve_path,
     sha256_file,
+    validate_augmentation_config,
     write_run_manifest,
 )
 
@@ -109,6 +110,10 @@ def main() -> None:
         revision=model_config["revision"],
         language=model_config["language"],
         task=model_config["task"],
+    )
+    validate_augmentation_config(
+        config.get("augmentation", {"type": "none", "enabled": False}),
+        num_mel_bins=int(processor.feature_extractor.feature_size),
     )
 
     def prepare_dataset(example: Dict[str, Any]) -> Dict[str, Any]:
