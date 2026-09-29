@@ -5,9 +5,15 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
 OUTPUT_ROOT="${ASR_OUTPUT_ROOT:-/ext_data/casper/asr_experiment_outputs}"
+ARTIFACT_ROOT="$ROOT_DIR/artifacts/experiment_outputs"
+MIRROR_SCRIPT="$ROOT_DIR/mirror_experiment_artifacts.py"
 
 if [[ ! -x "$PYTHON" ]]; then
     echo "Python environment not found at $PYTHON" >&2
+    exit 1
+fi
+if [[ ! -f "$MIRROR_SCRIPT" ]]; then
+    echo "Artifact mirror not found at $MIRROR_SCRIPT" >&2
     exit 1
 fi
 
@@ -151,6 +157,16 @@ for experiment_dir in "${experiment_dirs[@]}"; do
         fi
     else
         echo "Item-level prediction artifacts already complete; skipping export."
+    fi
+
+    artifact_dir="$ARTIFACT_ROOT/$relative_output"
+    echo "Mirroring scientific artifacts for $experiment_name"
+    "$PYTHON" "$MIRROR_SCRIPT" \
+        --source-dir "$output_dir" \
+        --output-dir "$artifact_dir"
+    if [[ ! -f "$artifact_dir/artifact_manifest.json" ]]; then
+        echo "Artifact mirror exited without a manifest: $artifact_dir" >&2
+        exit 1
     fi
     echo "Completed $experiment_name"
 done

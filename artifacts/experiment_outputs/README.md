@@ -21,3 +21,9 @@ JSON/Markdown summaries remain available for version control and analysis.
 
 The external files remain authoritative. Re-copy artifacts only from immutable
 completed output directories, and verify summary SHA-256 fields before analysis.
+
+New sequential experiments are mirrored automatically after training and
+item-level prediction export complete. Each mirrored run contains an
+`artifact_manifest.json` with source paths, byte counts, and SHA-256 hashes.
+The root `copy_manifest.json` records the earlier bulk snapshot and is not the
+manifest for subsequently automated per-run mirrors.
