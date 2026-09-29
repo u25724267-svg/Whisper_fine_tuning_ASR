@@ -19,10 +19,13 @@ from train_full import DataCollatorSpeechSeq2SeqWithPadding
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Export item-level predictions and ASR errors for a trained Whisper run."
+        description="Export item-level predictions and ASR errors for a Whisper checkpoint."
     )
     parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--model-dir", type=Path, required=True)
+    model_source = parser.add_mutually_exclusive_group(required=True)
+    model_source.add_argument("--model-dir", type=Path)
+    model_source.add_argument("--model-id")
+    parser.add_argument("--model-revision")
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -103,45 +106,79 @@ def evaluation_manifests(
     return manifests
 
 
+def resolve_model_source(
+    model_dir_argument: Path | None,
+    model_id_argument: str | None,
+    model_revision_argument: str | None,
+    model_config: Dict[str, Any],
+) -> tuple[Path | None, str, str | None]:
+    if model_dir_argument:
+        model_dir = model_dir_argument.expanduser().resolve()
+        if not (model_dir / "model.safetensors").is_file():
+            raise FileNotFoundError(f"Missing trained model: {model_dir}")
+        return model_dir, str(model_dir), None
+    if not model_id_argument:
+        raise ValueError("A model directory or model ID is required")
+    revision = model_revision_argument or model_config.get("revision")
+    return None, model_id_argument, revision
+
+
 def main() -> None:
     args = parse_args()
     config_path = args.config.expanduser().resolve()
-    model_dir = args.model_dir.expanduser().resolve()
     if not config_path.is_file():
         raise FileNotFoundError(f"Missing experiment config: {config_path}")
-    if not (model_dir / "model.safetensors").is_file():
-        raise FileNotFoundError(f"Missing trained model: {model_dir}")
 
     config = json.loads(config_path.read_text(encoding="utf-8"))
     model_config = config["model"]
     data_config = config["data"]
     training_config = config["training"]
+    model_dir, model_source, model_revision = resolve_model_source(
+        args.model_dir,
+        args.model_id,
+        args.model_revision,
+        model_config,
+    )
+    if args.model_id and not args.output_dir:
+        raise ValueError("--output-dir is required with --model-id")
     manifests = evaluation_manifests(
         args.splits, args.manifest, data_config
     )
-    output_dir = (
-        args.output_dir.expanduser().resolve()
-        if args.output_dir
-        else model_dir / "item_predictions"
-    )
+    if args.output_dir:
+        output_dir = args.output_dir.expanduser().resolve()
+    else:
+        if model_dir is None:
+            raise ValueError("--output-dir is required with --model-id")
+        output_dir = model_dir / "item_predictions"
     if output_dir.exists() and any(output_dir.iterdir()):
         raise FileExistsError(f"Prediction output already exists: {output_dir}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    try:
+    if model_dir:
+        try:
+            processor = WhisperProcessor.from_pretrained(
+                model_dir,
+                language=model_config["language"],
+                task=model_config["task"],
+            )
+        except OSError:
+            processor = WhisperProcessor.from_pretrained(
+                model_config["id"],
+                revision=model_config["revision"],
+                language=model_config["language"],
+                task=model_config["task"],
+            )
+    else:
         processor = WhisperProcessor.from_pretrained(
-            model_dir,
+            model_source,
+            revision=model_revision,
             language=model_config["language"],
             task=model_config["task"],
         )
-    except OSError:
-        processor = WhisperProcessor.from_pretrained(
-            model_config["id"],
-            revision=model_config["revision"],
-            language=model_config["language"],
-            task=model_config["task"],
-        )
-    model = WhisperForConditionalGeneration.from_pretrained(model_dir)
+    model = WhisperForConditionalGeneration.from_pretrained(
+        model_source,
+        revision=model_revision,
+    )
     model.generation_config.language = model_config["language"]
     model.generation_config.task = model_config["task"]
     if model_config.get("clear_forced_decoder_ids", False):
@@ -152,7 +189,7 @@ def main() -> None:
         model.generation_config.suppress_tokens = []
 
     evaluation_args = Seq2SeqTrainingArguments(
-        output_dir=str(model_dir / "prediction_evaluation"),
+        output_dir=str(output_dir / "trainer"),
         per_device_eval_batch_size=training_config["per_device_eval_batch_size"],
         fp16=training_config["fp16"],
         predict_with_generate=True,
@@ -182,7 +219,9 @@ def main() -> None:
     summary = {
         "schema_version": 1,
         "experiment_id": config.get("experiment_id", config["experiment_name"]),
-        "model_dir": str(model_dir),
+        "model_source": model_source,
+        "model_revision": model_revision,
+        "model_dir": str(model_dir) if model_dir else None,
         "config": str(config_path),
         "config_sha256": sha256_file(config_path),
         "splits": {},
