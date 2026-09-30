@@ -1,6 +1,6 @@
 # Confirmatory Experiments
 
-Each experiment has a complete configuration, a one-command launcher, and an
+Each experiment has a complete configuration, a compatibility launcher, and an
 experiment record. Shared launch behavior lives in `scripts/run_experiment.sh`.
 
 All new outputs are stored under:
@@ -9,9 +9,11 @@ All new outputs are stored under:
 /ext_data/casper/asr_experiment_outputs/<research-question>/<experiment-id>
 ```
 
-Launch an experiment from its directory with `./run.sh`. The launcher refuses
-to overwrite or resume an existing output directory. Historical outputs remain
-in their original locations.
+Launch an experiment with
+`./scripts/run_experiment.sh experiments/<research-question>/<experiment-id>`.
+Existing per-experiment `run.sh` files remain compatibility entry points. The
+shared launcher refuses to overwrite or resume an existing output directory.
+Historical outputs remain in their original locations.
 
 ## GPU concurrency
 
@@ -48,7 +50,8 @@ For each implemented stage, the script:
 3. Stops immediately on a nonzero pane status or incomplete output.
 4. Exports validation/test item predictions when `summary.json` is absent.
 5. Stops if the prediction export fails or omits its summary.
-6. Continues to the next experiment only after the current stage is closed.
+6. Mirrors lightweight scientific outputs into `artifacts/experiment_outputs`.
+7. Continues to the next experiment only after the current stage is closed.
 
 It does not implement missing runners, materialize augmented datasets, generate
 configs, run bootstrap analysis, create corrupted evaluation sets, evaluate

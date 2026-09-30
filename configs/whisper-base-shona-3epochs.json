@@ -36,7 +36,7 @@
     "metric_for_best_model": "wer",
     "greater_is_better": false
   },
-  "output_dir": "output_dir_whisper_base_shona_3epochs",
+  "output_dir": "outputs/output_dir_whisper_base_shona_3epochs",
   "wandb": {
     "project": "whisper-shona-multilingual",
     "run_name": "whisper-base-shona-areffarhadi-3-epochs",

@@ -2,7 +2,9 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from evaluate_predictions import resolve_model_source
+from asr_experiments.commands.evaluation.evaluate_predictions import (
+    resolve_model_source,
+)
 
 
 MODEL_CONFIG = {

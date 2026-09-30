@@ -10,13 +10,16 @@ from unittest.mock import patch
 import numpy as np
 import soundfile as sf
 
-from compare_predictions_factorial_bootstrap import factorial_effects, holm_adjust
-from prepare_rq2_asset_partitions import (
+from asr_experiments.commands.analysis.compare_predictions_factorial_bootstrap import (
+    factorial_effects,
+    holm_adjust,
+)
+from asr_experiments.commands.data.prepare_rq2_asset_partitions import (
     assign_partition,
     canonical_audio_identity,
     sha256_file,
 )
-from prepare_rq2_followup_data import (
+from asr_experiments.commands.data.prepare_rq2_followup_data import (
     add_noise,
     apply_speed,
     fit_noise,

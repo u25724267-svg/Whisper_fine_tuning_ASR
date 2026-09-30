@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 DATA_ROOT="${ASR_DATA_ROOT:-/ext_data/casper/asr_data}"
 ASSET_ROOT="$DATA_ROOT/augmentation/slr28/RIRS_NOISES"
 ARCHIVE="$DATA_ROOT/augmentation/slr28/rirs_noises.zip"
@@ -16,8 +17,7 @@ SEED="${RQ2_FOLLOWUP_VALIDATION_SEED:-42}"
 
 required_paths=(
     "$PYTHON"
-    "$ROOT_DIR/prepare_rq2_asset_partitions.py"
-    "$ROOT_DIR/prepare_rq2_followup_data.py"
+    "$ASR_CLI"
     "$ASSET_ROOT"
     "$ARCHIVE"
     "$SOURCE_MANIFEST"
@@ -46,7 +46,7 @@ run_immutable() {
 }
 
 run_immutable "$PARTITION_ROOT" \
-    "$PYTHON" "$ROOT_DIR/prepare_rq2_asset_partitions.py" \
+    "$PYTHON" "$ASR_CLI" prepare_rq2_asset_partitions \
     --asset-root "$ASSET_ROOT" \
     --archive "$ARCHIVE" \
     --expected-archive-sha256 "$ARCHIVE_SHA256" \
@@ -60,7 +60,7 @@ materialize_validation() {
     shift 2
     local output_dir="$VALIDATION_ROOT/$name"
     run_immutable "$output_dir" \
-        "$PYTHON" "$ROOT_DIR/prepare_rq2_followup_data.py" \
+        "$PYTHON" "$ASR_CLI" prepare_rq2_followup_data \
         --source-manifest "$SOURCE_MANIFEST" \
         --output-dir "$output_dir" \
         --condition "$condition" \

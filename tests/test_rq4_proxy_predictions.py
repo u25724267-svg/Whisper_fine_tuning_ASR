@@ -1,6 +1,6 @@
 import unittest
 
-from generate_rq4_proxy_predictions import (
+from asr_experiments.commands.rq4.generate_rq4_proxy_predictions import (
     normalized_character_disagreement,
     select_stratified_calibration_rows,
     trim_token_ids,

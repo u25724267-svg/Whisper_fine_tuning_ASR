@@ -4,16 +4,21 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 OUTPUT_ROOT="${ASR_OUTPUT_ROOT:-/ext_data/casper/asr_experiment_outputs}"
 ARTIFACT_ROOT="$ROOT_DIR/artifacts/experiment_outputs"
-MIRROR_SCRIPT="$ROOT_DIR/mirror_experiment_artifacts.py"
+EXPERIMENT_LAUNCHER="$ROOT_DIR/scripts/run_experiment.sh"
 
 if [[ ! -x "$PYTHON" ]]; then
     echo "Python environment not found at $PYTHON" >&2
     exit 1
 fi
-if [[ ! -f "$MIRROR_SCRIPT" ]]; then
-    echo "Artifact mirror not found at $MIRROR_SCRIPT" >&2
+if [[ ! -f "$ASR_CLI" ]]; then
+    echo "ASR command entry point not found at $ASR_CLI" >&2
+    exit 1
+fi
+if [[ ! -x "$EXPERIMENT_LAUNCHER" ]]; then
+    echo "Experiment launcher not found at $EXPERIMENT_LAUNCHER" >&2
     exit 1
 fi
 
@@ -89,7 +94,6 @@ echo "Preflight passed for ${#experiment_dirs[@]} implemented experiment(s)."
 
 for experiment_dir in "${experiment_dirs[@]}"; do
     config_path="$experiment_dir/config.json"
-    run_script="$experiment_dir/run.sh"
 
     experiment_name="$(read_config_value "$config_path" experiment_name)"
     relative_output="$(read_config_value "$config_path" output_dir)"
@@ -116,7 +120,7 @@ for experiment_dir in "${experiment_dirs[@]}"; do
                 exit 1
             fi
             echo "Launching $experiment_name"
-            "$run_script"
+            "$EXPERIMENT_LAUNCHER" "$experiment_dir"
         fi
         wait_for_session "$session_name"
         if ! training_complete "$output_dir"; then
@@ -138,7 +142,8 @@ for experiment_dir in "${experiment_dirs[@]}"; do
                 "HF_HOME=${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}"
                 "$PYTHON"
                 -u
-                "$ROOT_DIR/evaluate_predictions.py"
+                "$ASR_CLI"
+                evaluate_predictions
                 --config "$config_path"
                 --model-dir "$model_dir"
                 --output-dir "$prediction_dir"
@@ -161,7 +166,7 @@ for experiment_dir in "${experiment_dirs[@]}"; do
 
     artifact_dir="$ARTIFACT_ROOT/$relative_output"
     echo "Mirroring scientific artifacts for $experiment_name"
-    "$PYTHON" "$MIRROR_SCRIPT" \
+    "$PYTHON" "$ASR_CLI" mirror_experiment_artifacts \
         --source-dir "$output_dir" \
         --output-dir "$artifact_dir"
     if [[ ! -f "$artifact_dir/artifact_manifest.json" ]]; then

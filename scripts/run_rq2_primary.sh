@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 DATA_ROOT="${ASR_DATA_ROOT:-/ext_data/casper/asr_data}"
 OUTPUT_ROOT="${ASR_OUTPUT_ROOT:-/ext_data/casper/asr_experiment_outputs}"
 HF_HOME_VALUE="${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}"
@@ -15,9 +16,7 @@ WORKERS="${RQ2_MATERIALIZATION_WORKERS:-8}"
 
 required_paths=(
     "$PYTHON"
-    "$ROOT_DIR/prepare_waveform_augmentation.py"
-    "$ROOT_DIR/prepare_rq2_replication_configs.py"
-    "$ROOT_DIR/compare_predictions_bootstrap.py"
+    "$ASR_CLI"
     "$ROOT_DIR/scripts/run_sequence.sh"
     "$POLICY"
     "$CLEAN_TRAIN"
@@ -47,7 +46,7 @@ run_comparison() {
         echo "Comparison already complete; skipping $output"
         return
     fi
-    "$PYTHON" "$ROOT_DIR/compare_predictions_bootstrap.py" \
+    "$PYTHON" "$ASR_CLI" compare_predictions_bootstrap \
         --baseline "$baseline" \
         --candidate "$candidate" \
         --output "$output" \
@@ -84,7 +83,7 @@ prepare_seed() {
             exit 1
         fi
         echo "Materializing RQ2 waveform data for seed $seed"
-        "$PYTHON" "$ROOT_DIR/prepare_waveform_augmentation.py" \
+        "$PYTHON" "$ASR_CLI" prepare_waveform_augmentation \
             --train-manifest "$CLEAN_TRAIN" \
             --policy "$POLICY" \
             --asset-root "$ASSET_ROOT" \
@@ -95,20 +94,20 @@ prepare_seed() {
         echo "Materialization already complete for seed $seed"
     fi
 
-    "$PYTHON" "$ROOT_DIR/prepare_rq2_replication_configs.py" --seed "$seed"
+    "$PYTHON" "$ASR_CLI" prepare_rq2_replication_configs --seed "$seed"
 
     local a2_dir="experiments/rq2/a2_waveform_random_seed${seed}"
     local a3_dir="experiments/rq2/a3_waveform_c3_seed${seed}"
     local a2_output="$OUTPUT_ROOT/rq2/a2_waveform_random_seed${seed}"
     local a3_output="$OUTPUT_ROOT/rq2/a3_waveform_c3_seed${seed}"
     if [[ ! -f "$a2_output/train_results.json" ]]; then
-        HF_HOME="$HF_HOME_VALUE" "$PYTHON" "$ROOT_DIR/train_full.py" \
+        HF_HOME="$HF_HOME_VALUE" "$PYTHON" "$ASR_CLI" train_full \
             --config "$ROOT_DIR/$a2_dir/config.json" \
             --output-dir "$a2_output" \
             --dry-run
     fi
     if [[ ! -f "$a3_output/train_results.json" ]]; then
-        HF_HOME="$HF_HOME_VALUE" "$PYTHON" "$ROOT_DIR/train_snr_curriculum.py" \
+        HF_HOME="$HF_HOME_VALUE" "$PYTHON" "$ASR_CLI" train_snr_curriculum \
             --config "$ROOT_DIR/$a3_dir/config.json" \
             --output-dir "$a3_output" \
             --dry-run
@@ -127,7 +126,7 @@ for seed in 43 44; do
 done
 
 echo "===== RQ2 descriptive factorial aggregation ====="
-"$PYTHON" "$ROOT_DIR/aggregate_rq2_factorial.py" \
+"$PYTHON" "$ASR_CLI" aggregate_rq2_factorial \
     --output-root "$OUTPUT_ROOT" \
     --output-dir "$OUTPUT_ROOT/rq2/aggregate"
 

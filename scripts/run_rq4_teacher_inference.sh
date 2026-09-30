@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 MANIFEST="/ext_data/casper/asr_data/waxal_shona_unlabeled_admission_v1/eligible.jsonl"
 ADMISSION_SUMMARY="/ext_data/casper/asr_data/waxal_shona_unlabeled_admission_v1/summary.json"
 AUDIT_ROOT="/ext_data/casper/asr_data/waxal_shona_unlabeled_v1"
@@ -14,7 +15,7 @@ MIN_FREE_DISK_GB="${RQ4_MIN_FREE_DISK_GB:-20}"
 
 required_paths=(
     "$PYTHON"
-    "$ROOT_DIR/generate_rq4_teacher_labels.py"
+    "$ASR_CLI"
     "$ROOT_DIR/documents/data/rq4_pseudolabel_protocol_v1.md"
     "$MANIFEST"
     "$ADMISSION_SUMMARY"
@@ -46,7 +47,7 @@ if [[ ! "$free_disk_kb" =~ ^[0-9]+$ ]] || (( free_disk_kb < required_disk_kb ));
     exit 1
 fi
 
-exec "$PYTHON" "$ROOT_DIR/generate_rq4_teacher_labels.py" \
+exec "$PYTHON" "$ASR_CLI" generate_rq4_teacher_labels \
     --manifest "$MANIFEST" \
     --admission-summary "$ADMISSION_SUMMARY" \
     --audit-root "$AUDIT_ROOT" \

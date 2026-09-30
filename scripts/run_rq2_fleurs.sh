@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 OUTPUT_ROOT="${ASR_OUTPUT_ROOT:-/ext_data/casper/asr_experiment_outputs}"
 HF_HOME_VALUE="${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}"
 FLEURS_ROOT="${FLEURS_PROTOCOL_ROOT:-/ext_data/casper/asr_data/fleurs_shona_corrected_v2}"
@@ -25,7 +26,7 @@ experiments=(
 
 required_files=(
     "$PYTHON"
-    "$ROOT_DIR/evaluate_predictions.py"
+    "$ASR_CLI"
     "$FLEURS_ROOT/preparation_summary.json"
     "$FLEURS_VALIDATION"
     "$FLEURS_TEST"
@@ -71,7 +72,7 @@ for specification in "${experiments[@]}"; do
         continue
     fi
     mkdir -p "$model_dir/logs"
-    HF_HOME="$HF_HOME_VALUE" "$PYTHON" -u "$ROOT_DIR/evaluate_predictions.py" \
+    HF_HOME="$HF_HOME_VALUE" "$PYTHON" -u "$ASR_CLI" evaluate_predictions \
         --config "$config_path" \
         --model-dir "$model_dir" \
         --output-dir "$prediction_dir" \

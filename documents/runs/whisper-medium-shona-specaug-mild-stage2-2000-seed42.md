@@ -8,7 +8,7 @@
 | Start time (UTC) | 2026-08-20 15:42:30 |
 | tmux session | `whisper-medium-shona-specaug-mild-stage2-2000-seed42` |
 | Trainer PID | `2183672` |
-| Output | `output_dir_whisper_medium_shona_specaug_mild_stage2_2000_seed42` |
+| Output | `outputs/output_dir_whisper_medium_shona_specaug_mild_stage2_2000_seed42` |
 | Log | `logs/whisper-medium-shona-specaug-mild-stage2-2000-seed42.log` |
 | W&B project | `whisper-shona-multilingual` |
 
@@ -26,7 +26,7 @@ overfits clean validation/test WER.
 | Selected checkpoint | Step 6,000 |
 | Parent validation WER | 22.2636% |
 | Parent test WER | 22.7487% |
-| Local model source | `output_dir_whisper_medium_shona_specaug_mild_seed42` |
+| Local model source | `outputs/output_dir_whisper_medium_shona_specaug_mild_seed42` |
 
 The parent checkpoint is model-only. Optimizer and scheduler state do not exist,
 so this is not an exact resume. It is a new stage initialized from the selected

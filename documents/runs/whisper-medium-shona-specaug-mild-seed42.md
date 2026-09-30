@@ -10,7 +10,7 @@
 | tmux session | `whisper-medium-shona-specaug-mild-seed42` |
 | Trainer PID at launch | `2064901` |
 | Configuration | `configs/whisper-medium-shona-specaug-mild-seed42.json` |
-| Intended output | `output_dir_whisper_medium_shona_specaug_mild_seed42` |
+| Intended output | `outputs/output_dir_whisper_medium_shona_specaug_mild_seed42` |
 | Intended log | `logs/whisper-medium-shona-specaug-mild-seed42.log` |
 | W&B project | `whisper-shona-multilingual` |
 | W&B run name | `whisper-medium-shona-specaug-mild-seed42` |
@@ -134,16 +134,16 @@ The W&B project allowlist permits only `whisper-shona-multilingual`.
 
 ```bash
 WHISPER_CONFIG=configs/whisper-medium-shona-specaug-mild-seed42.json \
-./run_full_detached.sh
+./scripts/run_full_detached.sh
 ```
 
 ### Fresh reproduction
 
 ```bash
 WHISPER_CONFIG=configs/whisper-medium-shona-specaug-mild-seed42.json \
-WHISPER_OUTPUT_DIR=output_dir_whisper_medium_shona_specaug_mild_seed42_rerun \
+WHISPER_OUTPUT_DIR=outputs/output_dir_whisper_medium_shona_specaug_mild_seed42_rerun \
 TMUX_SESSION_NAME=whisper-medium-shona-specaug-mild-seed42-rerun \
-./run_full_detached.sh
+./scripts/run_full_detached.sh
 ```
 
 ## Evaluation

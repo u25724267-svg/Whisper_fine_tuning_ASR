@@ -10,7 +10,7 @@
 | tmux session | `whisper-base-shona-specaug-mixed50-seed42` |
 | Trainer PID at launch | `2016899` |
 | Configuration | `configs/whisper-base-shona-specaug-mixed50-seed42.json` |
-| Output directory | `output_dir_whisper_base_shona_specaug_mixed50_seed42` |
+| Output directory | `outputs/output_dir_whisper_base_shona_specaug_mixed50_seed42` |
 | Persistent log | `logs/whisper-base-shona-specaug-mixed50-seed42.log` |
 | W&B project | `whisper-shona-multilingual` |
 | W&B run name | `whisper-base-shona-specaug-mixed50-seed42` |
@@ -238,7 +238,7 @@ at documentation time.
 | W&B | 0.28.2 |
 
 Machine-readable provenance is stored in
-`output_dir_whisper_base_shona_specaug_mixed50_seed42/run_manifest.json`.
+`outputs/output_dir_whisper_base_shona_specaug_mixed50_seed42/run_manifest.json`.
 
 ### Repository state caveat
 
@@ -252,8 +252,8 @@ the workspace.
 ```bash
 WHISPER_CONFIG=configs/whisper-base-shona-specaug-mixed50-seed42.json \
 TMUX_SESSION_NAME=whisper-base-shona-specaug-mixed50-seed42-rerun \
-WHISPER_OUTPUT_DIR=output_dir_whisper_base_shona_specaug_mixed50_seed42_rerun \
-./run_full_detached.sh
+WHISPER_OUTPUT_DIR=outputs/output_dir_whisper_base_shona_specaug_mixed50_seed42_rerun \
+./scripts/run_full_detached.sh
 ```
 
 Use a new output directory for a fresh reproduction. The W&B allowlist prevents

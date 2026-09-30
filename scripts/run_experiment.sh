@@ -4,10 +4,21 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
-CONFIG_FILE="${1:?Usage: run_experiment.sh CONFIG_FILE SESSION_NAME}"
-SESSION_NAME="${2:?Usage: run_experiment.sh CONFIG_FILE SESSION_NAME}"
+ASR_CLI="$ROOT_DIR/asr.py"
 ASR_OUTPUT_ROOT="${ASR_OUTPUT_ROOT:-/ext_data/casper/asr_experiment_outputs}"
 HF_CACHE_DIR="${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}"
+
+if (( $# == 1 )) && [[ -d "$1" ]]; then
+    CONFIG_FILE="$(realpath -m "$1/config.json")"
+    SESSION_NAME=""
+elif (( $# == 2 )); then
+    CONFIG_FILE="$1"
+    SESSION_NAME="$2"
+else
+    echo "Usage: run_experiment.sh EXPERIMENT_DIR" >&2
+    echo "   or: run_experiment.sh CONFIG_FILE SESSION_NAME" >&2
+    exit 1
+fi
 
 if [[ ! -x "$PYTHON" ]]; then
     echo "Python environment not found at $PYTHON" >&2
@@ -17,6 +28,18 @@ fi
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "Experiment configuration not found at $CONFIG_FILE" >&2
     exit 1
+fi
+
+if [[ -z "$SESSION_NAME" ]]; then
+    SESSION_NAME="$($PYTHON -c '
+import json
+import sys
+
+name = str(json.load(open(sys.argv[1]))["experiment_name"]).strip()
+if not name:
+    raise SystemExit("experiment_name must not be empty")
+print(name)
+' "$CONFIG_FILE")"
 fi
 
 relative_output="$($PYTHON -c '
@@ -44,9 +67,9 @@ if runner not in allowed:
     raise SystemExit(f"Unsupported experiment runner: {runner}")
 print(runner)
 ' "$CONFIG_FILE")"
-RUNNER_FILE="$ROOT_DIR/$runner"
-if [[ ! -f "$RUNNER_FILE" ]]; then
-    echo "Experiment runner not found at $RUNNER_FILE" >&2
+RUNNER_COMMAND="${runner%.py}"
+if [[ ! -f "$ASR_CLI" ]]; then
+    echo "ASR command entry point not found at $ASR_CLI" >&2
     exit 1
 fi
 OUTPUT_DIR="$ASR_OUTPUT_ROOT/$relative_output"
@@ -96,7 +119,8 @@ train_command=(
     "WANDB_DIR=$WANDB_DIR"
     "$PYTHON"
     -u
-    "$RUNNER_FILE"
+    "$ASR_CLI"
+    "$RUNNER_COMMAND"
     --config "$CONFIG_FILE"
     --output-dir "$OUTPUT_DIR"
 )
@@ -109,7 +133,7 @@ tmux set-window-option -t "$SESSION_NAME" remain-on-exit on >/dev/null
 
 echo "Started experiment: $SESSION_NAME"
 echo "Config: $CONFIG_FILE"
-echo "Runner: $RUNNER_FILE"
+echo "Runner: $RUNNER_COMMAND"
 echo "Output: $OUTPUT_DIR"
 echo "Log: $LOG_FILE"
 echo "Attach: tmux attach -t $SESSION_NAME"

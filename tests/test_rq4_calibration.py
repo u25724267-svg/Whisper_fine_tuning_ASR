@@ -1,6 +1,8 @@
 import unittest
 
-from generate_rq4_calibration_predictions import error_record
+from asr_experiments.commands.rq4.generate_rq4_calibration_predictions import (
+    error_record,
+)
 
 
 class CalibrationErrorTests(unittest.TestCase):

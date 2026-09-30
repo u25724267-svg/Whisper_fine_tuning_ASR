@@ -1,0 +1,1 @@
+"""Shared training lifecycle and provenance components."""

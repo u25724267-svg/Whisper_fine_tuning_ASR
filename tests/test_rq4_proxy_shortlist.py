@@ -1,6 +1,9 @@
 import unittest
 
-from build_rq4_proxy_shortlist import select_capped, selection_summary
+from asr_experiments.commands.rq4.build_rq4_proxy_shortlist import (
+    select_capped,
+    selection_summary,
+)
 
 
 class ProxyShortlistTests(unittest.TestCase):

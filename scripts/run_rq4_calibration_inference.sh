@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 MANIFEST="/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/train.jsonl"
 TEACHER_DIR="/ext_data/casper/asr_experiment_outputs/rq1/c0_random_seed42_v2"
 OUTPUT_DIR="/ext_data/casper/asr_data/rq4_calibration_c0_train_v1"
@@ -11,7 +12,7 @@ MIN_FREE_GPU_MB="${RQ4_MIN_FREE_GPU_MB:-20000}"
 
 required_paths=(
     "$PYTHON"
-    "$ROOT_DIR/generate_rq4_calibration_predictions.py"
+    "$ASR_CLI"
     "$ROOT_DIR/documents/data/rq2_rq4_parameter_sweep_amendment_v2.md"
     "$MANIFEST"
     "$TEACHER_DIR/model.safetensors"
@@ -34,7 +35,7 @@ if [[ ! "$free_gpu_mb" =~ ^[0-9]+$ ]] || (( free_gpu_mb < MIN_FREE_GPU_MB )); th
     exit 1
 fi
 
-exec "$PYTHON" "$ROOT_DIR/generate_rq4_calibration_predictions.py" \
+exec "$PYTHON" "$ASR_CLI" generate_rq4_calibration_predictions \
     --manifest "$MANIFEST" \
     --teacher-dir "$TEACHER_DIR" \
     --output-dir "$OUTPUT_DIR" \

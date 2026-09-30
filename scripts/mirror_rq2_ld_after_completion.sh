@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 SOURCE_ROOT="${ASR_OUTPUT_ROOT:-/ext_data/casper/asr_experiment_outputs}"
 ARTIFACT_ROOT="$ROOT_DIR/artifacts/experiment_outputs"
 UPSTREAM_SESSION="rq2-specaugment-ld-extension"
@@ -36,7 +37,7 @@ runs=(
 )
 for relative_output in "${runs[@]}"; do
     echo "Mirroring $relative_output"
-    "$PYTHON" "$ROOT_DIR/mirror_experiment_artifacts.py" \
+    "$PYTHON" "$ASR_CLI" mirror_experiment_artifacts \
         --source-dir "$SOURCE_ROOT/$relative_output" \
         --output-dir "$ARTIFACT_ROOT/$relative_output"
 done

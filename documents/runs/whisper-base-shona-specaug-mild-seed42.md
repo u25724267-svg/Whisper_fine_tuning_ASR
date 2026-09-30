@@ -10,7 +10,7 @@
 | tmux session | `whisper-base-shona-specaug-mild-seed42` |
 | Trainer PID at launch | `1973113` |
 | Configuration | `configs/whisper-base-shona-specaug-mild-seed42.json` |
-| Output directory | `output_dir_whisper_base_shona_specaug_mild_seed42` |
+| Output directory | `outputs/output_dir_whisper_base_shona_specaug_mild_seed42` |
 | Persistent log | `logs/whisper-base-shona-specaug-mild-seed42.log` |
 | W&B project | `whisper-shona-multilingual` |
 | W&B run name | `whisper-base-shona-specaug-mild-seed42` |
@@ -221,15 +221,15 @@ normalizer after decoding, matching the existing Base/Medium/Large experiments.
 | W&B | 0.28.2 |
 
 The machine-readable source of truth is
-`output_dir_whisper_base_shona_specaug_mild_seed42/run_manifest.json`.
+`outputs/output_dir_whisper_base_shona_specaug_mild_seed42/run_manifest.json`.
 
 ### Reproduction command
 
 ```bash
 WHISPER_CONFIG=configs/whisper-base-shona-specaug-mild-seed42.json \
 TMUX_SESSION_NAME=whisper-base-shona-specaug-mild-seed42-rerun \
-WHISPER_OUTPUT_DIR=output_dir_whisper_base_shona_specaug_mild_seed42_rerun \
-./run_full_detached.sh
+WHISPER_OUTPUT_DIR=outputs/output_dir_whisper_base_shona_specaug_mild_seed42_rerun \
+./scripts/run_full_detached.sh
 ```
 
 Use a new output directory for a fresh reproduction. If a resumable checkpoint

@@ -1,7 +1,7 @@
 import math
 import unittest
 
-from generate_rq4_teacher_labels import (
+from asr_experiments.commands.rq4.generate_rq4_teacher_labels import (
     compression_ratio,
     repeated_ngram_fraction,
     select_duration_stratified_rows,

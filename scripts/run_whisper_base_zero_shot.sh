@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 CONFIG="$ROOT_DIR/experiments/baselines/whisper_base_zero_shot/config.json"
 OUTPUT_ROOT="$ROOT_DIR/artifacts/experiment_outputs"
 OUTPUT_DIR="$OUTPUT_ROOT/baselines/whisper_base_zero_shot_waxal_fleurs_v1"
@@ -14,7 +15,7 @@ MODEL_REVISION="e37978b90ca9030d5170a5c07aadb050351a65bb"
 
 required_files=(
     "$PYTHON"
-    "$ROOT_DIR/evaluate_predictions.py"
+    "$ASR_CLI"
     "$CONFIG"
     "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/validation.jsonl"
     "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/test.jsonl"
@@ -39,7 +40,7 @@ fi
 
 mkdir -p "$LOG_DIR"
 HF_HOME="${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}" \
-    "$PYTHON" -u "$ROOT_DIR/evaluate_predictions.py" \
+    "$PYTHON" -u "$ASR_CLI" evaluate_predictions \
     --config "$CONFIG" \
     --model-id "$MODEL_ID" \
     --model-revision "$MODEL_REVISION" \

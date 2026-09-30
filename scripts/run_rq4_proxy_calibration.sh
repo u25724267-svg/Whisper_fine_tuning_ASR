@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 HF_HOME_VALUE="${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}"
 INPUT="/ext_data/casper/asr_data/rq4_calibration_c0_train_v1/predictions.jsonl"
 OUTPUT_DIR="/ext_data/casper/asr_data/rq4_proxy_calibration_v1"
@@ -11,7 +12,7 @@ MIN_FREE_GPU_MB="${RQ4_PROXY_MIN_FREE_GPU_MB:-18000}"
 
 required_paths=(
     "$PYTHON"
-    "$ROOT_DIR/generate_rq4_proxy_predictions.py"
+    "$ASR_CLI"
     "$ROOT_DIR/documents/data/rq4_seamless_proxy_review_v1.md"
     "$INPUT"
 )
@@ -33,7 +34,7 @@ if [[ ! "$free_gpu_mb" =~ ^[0-9]+$ ]] || (( free_gpu_mb < MIN_FREE_GPU_MB )); th
     exit 1
 fi
 
-HF_HOME="$HF_HOME_VALUE" exec "$PYTHON" "$ROOT_DIR/generate_rq4_proxy_predictions.py" \
+HF_HOME="$HF_HOME_VALUE" exec "$PYTHON" "$ASR_CLI" generate_rq4_proxy_predictions \
     --input "$INPUT" \
     --output-dir "$OUTPUT_DIR" \
     --batch-size 1 \

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import torch
 
-from train_full import (
+from asr_experiments.commands.training.train_full import (
     apply_paper_specaugment_masks,
     configure_augmentation,
     validate_augmentation_config,
@@ -15,6 +15,7 @@ class FakeWhisperModule:
         self.training = True
 
     def _mask_input_features(self, input_features, attention_mask=None):
+        _ = attention_mask
         return input_features
 
 

@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$ROOT_DIR/.venv/bin/python"
+ASR_CLI="$ROOT_DIR/asr.py"
 CALIBRATION_INPUT="/ext_data/casper/asr_data/rq4_calibration_c0_train_v1/predictions.jsonl"
 CALIBRATION_INPUT_SUMMARY="/ext_data/casper/asr_data/rq4_calibration_c0_train_v1/summary.json"
 CALIBRATION_OUTPUT="/ext_data/casper/asr_data/rq4_diagnostic_calibration_v1"
@@ -11,8 +12,7 @@ SHORTLIST_OUTPUT="/ext_data/casper/asr_data/rq4_proxy_shortlist_v1"
 
 required_paths=(
     "$PYTHON"
-    "$ROOT_DIR/calibrate_rq4_teacher_diagnostics.py"
-    "$ROOT_DIR/build_rq4_proxy_shortlist.py"
+    "$ASR_CLI"
     "$ROOT_DIR/documents/data/rq2_rq4_parameter_sweep_amendment_v2.md"
     "$CALIBRATION_INPUT"
     "$CALIBRATION_INPUT_SUMMARY"
@@ -42,7 +42,7 @@ run_immutable() {
 }
 
 run_immutable "$CALIBRATION_OUTPUT" \
-    "$PYTHON" "$ROOT_DIR/calibrate_rq4_teacher_diagnostics.py" \
+    "$PYTHON" "$ASR_CLI" calibrate_rq4_teacher_diagnostics \
     --input "$CALIBRATION_INPUT" \
     --output-dir "$CALIBRATION_OUTPUT" \
     --outer-folds 5 \
@@ -50,7 +50,7 @@ run_immutable "$CALIBRATION_OUTPUT" \
     --seed 42
 
 run_immutable "$SHORTLIST_OUTPUT" \
-    "$PYTHON" "$ROOT_DIR/build_rq4_proxy_shortlist.py" \
+    "$PYTHON" "$ASR_CLI" build_rq4_proxy_shortlist \
     --predictions /ext_data/casper/asr_data/rq4_teacher_labels_c0_v1/predictions.jsonl \
     --teacher-summary /ext_data/casper/asr_data/rq4_teacher_labels_c0_v1/summary.json \
     --calibration-dir "$CALIBRATION_OUTPUT" \

@@ -1,111 +1,145 @@
-# Whisper fine-tuning for ASR
-In this Repo, you can easily fine-tune different variations of the Whisper model to your specific multilingual data based on a simple manifest. 
+# Shona Whisper ASR Experiments
 
-1. [prepare_data.py](prepare_data.py)     :::: to prepare ".csv" files for train and test
-2. [train.py](train.py)                   :::: train and save the fine-tuned Whisper model
-3. [decode.py](decode.py)                 :::: decode the test or any evaluation ".wav" file
-4. [whisper_transcribe_WER.py](whisper_transcribe_WER.py) ::: another (easier) method for utilizing the Whisper model in transcription.
+Reproducible Whisper fine-tuning, curriculum learning, augmentation, external
+evaluation, and pseudo-labeling experiments for Shona ASR.
 
-*** You can use different versions of the [openai Whisper model](https://huggingface.co/openai/whisper-large-v2).
+## Repository layout
 
+```text
+asr.py                  Single Python command entry point
+asr_experiments/        Shared config, provenance, audio, training, and RQ4 code
+  commands/             Training, evaluation, analysis, data, and RQ4 commands
+configs/                Reusable and historical experiment configurations
+experiments/            Immutable RQ1/RQ2 experiment definitions and records
+experiment_core/        Curriculum samplers and dynamic curriculum state
+scripts/                Guarded launchers and multi-stage workflows
+tests/                  Standard-library unittest suite
+documents/data/         Frozen scientific protocols and data provenance
+documents/thesis/       Methodology and results drafts
+artifacts/experiment_outputs/
+                        Lightweight predictions, metrics, audits, and logs
+```
 
-## Auxilary files
+Large models, checkpoints, optimizer state, prepared audio, and caches remain
+under `/ext_data/casper`. Lightweight scientific outputs are mirrored into the
+repository under `artifacts/experiment_outputs` with SHA-256 manifests.
+Historical pre-RQ experiment outputs remain in the Git-ignored local
+`outputs/` directory.
 
-The tested training packages are listed in `requirements-training.txt`:
-`pip install -r requirements-training.txt`
+## Environment
 
-It would be better to make a new Python environment using `python3 -m venv myenv` , after that, activate the venv using `source myenv/bin/activate` and then install the packages.
-
-To run on the servers by Slurm, you can use the [slurm_run.sh](slurm_run.sh) file.
-
-The "files_test.csv" and "files_train.csv" help us understand better the required files for testing and training.
-
-## Reproducible WAXAL experiments
-
-The completed Whisper Base Shona setup is stored in
-`configs/whisper-base-shona-3epochs.json`. It contains the model, manifests,
-preprocessing, hyperparameters, output path, and non-secret W&B metadata.
-
-Create the environment file once and add the W&B API key locally:
+The project uses Python 3.10 and the checked-in `.venv` convention:
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-training.txt
 cp .env.example .env
 ```
 
-Validate the configuration without training:
+Add the W&B API key only to the ignored `.env`. All tracked experiment configs
+use the existing `whisper-shona-multilingual` project.
+
+## Running experiments
+
+Each training experiment lives under `experiments/rq1` or `experiments/rq2` and
+contains `config.json`, `experiment.md`, and a compatibility `run.sh`.
+
+Validate the runner named by a config before training:
 
 ```bash
-.venv/bin/python train_full.py \
-	--config configs/whisper-base-shona-3epochs.json \
-	--dry-run
+.venv/bin/python asr.py train_full \
+  --config experiments/rq1/c0_random_seed42_v2/config.json \
+  --dry-run
 ```
 
-Start or resume it in a connection-independent tmux session:
+Launch one experiment through the shared guarded launcher:
 
 ```bash
-./run_full_detached.sh
+./scripts/run_experiment.sh experiments/rq1/c0_random_seed42_v2
 ```
 
-The default output directory resumes its newest checkpoint. To rerun the same
-configuration from scratch without deleting or overwriting the original run,
-select a new output directory and session name:
+Run implemented experiments sequentially, export item predictions, and mirror
+their lightweight outputs:
 
 ```bash
-WHISPER_OUTPUT_DIR=output_dir_whisper_base_shona_rerun_01 \
-TMUX_SESSION_NAME=whisper-base-shona-rerun-01 \
-./run_full_detached.sh
+./scripts/run_sequence.sh \
+  experiments/rq2/s2_specaug_lb_random_seed42 \
+  experiments/rq2/s3_specaug_lb_sortagrad_seed42
 ```
 
-Select another experiment without editing Python:
+The supported config-selected runners are:
+
+- `train_full.py`: standard shuffled training and SpecAugment;
+- `train_sortagrad.py`: SortaGrad ordering;
+- `train_snr_curriculum.py`: static acoustic curricula and pacing; and
+- `train_s2s_curriculum.py`: dynamic loss, WER-margin, and hybrid curricula.
+
+Launchers refuse unsafe output reuse, enforce configured disk/GPU thresholds,
+and retain tmux panes and logs for diagnosis.
+
+## Evaluation and analysis
+
+Export validation/test or named-manifest predictions:
 
 ```bash
-WHISPER_CONFIG=configs/another-experiment.json \
-TMUX_SESSION_NAME=another-experiment \
-./run_full_detached.sh
+.venv/bin/python asr.py evaluate_predictions \
+  --config experiments/rq1/c0_random_seed42_v2/config.json \
+  --model-dir /ext_data/casper/asr_experiment_outputs/rq1/c0_random_seed42_v2 \
+  --output-dir /tmp/predictions \
+  --splits validation test
 ```
 
-The Whisper Medium config requires at least 20 GB of free GPU memory and will
-refuse to start rather than risk an out-of-memory failure:
+`asr.py compare_predictions_bootstrap` performs paired cluster bootstrap
+comparisons. `asr.py compare_predictions_factorial_bootstrap` handles four-cell
+factorials. FLEURS comparisons must use the corrected manifest as the cluster
+manifest with `source_id` as the cluster field. Run `asr.py --help` to list all
+registered commands.
+
+## Output locations
+
+```text
+/ext_data/casper/asr_experiment_outputs/<rq>/<experiment>/
+  model.safetensors, checkpoint-*/, optimizer state, tokenizer, W&B runtime
+
+outputs/output_dir_*/
+  historical local models and checkpoints retained outside Git
+
+artifacts/experiment_outputs/<rq>/<experiment>/
+  result JSON, item predictions, FLEURS predictions, curriculum audits,
+  logs, run manifests, and artifact_manifest.json
+```
+
+Prepared protocols and materialized audio live under
+`/ext_data/casper/asr_data`. Generated JSONL prediction rows and logs are stored
+inside the repository tree but ignored by Git; hash-bearing summaries remain
+available for version control.
+
+## Tests and diagnostics
 
 ```bash
-WHISPER_CONFIG=configs/whisper-medium-shona-3epochs-eval1000.json \
-./run_full_detached.sh
+.venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
+find scripts experiments -name '*.sh' -type f -exec bash -n {} \;
 ```
 
-After training completes, measure the corresponding pretrained model's
-zero-shot performance on the same test manifest:
+For a failed queued run:
 
-```bash
-.venv/bin/python evaluate_zero_shot.py \
-	--config configs/whisper-medium-shona-3epochs-eval1000.json
-```
+1. Inspect `tmux list-sessions` and the retained pane.
+2. Read `<external-run>/logs/train.log` or the workflow sequence log.
+3. Verify the expected result and prediction summaries exist.
+4. Run the exact config with `--dry-run` before creating a new immutable run.
 
-The evaluator reports raw and normalized WER for the full test split and for
-the subset whose speakers never appear in training, and saves every prediction.
+Incomplete external output directories are never overwritten automatically.
 
-## Combined WAXAL and FLEURS Shona experiment
+## Legacy workflow
 
-Prepare the pinned Google FLEURS `sn_zw` corpus, apply the same ASR text
-normalization to FLEURS and WAXAL, and launch the reproducible Whisper Base run:
+The `legacy/` directory retains `prepare_data.py`, `train.py`, `decode.py`,
+`whisper_transcribe_WER.py`, `pilot_train.py`, and `slurm_run.sh` for historical
+provenance. They predate the current WAXAL config-driven system, contain
+machine-specific assumptions, and are not the supported workflow. In
+particular, `legacy/decode.py` has a known undefined `output_file` reference.
+They will not be deleted or repaired without an explicit archival decision.
 
-```bash
-./run_waxal_fleurs.sh
-```
-
-The preparation step lowercases text, removes Unicode punctuation, numbers,
-symbols, and control characters, and collapses whitespace. It preserves the
-official train, validation, and test boundaries and writes corpus-specific and
-combined manifests plus hashes and dataset provenance under
-`/ext_data/casper/whisper_data/waxal_fleurs/sna_asr`.
-
-The experiment uses the original Whisper Base three-epoch hyperparameters and
-the existing `whisper-shona-multilingual` W&B project. Final metrics are saved
-for the combined data and separately for WAXAL and FLEURS validation and test
-splits.
-
-Run the FLEURS-only Whisper Base control baseline with the established
-1,000-step evaluation protocol:
-
-```bash
-./run_fleurs_only.sh
-```
+See [documents/architecture.md](documents/architecture.md) for control flow and
+module ownership, and [experiments/README.md](experiments/README.md) for the
+confirmatory experiment contract.

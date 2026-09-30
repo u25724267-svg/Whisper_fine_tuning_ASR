@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from calibrate_rq4_teacher_diagnostics import (
+from asr_experiments.commands.rq4.calibrate_rq4_teacher_diagnostics import (
     FEATURES,
     choose_c,
     confidence_poor_score,

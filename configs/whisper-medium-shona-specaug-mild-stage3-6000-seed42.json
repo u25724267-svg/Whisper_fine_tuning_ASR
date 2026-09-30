@@ -1,7 +1,7 @@
 {
   "experiment_name": "whisper-medium-shona-specaug-mild-stage3-6000-seed42",
   "model": {
-    "id": "output_dir_whisper_medium_shona_specaug_mild_stage2_2000_seed42",
+    "id": "outputs/output_dir_whisper_medium_shona_specaug_mild_stage2_2000_seed42",
     "revision": null,
     "parent_model": {
       "experiment": "whisper-medium-shona-specaug-mild-stage2-2000-seed42",

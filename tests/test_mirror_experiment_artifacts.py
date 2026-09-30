@@ -3,7 +3,9 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from mirror_experiment_artifacts import mirror_experiment
+from asr_experiments.commands.artifacts.mirror_experiment_artifacts import (
+    mirror_experiment,
+)
 
 
 class MirrorExperimentArtifactsTests(unittest.TestCase):

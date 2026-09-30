@@ -46,7 +46,7 @@
     "metric_for_best_model": "wer",
     "greater_is_better": false
   },
-  "output_dir": "output_dir_whisper_large_shona_3epochs_eval1000",
+  "output_dir": "outputs/output_dir_whisper_large_shona_3epochs_eval1000",
   "resources": {
     "min_free_gpu_mb": 23000,
     "min_free_disk_gb": 22

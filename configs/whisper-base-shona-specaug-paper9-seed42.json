@@ -52,7 +52,7 @@
     "metric_for_best_model": "wer",
     "greater_is_better": false
   },
-  "output_dir": "output_dir_whisper_base_shona_specaug_paper9_seed42",
+  "output_dir": "outputs/output_dir_whisper_base_shona_specaug_paper9_seed42",
   "resources": {"min_free_gpu_mb": 20000, "min_free_disk_gb": 3},
   "wandb": {
     "project": "whisper-shona-multilingual",
