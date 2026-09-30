@@ -22,9 +22,8 @@ ARTIFACT_DIRECTORIES = {
     "logs",
 }
 ALLOWED_SUFFIXES = {".csv", ".json", ".jsonl", ".log", ".md"}
+PRESERVED_LEGACY_PREFIXES = ("wandb/",)
 COMPLETION_FILES = {
-    "model.safetensors",
-    "test_results.json",
     "train_results.json",
     "validation_results.json",
     "item_predictions/summary.json",
@@ -37,6 +36,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--source-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Atomically refresh an existing mirror from the same source directory.",
+    )
     return parser.parse_args()
 
 
@@ -89,7 +93,34 @@ def verify_existing_mirror(
     return manifest.get("entries") == expected_entries
 
 
-def mirror_experiment(source_dir: Path, output_dir: Path) -> dict[str, object]:
+def verify_unmanaged_existing_mirror(
+    source_dir: Path,
+    output_dir: Path,
+    expected_entries: list[dict[str, object]],
+) -> bool:
+    expected_by_path = {str(entry["path"]): entry for entry in expected_entries}
+    existing_files = [path for path in output_dir.rglob("*") if path.is_file()]
+    if not existing_files:
+        return False
+    for path in existing_files:
+        relative_path = path.relative_to(output_dir).as_posix()
+        expected = expected_by_path.get(relative_path)
+        if expected is None:
+            if relative_path.startswith(PRESERVED_LEGACY_PREFIXES):
+                continue
+            return False
+        if path.stat().st_size != expected["bytes"]:
+            return False
+        if sha256_file(path) != expected["sha256"]:
+            return False
+        if not (source_dir / relative_path).is_file():
+            return False
+    return True
+
+
+def mirror_experiment(
+    source_dir: Path, output_dir: Path, *, refresh: bool = False
+) -> dict[str, object]:
     source_dir = source_dir.expanduser().resolve()
     output_dir = output_dir.expanduser().resolve()
     if not source_dir.is_dir():
@@ -104,6 +135,8 @@ def mirror_experiment(source_dir: Path, output_dir: Path) -> dict[str, object]:
 
     files = selected_files(source_dir)
     entries = build_entries(source_dir, files)
+    staging_dir = output_dir.with_name(f".{output_dir.name}.staging")
+    backup_dir = output_dir.with_name(f".{output_dir.name}.backup")
     if output_dir.exists():
         if verify_existing_mirror(source_dir, output_dir, entries):
             return {
@@ -111,14 +144,27 @@ def mirror_experiment(source_dir: Path, output_dir: Path) -> dict[str, object]:
                 "output_dir": str(output_dir),
                 "files": len(entries),
             }
-        raise FileExistsError(f"Artifact destination already exists: {output_dir}")
-
-    staging_dir = output_dir.with_name(f".{output_dir.name}.staging")
+        if not refresh:
+            raise FileExistsError(f"Artifact destination already exists: {output_dir}")
+        manifest_path = output_dir / "artifact_manifest.json"
+        if manifest_path.is_file():
+            existing_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            if existing_manifest.get("source_dir") != str(source_dir):
+                raise ValueError(f"Existing mirror source does not match: {output_dir}")
+        elif not verify_unmanaged_existing_mirror(source_dir, output_dir, entries):
+            raise ValueError(
+                f"Existing unmanaged mirror does not match its source: {output_dir}"
+            )
     if staging_dir.exists():
         raise FileExistsError(f"Artifact staging destination exists: {staging_dir}")
+    if backup_dir.exists():
+        raise FileExistsError(f"Artifact backup destination exists: {backup_dir}")
 
     try:
-        staging_dir.mkdir(parents=True)
+        if output_dir.exists():
+            shutil.copytree(output_dir, staging_dir)
+        else:
+            staging_dir.mkdir(parents=True)
         for source_path, entry in zip(files, entries):
             destination = staging_dir / str(entry["path"])
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -137,8 +183,19 @@ def mirror_experiment(source_dir: Path, output_dir: Path) -> dict[str, object]:
         (staging_dir / "artifact_manifest.json").write_text(
             json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
         )
-        staging_dir.replace(output_dir)
-        return {"status": "mirrored", **manifest}
+        status = "mirrored"
+        if output_dir.exists():
+            output_dir.replace(backup_dir)
+            try:
+                staging_dir.replace(output_dir)
+            except BaseException:
+                backup_dir.replace(output_dir)
+                raise
+            shutil.rmtree(backup_dir)
+            status = "refreshed"
+        else:
+            staging_dir.replace(output_dir)
+        return {"status": status, **manifest}
     except BaseException:
         if staging_dir.exists():
             shutil.rmtree(staging_dir)
@@ -147,7 +204,7 @@ def mirror_experiment(source_dir: Path, output_dir: Path) -> dict[str, object]:
 
 def main() -> None:
     args = parse_args()
-    result = mirror_experiment(args.source_dir, args.output_dir)
+    result = mirror_experiment(args.source_dir, args.output_dir, refresh=args.refresh)
     print(json.dumps(result, indent=2))
 
 

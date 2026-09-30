@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "selection": "non-model result and audit artifacts",
+  "source_dir": "/ext_data/casper/asr_experiment_outputs/rq2/s4_specaug_ld_random_seed44",
+  "output_dir": "/home/casper/asr_experiments/Whisper_fine_tuning_ASR/artifacts/experiment_outputs/rq2/s4_specaug_ld_random_seed44",
+  "files": 12,
+  "bytes": 3701484,
+  "entries": [
+    {
+      "path": "all_results.json",
+      "bytes": 592,
+      "sha256": "460e6915ca22b4becf1a805bc11a5361f7e588dab9099559fa92a97fc5593834"
+    },
+    {
+      "path": "experiment_config.json",
+      "bytes": 3064,
+      "sha256": "870fa68f11e5b2ae10b1864af322fe6f9fb5f94c65cb172d923656e494c02a26"
+    },
+    {
+      "path": "run_manifest.json",
+      "bytes": 1877,
+      "sha256": "bc79e70d942b67a6c1bd124fd38ee3ccfa846f2a4d2872042e1f1fbc026f1280"
+    },
+    {
+      "path": "test_results.json",
+      "bytes": 198,
+      "sha256": "a71526d75af8dc26e031b39f634cb9fe78e469d64f2be437b058e9082555d0ec"
+    },
+    {
+      "path": "train_results.json",
+      "bytes": 206,
+      "sha256": "520de5d20c5135e7d48e824a5e4184d44aa2ada9a95e804bc90d8edd3f6349cd"
+    },
+    {
+      "path": "trainer_state.json",
+      "bytes": 6995,
+      "sha256": "4dd7d05df6cb70174c0b3cb65c90cd772f3a2a74549418369b8f013412bd0ce6"
+    },
+    {
+      "path": "validation_results.json",
+      "bytes": 228,
+      "sha256": "ccfaed0b00d97048556c530073a9f6d8738d5b32f8444a73a5022d35fe3e8e27"
+    },
+    {
+      "path": "item_predictions/summary.json",
+      "bytes": 1818,
+      "sha256": "417927fd4f97c999ee870a9ca494a9187d06ca8f8ce8f64e6ec491f398336d5f"
+    },
+    {
+      "path": "item_predictions/test.jsonl",
+      "bytes": 1076326,
+      "sha256": "88a9c33f11529c7bf8232cefefe867118aa3e0a5a74190e0efc8ec33e216c097"
+    },
+    {
+      "path": "item_predictions/validation.jsonl",
+      "bytes": 1096771,
+      "sha256": "c87ff3d1581f049a81ed18fbe99e7af5413fce088395196226b8812109dac6cc"
+    },
+    {
+      "path": "logs/predictions.log",
+      "bytes": 272666,
+      "sha256": "176b07be5a17f7c257bd166336db71bbb896fafa8f7eddc7ffb22022fc52d992"
+    },
+    {
+      "path": "logs/train.log",
+      "bytes": 1240743,
+      "sha256": "60ba1374b079afe52ea072780611a6fb4268b8b38bcec72d71b9d0ef38bb9ac4"
+    }
+  ]
+}
