@@ -21,6 +21,7 @@ COMMAND_MODULES = {
     "mirror_experiment_artifacts": "asr_experiments.commands.artifacts.mirror_experiment_artifacts",
     "prepare_acoustic_metadata": "asr_experiments.commands.data.prepare_acoustic_metadata",
     "prepare_fleurs_corrected_v2": "asr_experiments.commands.data.prepare_fleurs_corrected_v2",
+    "prepare_medium_queue": "asr_experiments.commands.data.prepare_medium_queue",
     "prepare_rq2_asset_partitions": "asr_experiments.commands.data.prepare_rq2_asset_partitions",
     "prepare_rq2_followup_data": "asr_experiments.commands.data.prepare_rq2_followup_data",
     "prepare_rq2_replication_configs": "asr_experiments.commands.data.prepare_rq2_replication_configs",

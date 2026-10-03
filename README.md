@@ -78,6 +78,18 @@ The supported config-selected runners are:
 Launchers refuse unsafe output reuse, enforce configured disk/GPU thresholds,
 and retain tmux panes and logs for diagnosis.
 
+### Medium RQ1/RQ2 queue
+
+The prepared 27-run Medium extension is listed in
+[experiments/medium/queue.json](experiments/medium/queue.json). It covers seeds
+42--44 for clean random, SortaGrad, and C3 controls, waveform A2/A3, and LB/LD
+S2--S5 without time warping. Setup does not launch training.
+
+Validate with `./scripts/run_medium_rq1_rq2.sh --preflight-only`. To explicitly
+start the detached sequential queue later, run `./scripts/run_medium_rq1_rq2.sh`.
+See [experiments/medium/README.md](experiments/medium/README.md) for storage,
+resource requirements, and the validation contract.
+
 ## Evaluation and analysis
 
 Export validation/test or named-manifest predictions:

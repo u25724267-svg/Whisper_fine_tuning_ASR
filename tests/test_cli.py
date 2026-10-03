@@ -14,7 +14,7 @@ class CLIArchitectureTests(unittest.TestCase):
         self.assertEqual(root_python_files, ["asr.py"])
 
     def test_every_registered_command_imports_and_has_main(self) -> None:
-        self.assertEqual(len(COMMAND_MODULES), 27)
+        self.assertEqual(len(COMMAND_MODULES), 28)
         for command, module_name in COMMAND_MODULES.items():
             with self.subTest(command=command):
                 module = importlib.import_module(module_name)

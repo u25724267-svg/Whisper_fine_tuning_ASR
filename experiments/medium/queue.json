@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "model": {
+    "id": "openai/whisper-medium",
+    "revision": "abdf7c39ab9d0397620ccaea8974cc764cd0953e"
+  },
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "runs": [
+    {
+      "experiment_dir": "experiments/medium/rq1/c0_random_seed42_v2",
+      "experiment_id": "medium-rq1-c0-random-seed42-v2",
+      "control_experiment": null,
+      "runner": "train_full.py",
+      "output_dir": "medium/rq1/c0_random_seed42_v2",
+      "source_config": "experiments/rq1/c0_random_seed42_v2/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c0_random_seed43_v2",
+      "experiment_id": "medium-rq1-c0-random-seed43-v2",
+      "control_experiment": null,
+      "runner": "train_full.py",
+      "output_dir": "medium/rq1/c0_random_seed43_v2",
+      "source_config": "experiments/rq1/c0_random_seed43_v2/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c0_random_seed44_v2",
+      "experiment_id": "medium-rq1-c0-random-seed44-v2",
+      "control_experiment": null,
+      "runner": "train_full.py",
+      "output_dir": "medium/rq1/c0_random_seed44_v2",
+      "source_config": "experiments/rq1/c0_random_seed44_v2/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c1_sortagrad_seed42",
+      "experiment_id": "medium-rq1-c1-sortagrad-seed42",
+      "control_experiment": "medium-rq1-c0-random-seed42-v2",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq1/c1_sortagrad_seed42",
+      "source_config": "experiments/rq1/c1_sortagrad_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c1_sortagrad_seed43",
+      "experiment_id": "medium-rq1-c1-sortagrad-seed43",
+      "control_experiment": "medium-rq1-c0-random-seed43-v2",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq1/c1_sortagrad_seed43",
+      "source_config": "experiments/rq1/c1_sortagrad_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c1_sortagrad_seed44",
+      "experiment_id": "medium-rq1-c1-sortagrad-seed44",
+      "control_experiment": "medium-rq1-c0-random-seed44-v2",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq1/c1_sortagrad_seed44",
+      "source_config": "experiments/rq1/c1_sortagrad_seed44/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c3_snr_duration_seed42",
+      "experiment_id": "medium-rq1-c3-snr-duration-seed42",
+      "control_experiment": "medium-rq1-c0-random-seed42-v2",
+      "runner": "train_snr_curriculum.py",
+      "output_dir": "medium/rq1/c3_snr_duration_seed42",
+      "source_config": "experiments/rq1/c3_snr_duration_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c3_snr_duration_seed43",
+      "experiment_id": "medium-rq1-c3-snr-duration-seed43",
+      "control_experiment": "medium-rq1-c0-random-seed43-v2",
+      "runner": "train_snr_curriculum.py",
+      "output_dir": "medium/rq1/c3_snr_duration_seed43",
+      "source_config": "experiments/rq1/c3_snr_duration_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq1/c3_snr_duration_seed44",
+      "experiment_id": "medium-rq1-c3-snr-duration-seed44",
+      "control_experiment": "medium-rq1-c0-random-seed44-v2",
+      "runner": "train_snr_curriculum.py",
+      "output_dir": "medium/rq1/c3_snr_duration_seed44",
+      "source_config": "experiments/rq1/c3_snr_duration_seed44/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/a2_waveform_random_seed42",
+      "experiment_id": "medium-rq2-a2-waveform-random-seed42",
+      "control_experiment": "medium-rq1-c0-random-seed42-v2",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/a2_waveform_random_seed42",
+      "source_config": "experiments/rq2/a2_waveform_random_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/a2_waveform_random_seed43",
+      "experiment_id": "medium-rq2-a2-waveform-random-seed43",
+      "control_experiment": "medium-rq1-c0-random-seed43-v2",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/a2_waveform_random_seed43",
+      "source_config": "experiments/rq2/a2_waveform_random_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/a2_waveform_random_seed44",
+      "experiment_id": "medium-rq2-a2-waveform-random-seed44",
+      "control_experiment": "medium-rq1-c0-random-seed44-v2",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/a2_waveform_random_seed44",
+      "source_config": "experiments/rq2/a2_waveform_random_seed44/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/a3_waveform_c3_seed42",
+      "experiment_id": "medium-rq2-a3-waveform-c3-seed42",
+      "control_experiment": "medium-rq2-a2-waveform-random-seed42",
+      "runner": "train_snr_curriculum.py",
+      "output_dir": "medium/rq2/a3_waveform_c3_seed42",
+      "source_config": "experiments/rq2/a3_waveform_c3_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/a3_waveform_c3_seed43",
+      "experiment_id": "medium-rq2-a3-waveform-c3-seed43",
+      "control_experiment": "medium-rq2-a2-waveform-random-seed43",
+      "runner": "train_snr_curriculum.py",
+      "output_dir": "medium/rq2/a3_waveform_c3_seed43",
+      "source_config": "experiments/rq2/a3_waveform_c3_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/a3_waveform_c3_seed44",
+      "experiment_id": "medium-rq2-a3-waveform-c3-seed44",
+      "control_experiment": "medium-rq2-a2-waveform-random-seed44",
+      "runner": "train_snr_curriculum.py",
+      "output_dir": "medium/rq2/a3_waveform_c3_seed44",
+      "source_config": "experiments/rq2/a3_waveform_c3_seed44/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s2_specaug_lb_random_seed42",
+      "experiment_id": "medium-rq2-s2-specaug-lb-random-seed42",
+      "control_experiment": "medium-rq1-c0-random-seed42-v2",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/s2_specaug_lb_random_seed42",
+      "source_config": "experiments/rq2/s2_specaug_lb_random_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s2_specaug_lb_random_seed43",
+      "experiment_id": "medium-rq2-s2-specaug-lb-random-seed43",
+      "control_experiment": "medium-rq1-c0-random-seed43-v2",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/s2_specaug_lb_random_seed43",
+      "source_config": "experiments/rq2/s2_specaug_lb_random_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s2_specaug_lb_random_seed44",
+      "experiment_id": "medium-rq2-s2-specaug-lb-random-seed44",
+      "control_experiment": "medium-rq1-c0-random-seed44-v2",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/s2_specaug_lb_random_seed44",
+      "source_config": "experiments/rq2/s2_specaug_lb_random_seed44/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s3_specaug_lb_sortagrad_seed42",
+      "experiment_id": "medium-rq2-s3-specaug-lb-sortagrad-seed42",
+      "control_experiment": "medium-rq1-c1-sortagrad-seed42",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq2/s3_specaug_lb_sortagrad_seed42",
+      "source_config": "experiments/rq2/s3_specaug_lb_sortagrad_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s3_specaug_lb_sortagrad_seed43",
+      "experiment_id": "medium-rq2-s3-specaug-lb-sortagrad-seed43",
+      "control_experiment": "medium-rq1-c1-sortagrad-seed43",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq2/s3_specaug_lb_sortagrad_seed43",
+      "source_config": "experiments/rq2/s3_specaug_lb_sortagrad_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s3_specaug_lb_sortagrad_seed44",
+      "experiment_id": "medium-rq2-s3-specaug-lb-sortagrad-seed44",
+      "control_experiment": "medium-rq1-c1-sortagrad-seed44",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq2/s3_specaug_lb_sortagrad_seed44",
+      "source_config": "experiments/rq2/s3_specaug_lb_sortagrad_seed44/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s4_specaug_ld_random_seed42",
+      "experiment_id": "medium-rq2-s4-specaug-ld-random-seed42",
+      "control_experiment": "medium-rq2-s2-specaug-lb-random-seed42",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/s4_specaug_ld_random_seed42",
+      "source_config": "experiments/rq2/s4_specaug_ld_random_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s4_specaug_ld_random_seed43",
+      "experiment_id": "medium-rq2-s4-specaug-ld-random-seed43",
+      "control_experiment": "medium-rq2-s2-specaug-lb-random-seed43",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/s4_specaug_ld_random_seed43",
+      "source_config": "experiments/rq2/s4_specaug_ld_random_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s4_specaug_ld_random_seed44",
+      "experiment_id": "medium-rq2-s4-specaug-ld-random-seed44",
+      "control_experiment": "medium-rq2-s2-specaug-lb-random-seed44",
+      "runner": "train_full.py",
+      "output_dir": "medium/rq2/s4_specaug_ld_random_seed44",
+      "source_config": "experiments/rq2/s4_specaug_ld_random_seed44/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s5_specaug_ld_sortagrad_seed42",
+      "experiment_id": "medium-rq2-s5-specaug-ld-sortagrad-seed42",
+      "control_experiment": "medium-rq2-s3-specaug-lb-sortagrad-seed42",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq2/s5_specaug_ld_sortagrad_seed42",
+      "source_config": "experiments/rq2/s5_specaug_ld_sortagrad_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s5_specaug_ld_sortagrad_seed43",
+      "experiment_id": "medium-rq2-s5-specaug-ld-sortagrad-seed43",
+      "control_experiment": "medium-rq2-s3-specaug-lb-sortagrad-seed43",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq2/s5_specaug_ld_sortagrad_seed43",
+      "source_config": "experiments/rq2/s5_specaug_ld_sortagrad_seed43/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium/rq2/s5_specaug_ld_sortagrad_seed44",
+      "experiment_id": "medium-rq2-s5-specaug-ld-sortagrad-seed44",
+      "control_experiment": "medium-rq2-s3-specaug-lb-sortagrad-seed44",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium/rq2/s5_specaug_ld_sortagrad_seed44",
+      "source_config": "experiments/rq2/s5_specaug_ld_sortagrad_seed44/config.json"
+    }
+  ],
+  "estimated_disk_reserve_gib": 864,
+  "training_launched": false
+}
