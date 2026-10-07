@@ -44,7 +44,7 @@ def specifications(root: Path) -> list[tuple[Path, dict[str, Any]]]:
 def derive_config(
     source: dict[str, Any], source_path: Path, root: Path, identities: dict[str, str]
 ) -> dict[str, Any]:
-    """Preserve scientific settings except the declared Medium/batch adaptation."""
+    """Preserve Base scientific settings; change only the pinned model."""
     config = copy.deepcopy(source)
     base_id = source["experiment_id"]
     experiment_id = identities[base_id]
@@ -59,11 +59,6 @@ def derive_config(
         output_dir=f"medium/{source_path.parent.parent.name}/{source_path.parent.name}",
     )
     config["model"].update(id=MODEL_ID, revision=MODEL_REVISION)
-    config["training"].update(
-        per_device_train_batch_size=2,
-        per_device_eval_batch_size=2,
-        gradient_accumulation_steps=3,
-    )
     config["resources"].update(min_free_gpu_mb=20000, min_free_disk_gb=32)
     config["wandb"].update(
         project=PROJECT,
@@ -78,7 +73,7 @@ def derive_config(
         "source_config_sha256": sha256_file(source_path),
         "source_experiment_id": base_id,
         "base_control_experiment": control,
-        "batch_adaptation": "microbatch 2 x accumulation 3; effective batch 6",
+        "batch_adaptation": "none; exact Base training and evaluation batch settings",
     }
     return config
 
@@ -103,8 +98,8 @@ def expected_files(root: Path) -> dict[Path, str]:
             f"# {config['experiment_id']}\n\n"
             f"Medium extension of `{source_path.relative_to(root).as_posix()}`.\n"
             "Seeds, data, curriculum, augmentation, optimizer settings, and three-epoch\n"
-            "schedule are inherited. Only model size and the documented batch/resource\n"
-            "adaptation differ scientifically. No time warping is used.\n\n"
+            "schedule are inherited, including exact training/evaluation batch settings.\n"
+            "Only the pinned model differs scientifically. No time warping is used.\n\n"
             "Protocol: `documents/data/whisper_medium_rq1_rq2_protocol.md`.\n"
         )
         entries.append({

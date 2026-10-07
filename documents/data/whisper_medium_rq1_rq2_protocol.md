@@ -6,6 +6,11 @@ Prepared on 2026-10-03, before Medium extension results. Training is not launche
 by preparation. This is a model-size extension of the frozen Base protocols,
 not a rerun of the legacy speaker-overlapping Medium pilots.
 
+Amended on 2026-10-06 before any Medium runs: removed the initially proposed
+2-example microbatch / 3-step accumulation accommodation. The intended changed
+modeling factor is now only the pinned pretrained model variant. No training
+or evaluation parameter may change implicitly to accommodate memory.
+
 | Order | Cell | Ordering and treatment | Seeds |
 |---|---|---|---|
 | 1 | C0 / S0 / A0 | Clean, seeded random | 42, 43, 44 |
@@ -30,9 +35,9 @@ not implicit training-queue stages.
 - Same speaker-disjoint WAXAL v2 splits and same seed-specific waveform data.
 - Three epochs, learning rate 1e-5, 500 warm-up steps, epoch evaluation/saving,
   validation-WER best checkpoint, FP16, and gradient checkpointing.
-- Medium microbatch 2, accumulation 3, effective batch 6, evaluation batch 2.
-  This follows the existing Medium memory profile, not a tuned scientific claim.
-  It does not imply bitwise equivalence to Base or identical mask RNG draws.
+- Exact inherited Base batching: train batch 6, accumulation 1, evaluation batch 6.
+  Learning-rate schedule, final-batch handling, checkpoint cadence, precision,
+  optimizer settings, and gradient-checkpointing options are unchanged.
 - Greedy generation, Shona transcription, maximum length 225.
 - LB: F=27, mF=1, T=100, p=1, mT=1. LD doubles mF and mT to 2.
 - No time warping. No combination of waveform and spectrogram augmentation.
@@ -40,11 +45,21 @@ not implicit training-queue stages.
 - Three retained checkpoints; conservative reserve 32 GiB/run, 864 GiB total.
   This is an estimate, with free space checked again before launch and each run.
 
-Keeping effective batch size does not erase differences in model size,
-microbatch numerical behavior, or stochastic augmentation draws. Base-to-Medium
-comparisons must explicitly report this resource adaptation. For deterministic
-strict C3 order, changing seeds may again yield identical results; repeated
-artifacts would be repeatability evidence, not independent seed variation.
+Larger checkpoint storage and admission thresholds are operational differences,
+not changes to optimization. Runtime and memory use will naturally differ.
+The same seeds do not guarantee identical stochastic draws or predictions
+across different architectures. For deterministic strict C3 order, repeated
+seeds may again produce identical artifacts; this would be repeatability
+evidence, not independent seed variation.
+
+If batch 6 does not fit, stop before launching the full queue. Do not silently
+reduce batch size, increase accumulation, enable a different optimizer, alter
+precision, or truncate inputs. Either use sufficient-memory hardware or obtain
+approval for a documented accommodation with matched Base controls. Equal
+effective batch size alone is not proof of equivalent optimization or update
+budgets. Full training memory feasibility remains unverified by dry-runs.
+The subsequent bounded clean/LD probes described below provide runtime evidence,
+but not a full-run memory guarantee.
 
 ## Controls and provenance
 
@@ -52,12 +67,42 @@ Each generated config records the Base source path and SHA-256. Every declared
 control is remapped to its Medium counterpart. All other data, curriculum,
 augmentation, optimizer, and checkpoint-selection settings are retained.
 
+The full-config parity test allows only model ID/revision and operational
+identity, paths, resources, W&B metadata, control references, and provenance
+to differ. The launcher uses the same runner, sequence, item-prediction export,
+and artifact-mirroring code as the Base family. Actual epoch/update counts,
+data and order hashes, model generation settings, and software versions must
+be checked against recorded Base run artifacts after execution. Source hashes
+have changed through refactoring; config parity is not proof of byte-identical
+historical runtime behavior.
+
 Matched contrasts include C1-C0, C3-C0, A2-C0, A3-C3, A3-A2, S2-C0, S3-C1,
 S4-S2, and S5-S3, with matched seeds. The three clean C3 controls support the
 waveform augmentation contrast under C3. Selection must use WAXAL validation;
 test and FLEURS must not tune these settings.
 
 ## Operation and storage
+
+### Pre-run audit on 2026-10-06
+
+- All 27 corrected runner dry-runs passed with exact Base batching.
+- All 27 Base source configurations matched saved scientific blocks in the
+  completed Base runs' `experiment_config.json` files.
+- Package versions recorded in all 27 Base run manifests matched the current
+  environment. This does not establish equivalence of all hardware or code.
+- All 87 train/validation/test/acoustic-metadata hash comparisons passed across
+  seven unique input files against the historical Base run manifests.
+- Eight focused queue tests passed, including exact full-config scientific
+  parity and protection against replacing differing definitions.
+- No Medium training outputs existed and no training was launched during audit.
+- Subsequent batch-6 runtime probes passed for clean C0 and LD S4 on the RTX
+  4090: two non-skipped AdamW updates, normal generation evaluation, and
+  full-length generation stress. Maximum allocated training memory was about
+  14.235 GiB; peak reservation was about 14.994 GiB. Both probes needed four
+  initial FP16-skipped attempts before successful updates. No checkpoints or
+  W&B runs were created; no experiment queue was started.
+- Evidence is under `artifacts/experiment_outputs/medium/diagnostics/`.
+  This bounded sample does not certify long-run memory or every input batch.
 
 Prepare with `.venv/bin/python asr.py prepare_medium_queue`. Repeated preparation
 accepts identical files and refuses differing files. `--check` validates frozen
@@ -81,9 +126,15 @@ Existing Base outputs and historical configs are never overwritten.
 
 ## Literature and interpretation
 
-This extension transfers established policies; its three-epoch schedule,
-microbatch adaptation, and model-size comparison are study choices rather than
+This extension transfers established policies; its three-epoch schedule and
+model-size comparison are study choices rather than
 exact replications of the cited experiments.
+
+The estimand is the effect of using the pretrained Whisper Medium variant
+instead of Base under matched fine-tuning conditions. It is not a causal
+isolation of parameter count from all differences in architecture and
+pretrained weights. FLEURS comparisons must later use the same corrected v2
+data, decoding, normalization, and prompt-clustered analysis as the Base runs.
 
 - Radford et al. (2023), Robust Speech Recognition via Large-Scale Weak
   Supervision: https://proceedings.mlr.press/v202/radford23a.html

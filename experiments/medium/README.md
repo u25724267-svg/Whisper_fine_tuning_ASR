@@ -15,8 +15,16 @@ exclude time warping; B-series and legacy overlapping-data pilots are excluded.
 ./scripts/run_medium_rq1_rq2.sh --preflight-only
 ```
 
-All 27 actual runner dry-runs passed on 2026-10-03. This validates processor,
-data and ordering contracts, not a full Medium training memory measurement.
+The original 27 runner dry-runs passed on 2026-10-03. On 2026-10-06, the
+unstarted definitions were amended to inherit exact Base batching instead of
+2 x 3 accumulation. Dry-runs validate processor, data, and ordering contracts,
+not full Medium training memory feasibility.
+All 27 corrected dry-runs passed on 2026-10-06. The historical audit also matched
+all 27 Base scientific configs and recorded package versions, plus 87 input
+hash comparisons. On 2026-10-06, bounded clean/LD batch-6 CUDA probes passed,
+including two non-skipped AdamW updates and generation evaluation; maximum
+PyTorch reservation was approximately 15 GiB. Full-run memory monitoring remains
+required. Reports: `artifacts/experiment_outputs/medium/diagnostics/`.
 
 ## Launch later
 
@@ -32,7 +40,9 @@ outputs into `artifacts/experiment_outputs/medium/` after each run. Model and
 checkpoint outputs stay under `/ext_data/casper/asr_experiment_outputs/medium/`.
 The controller log goes directly into the repository under `medium/logs/`.
 
-The batch profile is 2 examples/device with 3 accumulation steps (effective 6).
+The batch profile exactly matches Base: 6 examples/device, 1 accumulation step,
+and evaluation batch 6. No automatic memory fallback is allowed. If this does
+not fit, stop and review hardware or a matched-control protocol amendment.
 Three checkpoints are retained. The launcher requires a conservative 864 GiB
 external disk reserve for the complete queue and 20000 MiB free GPU memory.
 Failure stops the queue; partial outputs are never automatically erased or

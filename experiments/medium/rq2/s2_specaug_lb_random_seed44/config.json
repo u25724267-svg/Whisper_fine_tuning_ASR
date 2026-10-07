@@ -40,9 +40,9 @@
   "training": {
     "num_train_epochs": 3.0,
     "seed": 44,
-    "per_device_train_batch_size": 2,
-    "per_device_eval_batch_size": 2,
-    "gradient_accumulation_steps": 3,
+    "per_device_train_batch_size": 6,
+    "per_device_eval_batch_size": 6,
+    "gradient_accumulation_steps": 1,
     "learning_rate": 1e-05,
     "warmup_steps": 500,
     "gradient_checkpointing": true,
@@ -93,6 +93,6 @@
     "source_config_sha256": "ecf49e2d2eaefd5065458fa8af8bdb5f6a33f4fd39500cc5468f3823bb02a010",
     "source_experiment_id": "rq2-s2-specaug-lb-random-seed44",
     "base_control_experiment": "rq1-c0-random-seed44-v2",
-    "batch_adaptation": "microbatch 2 x accumulation 3; effective batch 6"
+    "batch_adaptation": "none; exact Base training and evaluation batch settings"
   }
 }

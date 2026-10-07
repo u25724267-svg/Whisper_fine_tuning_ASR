@@ -41,9 +41,9 @@
   "training": {
     "num_train_epochs": 3.0,
     "seed": 42,
-    "per_device_train_batch_size": 2,
-    "per_device_eval_batch_size": 2,
-    "gradient_accumulation_steps": 3,
+    "per_device_train_batch_size": 6,
+    "per_device_eval_batch_size": 6,
+    "gradient_accumulation_steps": 1,
     "learning_rate": 1e-05,
     "warmup_steps": 500,
     "gradient_checkpointing": true,
@@ -91,6 +91,6 @@
     "source_config_sha256": "5f8315c99b2bd21f793196e0fa0ccfb4f98aa0742f492ce3a04b154f3c35133d",
     "source_experiment_id": "rq1-c1-sortagrad-seed42",
     "base_control_experiment": "rq1-c0-random-seed42-v2",
-    "batch_adaptation": "microbatch 2 x accumulation 3; effective batch 6"
+    "batch_adaptation": "none; exact Base training and evaluation batch settings"
   }
 }

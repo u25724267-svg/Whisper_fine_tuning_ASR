@@ -22,13 +22,44 @@ class MediumQueueTests(unittest.TestCase):
                 self.assertEqual(source, original)
                 for key in ("data", "curriculum", "augmentation", "waveform_augmentation"):
                     self.assertEqual(config.get(key), source.get(key))
-                expected_training = {**source["training"], "per_device_train_batch_size": 2, "per_device_eval_batch_size": 2, "gradient_accumulation_steps": 3}
-                self.assertEqual(config["training"], expected_training)
+                self.assertEqual(config["training"], source["training"])
+                self.assertEqual(config["runner"], source.get("runner", "train_full.py"))
                 self.assertEqual(config["model"], {**source["model"], "id": MODEL_ID, "revision": MODEL_REVISION})
                 self.assertEqual(config["wandb"]["project"], "whisper-shona-multilingual")
                 self.assertNotIn("whisper-base", config["wandb"]["tags"])
                 if config["control_experiment"]:
                     self.assertIn(config["control_experiment"], identities.values())
+
+    def test_batch_settings_are_inherited_not_hardcoded(self) -> None:
+        path, source = specifications(PROJECT_ROOT)[0]
+        source["training"].update(
+            per_device_train_batch_size=4,
+            per_device_eval_batch_size=3,
+            gradient_accumulation_steps=2,
+        )
+        config = derive_config(
+            source, path, PROJECT_ROOT, {source["experiment_id"]: "medium-test"}
+        )
+        self.assertEqual(config["training"], source["training"])
+
+    def test_only_model_and_operational_metadata_may_differ(self) -> None:
+        sources = specifications(PROJECT_ROOT)
+        identities = {source["experiment_id"]: f"medium-{source['experiment_id']}" for _, source in sources}
+        operational_keys = {
+            "experiment_id", "experiment_name", "control_experiment", "output_dir",
+            "resources", "wandb", "medium_extension",
+        }
+        for path, source in sources:
+            with self.subTest(source=path):
+                config = derive_config(source, path, PROJECT_ROOT, identities)
+                expected = copy.deepcopy(source)
+                expected.setdefault("runner", "train_full.py")
+                config["model"]["id"] = expected["model"]["id"]
+                config["model"]["revision"] = expected["model"]["revision"]
+                for key in operational_keys:
+                    config.pop(key, None)
+                    expected.pop(key, None)
+                self.assertEqual(config, expected)
 
     def test_unknown_control_is_rejected(self) -> None:
         path, source = specifications(PROJECT_ROOT)[0]

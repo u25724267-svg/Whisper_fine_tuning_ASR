@@ -1,0 +1,8 @@
+{
+    "epoch": 3.0,
+    "test_loss": 0.24394895136356354,
+    "test_runtime": 1183.7688,
+    "test_samples_per_second": 1.412,
+    "test_steps_per_second": 0.236,
+    "test_wer": 23.960079840319363
+}

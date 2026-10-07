@@ -31,6 +31,7 @@ COMMAND_MODULES = {
     "prepare_waxal_speaker_disjoint": "asr_experiments.commands.data.prepare_waxal_speaker_disjoint",
     "prepare_waxal_speaker_disjoint_v2": "asr_experiments.commands.data.prepare_waxal_speaker_disjoint_v2",
     "train_full": "asr_experiments.commands.training.train_full",
+    "test_medium_memory": "asr_experiments.commands.training.test_medium_memory",
     "train_s2s_curriculum": "asr_experiments.commands.training.train_s2s_curriculum",
     "train_snr_curriculum": "asr_experiments.commands.training.train_snr_curriculum",
     "train_sortagrad": "asr_experiments.commands.training.train_sortagrad",
