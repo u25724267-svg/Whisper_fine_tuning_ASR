@@ -31,7 +31,7 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
 fi
 
 if [[ -z "$SESSION_NAME" ]]; then
-    SESSION_NAME="$($PYTHON -c '
+    SESSION_NAME="$("$PYTHON" -c '
 import json
 import sys
 
@@ -42,7 +42,7 @@ print(name)
 ' "$CONFIG_FILE")"
 fi
 
-relative_output="$($PYTHON -c '
+relative_output="$("$PYTHON" -c '
 import json
 import pathlib
 import sys
@@ -52,7 +52,7 @@ if value.is_absolute() or ".." in value.parts or str(value) in {"", "."}:
     raise SystemExit("output_dir must be a non-empty relative path without ..")
 print(value)
 ' "$CONFIG_FILE")"
-runner="$($PYTHON -c '
+runner="$("$PYTHON" -c '
 import json
 import sys
 
@@ -87,15 +87,15 @@ if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
     exit 1
 fi
 
-required_free_gpu_mb="$($PYTHON -c 'import json,sys; print(json.load(open(sys.argv[1])).get("resources", {}).get("min_free_gpu_mb", 0))' "$CONFIG_FILE")"
-required_free_disk_gb="$($PYTHON -c 'import json,sys; print(json.load(open(sys.argv[1])).get("resources", {}).get("min_free_disk_gb", 0))' "$CONFIG_FILE")"
+required_free_gpu_mb="$("$PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("resources", {}).get("min_free_gpu_mb", 0))' "$CONFIG_FILE")"
+required_free_disk_gb="$("$PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("resources", {}).get("min_free_disk_gb", 0))' "$CONFIG_FILE")"
 
 if (( required_free_gpu_mb > 0 )); then
     if ! command -v nvidia-smi >/dev/null 2>&1; then
         echo "nvidia-smi is required to validate GPU capacity." >&2
         exit 1
     fi
-    free_gpu_mb="$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | head -1 | tr -d ' ')"
+    free_gpu_mb="$(nvidia-smi --id="${CUDA_VISIBLE_DEVICES:-0}" --query-gpu=memory.free --format=csv,noheader,nounits | head -1 | tr -d ' ')"
     if (( free_gpu_mb < required_free_gpu_mb )); then
         echo "Insufficient GPU memory: ${free_gpu_mb} MiB free, ${required_free_gpu_mb} MiB required." >&2
         exit 1
@@ -115,6 +115,7 @@ fi
 mkdir -p "$LOG_DIR" "$WANDB_DIR"
 train_command=(
     env
+    "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}"
     "HF_HOME=$HF_CACHE_DIR"
     "WANDB_DIR=$WANDB_DIR"
     "$PYTHON"

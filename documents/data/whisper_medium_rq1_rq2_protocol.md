@@ -111,17 +111,23 @@ derivation, input paths, waveform manifest hashes, and unused destinations.
 
 Run `./scripts/run_medium_rq1_rq2.sh --preflight-only` for launch preflight only.
 Only `./scripts/run_medium_rq1_rq2.sh` without that flag starts the detached
-controller `whisper-medium-rq1-rq2`. It uses one GPU job at a time. A failed
-training or prediction stage stops the queue; partial outputs are not erased or
-automatically resumed. Validate the first actual Medium run's memory footprint
-before claiming the whole queue is GPU-tested; runner dry-runs do not train.
+controllers `whisper-medium-rq1-rq2-gpu0` and `whisper-medium-rq1-rq2-gpu1`.
+Operational amendment on 2026-10-10: alternating queue entries run in two
+independent sequential lanes, pinned by UUID to the first two GPUs. Each run's
+training and prediction export use only its assigned GPU; batching and frozen
+configs are unchanged. Preflight requires 20,000 MiB free on each GPU. A failed
+training or prediction stage stops its lane; the other lane may continue.
+Partial outputs are not erased or automatically resumed. Global completion
+order can differ from the listed queue order. Validate each GPU's actual Medium
+memory footprint before claiming full-run feasibility; runner dry-runs do not
+train.
 
 Definitions live in `experiments/medium/{rq1,rq2}/<cell>/`. Heavy outputs live
 under `/ext_data/casper/asr_experiment_outputs/medium/{rq1,rq2}/<cell>/` (or the
 explicit `ASR_OUTPUT_ROOT`). The existing sequence runner exports validation/test
 predictions and hash-verifies a lightweight mirror into
 `artifacts/experiment_outputs/medium/{rq1,rq2}/<cell>/` before advancing.
-The controller log is written directly under that repository's `medium/logs/`.
+Each lane's controller log is written under that repository's `medium/logs/`.
 Existing Base outputs and historical configs are never overwritten.
 
 ## Literature and interpretation
