@@ -130,6 +130,36 @@ predictions and hash-verifies a lightweight mirror into
 Each lane's controller log is written under that repository's `medium/logs/`.
 Existing Base outputs and historical configs are never overwritten.
 
+### Bounded storage batches on 2026-10-10
+
+After the six C0/C1 runs completed, the remaining 21 runs were divided into
+two near-equal batches in frozen queue order. The original 27-run definition,
+32 GiB per-run reserve, and scientific configs remain unchanged. Only the first
+batch is launched using the existing sequence runner, with five runs per GPU.
+
+| Batch | Queue entries | Runs | Local reserve | Conditions |
+|---|---|---:|---:|---|
+| 1 | 7--16 | 10 | 320 GiB | C3, A2, A3 seeds 42--44; S2 seed 42 |
+| 2 | 17--27 | 11 | 352 GiB | S2 seeds 43--44; S3, S4, S5 seeds 42--44 |
+
+Batch 1 GPU 0 runs C3 seed 42, C3 seed 44, A2 seed 43, A3 seed 42, and A3
+seed 44. GPU 1 runs C3 seed 43, A2 seed 42, A2 seed 44, A3 seed 43, and S2
+seed 42. Controllers are `medium-batch1-gpu0` and `medium-batch1-gpu1`;
+training and prediction exports remain pinned to their lane's GPU UUID.
+
+Completed C1 seeds 43/44 were uploaded to
+`gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed43/` and
+`gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/`.
+Checksum-only comparisons passed for all 78 and 65 regular files respectively.
+W&B convenience symlinks were excluded. With explicit user approval, only those
+two local heavy output directories were removed; repository mirrors and the
+original Qhivi/GCS backups were retained. About 366 GiB was free before batch 1.
+
+Batch 2 is not automatically started. Before launching it, completed batch-1
+outputs must be backed up and verified, any local cleanup must be authorized,
+and the 352 GiB admission reserve must be checked again. Partial output
+directories still stop their lane and are never automatically overwritten.
+
 ## Literature and interpretation
 
 This extension transfers established policies; its three-epoch schedule and

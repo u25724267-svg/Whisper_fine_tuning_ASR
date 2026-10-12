@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "selection": "non-model result and audit artifacts",
+  "source_dir": "/ext_data/casper/asr_experiment_outputs/medium/rq1/c3_snr_duration_seed44",
+  "output_dir": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/artifacts/experiment_outputs/medium/rq1/c3_snr_duration_seed44",
+  "files": 15,
+  "bytes": 16279308,
+  "entries": [
+    {
+      "path": "all_results.json",
+      "bytes": 595,
+      "sha256": "881188362e9e5b788388eaa361096b44720dcbf39454b33ba825b4c48891e2b2"
+    },
+    {
+      "path": "experiment_config.json",
+      "bytes": 4141,
+      "sha256": "06f937a48bab6ec8d87b84a4121651246f064cabe7f50923c0f72a9dda1e4429"
+    },
+    {
+      "path": "run_manifest.json",
+      "bytes": 2356,
+      "sha256": "10adb97393f3fb46bde88933f2cb2f8e4f1c0fbfba7a6bfcfb58dcaf5445fa97"
+    },
+    {
+      "path": "test_results.json",
+      "bytes": 199,
+      "sha256": "9f65ac19c08bff97fe898110239386fc973ca7121f26e1ec13f3db68d6dd3800"
+    },
+    {
+      "path": "train_results.json",
+      "bytes": 209,
+      "sha256": "fa6bb3fd1418130a4237d635299027a1ef2476584b49a4c05e60581586566d5c"
+    },
+    {
+      "path": "trainer_state.json",
+      "bytes": 6986,
+      "sha256": "ba9e694dae00a45cf307567a8344a99502ade9a1e98343687a805bc8125844f7"
+    },
+    {
+      "path": "validation_results.json",
+      "bytes": 227,
+      "sha256": "4a430cebd79765bc4feda46ebe7e94285d16b94d24eb056d457388ee49333c41"
+    },
+    {
+      "path": "curriculum_orders/epoch_01_order.jsonl",
+      "bytes": 4098193,
+      "sha256": "7c9a25d5da30e7748a411495e9314ccf6117a8dd683fe2cdc6cd6cd30baafb58"
+    },
+    {
+      "path": "curriculum_orders/epoch_02_order.jsonl",
+      "bytes": 4098193,
+      "sha256": "16240b41e6826c87127ed30bf4e1ce08567f9232e29157255080bbe3802c10c4"
+    },
+    {
+      "path": "curriculum_orders/epoch_03_order.jsonl",
+      "bytes": 4098193,
+      "sha256": "65503cb25635cdd57055cd92827649c99827dbe13224f8b41497da3feb07ee5c"
+    },
+    {
+      "path": "item_predictions/summary.json",
+      "bytes": 1829,
+      "sha256": "c08b7d6ac3786d1f687ab1b4e65d24067e9081107f19c98a85345e9366885a18"
+    },
+    {
+      "path": "item_predictions/test.jsonl",
+      "bytes": 1073883,
+      "sha256": "d60497a647eaf166d8c07c4e45d5d89aebe257bfaef4f30793545d6015b4ff6f"
+    },
+    {
+      "path": "item_predictions/validation.jsonl",
+      "bytes": 1094465,
+      "sha256": "9f72d72a2065e3d2277e2fa78ca0f1cd28eda898e1d035e9230418c02bc5f78f"
+    },
+    {
+      "path": "logs/predictions.log",
+      "bytes": 315977,
+      "sha256": "4ca19d5049ca44a88c99eb5a60d005550d32d915338b04aca52a78611c48ad45"
+    },
+    {
+      "path": "logs/train.log",
+      "bytes": 1483862,
+      "sha256": "ca0b280f8f3215f341a11d6853b4d5e4f3c6c769ae190a8025bf2acb0cef16ea"
+    }
+  ]
+}
