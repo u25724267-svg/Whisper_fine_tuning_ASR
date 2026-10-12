@@ -160,6 +160,34 @@ outputs must be backed up and verified, any local cleanup must be authorized,
 and the 352 GiB admission reserve must be checked again. Partial output
 directories still stop their lane and are never automatically overwritten.
 
+### Batch-two preparation on 2026-10-12
+
+All ten batch-one runs completed with canonical prediction exports and verified
+repository mirrors. Their full regular-file outputs were uploaded to
+`gs://casper/completed-runs/2026-10-12/medium/` by
+`scripts/backup_medium_batch1_gcs.sh`. The detached backup exited 0 with all ten
+checksum comparisons clean. Verification logs and per-run markers are under
+`artifacts/experiment_outputs/medium/logs/backup-batch1-20261012T205152Z/`.
+
+With explicit user approval, the ten backed-up local heavy output directories
+were removed after confirming that their source files had not changed since
+verification. Repository mirrors, active data, and all GCS copies were retained.
+Local free space was 365.87 GiB, above the 352 GiB batch-two reserve.
+
+All eleven remaining configs passed frozen-derivation parity, input-path,
+credential-presence, unused-destination, and actual runner dry-run checks.
+The planned independent single-GPU sequences preserve queue entries 17--27:
+
+| GPU | Ordered runs |
+|---|---|
+| 0 | S2 seed 43; S3 seeds 42/44; S4 seed 43; S5 seeds 42/44 |
+| 1 | S2 seed 44; S3 seed 43; S4 seeds 42/44; S5 seed 43 |
+
+Preparation did not launch training or create batch-two outputs. The existing
+sequence runner will be used for these six-run/five-run lanes, with explicit
+GPU UUID assignments. Recheck disk and GPU admission immediately before launch;
+the full 27-run controller and its original reserve are unchanged.
+
 ## Literature and interpretation
 
 This extension transfers established policies; its three-epoch schedule and
