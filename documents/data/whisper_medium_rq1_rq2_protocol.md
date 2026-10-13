@@ -111,18 +111,96 @@ derivation, input paths, waveform manifest hashes, and unused destinations.
 
 Run `./scripts/run_medium_rq1_rq2.sh --preflight-only` for launch preflight only.
 Only `./scripts/run_medium_rq1_rq2.sh` without that flag starts the detached
-controller `whisper-medium-rq1-rq2`. It uses one GPU job at a time. A failed
-training or prediction stage stops the queue; partial outputs are not erased or
-automatically resumed. Validate the first actual Medium run's memory footprint
-before claiming the whole queue is GPU-tested; runner dry-runs do not train.
+controllers `whisper-medium-rq1-rq2-gpu0` and `whisper-medium-rq1-rq2-gpu1`.
+Operational amendment on 2026-10-10: alternating queue entries run in two
+independent sequential lanes, pinned by UUID to the first two GPUs. Each run's
+training and prediction export use only its assigned GPU; batching and frozen
+configs are unchanged. Preflight requires 20,000 MiB free on each GPU. A failed
+training or prediction stage stops its lane; the other lane may continue.
+Partial outputs are not erased or automatically resumed. Global completion
+order can differ from the listed queue order. Validate each GPU's actual Medium
+memory footprint before claiming full-run feasibility; runner dry-runs do not
+train.
 
 Definitions live in `experiments/medium/{rq1,rq2}/<cell>/`. Heavy outputs live
 under `/ext_data/casper/asr_experiment_outputs/medium/{rq1,rq2}/<cell>/` (or the
 explicit `ASR_OUTPUT_ROOT`). The existing sequence runner exports validation/test
 predictions and hash-verifies a lightweight mirror into
 `artifacts/experiment_outputs/medium/{rq1,rq2}/<cell>/` before advancing.
-The controller log is written directly under that repository's `medium/logs/`.
+Each lane's controller log is written under that repository's `medium/logs/`.
 Existing Base outputs and historical configs are never overwritten.
+
+### Bounded storage batches on 2026-10-10
+
+After the six C0/C1 runs completed, the remaining 21 runs were divided into
+two near-equal batches in frozen queue order. The original 27-run definition,
+32 GiB per-run reserve, and scientific configs remain unchanged. Only the first
+batch is launched using the existing sequence runner, with five runs per GPU.
+
+| Batch | Queue entries | Runs | Local reserve | Conditions |
+|---|---|---:|---:|---|
+| 1 | 7--16 | 10 | 320 GiB | C3, A2, A3 seeds 42--44; S2 seed 42 |
+| 2 | 17--27 | 11 | 352 GiB | S2 seeds 43--44; S3, S4, S5 seeds 42--44 |
+
+Batch 1 GPU 0 runs C3 seed 42, C3 seed 44, A2 seed 43, A3 seed 42, and A3
+seed 44. GPU 1 runs C3 seed 43, A2 seed 42, A2 seed 44, A3 seed 43, and S2
+seed 42. Controllers are `medium-batch1-gpu0` and `medium-batch1-gpu1`;
+training and prediction exports remain pinned to their lane's GPU UUID.
+
+Completed C1 seeds 43/44 were uploaded to
+`gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed43/` and
+`gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/`.
+Checksum-only comparisons passed for all 78 and 65 regular files respectively.
+W&B convenience symlinks were excluded. With explicit user approval, only those
+two local heavy output directories were removed; repository mirrors and the
+original Qhivi/GCS backups were retained. About 366 GiB was free before batch 1.
+
+Batch 2 is not automatically started. Before launching it, completed batch-1
+outputs must be backed up and verified, any local cleanup must be authorized,
+and the 352 GiB admission reserve must be checked again. Partial output
+directories still stop their lane and are never automatically overwritten.
+
+### Batch-two preparation on 2026-10-12
+
+All ten batch-one runs completed with canonical prediction exports and verified
+repository mirrors. Their full regular-file outputs were uploaded to
+`gs://casper/completed-runs/2026-10-12/medium/` by
+`scripts/backup_medium_batch1_gcs.sh`. The detached backup exited 0 with all ten
+checksum comparisons clean. Verification logs and per-run markers are under
+`artifacts/experiment_outputs/medium/logs/backup-batch1-20261012T205152Z/`.
+
+With explicit user approval, the ten backed-up local heavy output directories
+were removed after confirming that their source files had not changed since
+verification. Repository mirrors, active data, and all GCS copies were retained.
+Local free space was 365.87 GiB, above the 352 GiB batch-two reserve.
+
+All eleven remaining configs passed frozen-derivation parity, input-path,
+credential-presence, unused-destination, and actual runner dry-run checks.
+The planned independent single-GPU sequences preserve queue entries 17--27:
+
+| GPU | Ordered runs |
+|---|---|
+| 0 | S2 seed 43; S3 seeds 42/44; S4 seed 43; S5 seeds 42/44 |
+| 1 | S2 seed 44; S3 seed 43; S4 seeds 42/44; S5 seed 43 |
+
+Preparation did not launch training or create batch-two outputs. The existing
+sequence runner will be used for these six-run/five-run lanes, with explicit
+GPU UUID assignments. Recheck disk and GPU admission immediately before launch;
+the full 27-run controller and its original reserve are unchanged.
+
+### Batch-two launch on 2026-10-13
+
+Batch two launched at 00:11:31 UTC after renewed W&B authentication,
+frozen-config parity, unused-destination, 352 GiB disk-reserve, and per-GPU
+memory checks. `medium-batch2-gpu0` runs the six GPU-0 entries above;
+`medium-batch2-gpu1` runs the five GPU-1 entries. Both are detached tmux
+controllers using the existing sequence runner. Initial jobs are S2 seeds 43
+and 44, with separate GPU UUID assignments verified in their Python processes.
+Generation length remains 225 and all matched Base scientific settings are
+unchanged. Successful runs automatically export predictions and mirror their
+lightweight artifacts before advancing. Local outputs are not automatically
+deleted or uploaded. Controller logs are under `medium/logs/` as
+`batch2-gpu0-20261013T001131Z.log` and `batch2-gpu1-20261013T001131Z.log`.
 
 ## Literature and interpretation
 

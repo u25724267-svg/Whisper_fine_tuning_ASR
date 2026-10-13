@@ -139,6 +139,7 @@ for experiment_dir in "${experiment_dirs[@]}"; do
             echo "Exporting item-level predictions for $experiment_name"
             prediction_command=(
                 env
+                "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}"
                 "HF_HOME=${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}"
                 "$PYTHON"
                 -u
