@@ -1,0 +1,514 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,array}
+\usepackage[round,authoryear]{natbib}
+\usepackage[hidelinks]{hyperref}
+\setlength{\emergencystretch}{3em}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\begin{document}
+\setcounter{chapter}{2}
+\chapter{Methodology}
+\label{chap:methodology}
+
+\section{Introduction}
+
+Automatic speech recognition (ASR) converts a spoken utterance into a written transcription. This study investigates whether the order in which labelled utterances are presented during fine-tuning, and the acoustic variation introduced during that training, improve recognition of Shona, also called ChiShona, a Bantu language with limited task-specific labelled speech resources. Fine-tuning updates an already pretrained model using labelled examples from a target task. Unlike training a recogniser from randomly initialised parameters, it exploits representations learned from a much larger source corpus. The study uses multilingual Whisper encoder--decoder models because their prior exposure to speech in multiple languages offers a practical foundation for adaptation with limited Shona supervision \citep{Radford2023}.
+
+The objective is to compare defined procedures under matched conditions, rather than to search without constraint for the lowest possible error. Word error rate (WER) is the primary endpoint because it directly counts errors in the recogniser's written word sequence. Character error rate (CER) provides a complementary, finer-grained measure: a small spelling or morphological difference can cause an entire word to be counted as wrong, whereas character alignment reveals the extent of the mismatch. Validation loss is retained as an optimisation diagnostic, not treated as interchangeable with recognition accuracy. Runtime, memory consumption, and checkpoint storage describe the computational cost of each procedure.
+
+The chapter distinguishes exploratory pipeline development, controlled Whisper Base comparisons, subsequent augmentation protocols, and a matched Whisper Medium extension. This distinction is necessary because a result obtained with a different sample population, speaker split, training budget, or model cannot be attributed solely to curriculum learning. The account is grounded in implementations, configurations, and recorded artifacts available on 13 October 2026. Completed, incomplete, and proposed work are identified explicitly; an implemented script or a queued configuration is not itself evidence of a completed experiment.
+
+\section{Research design}
+\label{sec:design}
+
+\subsection{Questions, variables, and matched controls}
+
+The quantitative experimental design addresses the following questions:
+\begin{enumerate}
+\item How do acoustic-property, model-derived, and hybrid curriculum schedules affect the fine-tuning of a pretrained ASR model on limited labelled Shona speech?
+\item How does combining a curriculum schedule with waveform or spectrogram augmentation affect recognition on unseen Shona speakers and an external Shona speech corpus?
+\end{enumerate}
+The first question includes model-derived criteria because the implemented loss-based and WER-based curricula do not use acoustic measurements alone. Curriculum learning motivates the hypothesis that exposure order can influence optimisation even when the available examples remain unchanged \citep{Bengio2009}. Each proposed score is nevertheless a proxy to be tested, not an objectively established measure of linguistic difficulty.
+
+For the first question, the manipulated factor is the presentation schedule. For the second, curriculum and augmentation form crossed factors. WER is the principal dependent variable; CER and validation loss are secondary measures. In a matched Base--Medium comparison, the manipulated factor is the pinned pretrained Whisper variant. This changes architecture and pretrained weights together and should not be interpreted as a causal isolation of parameter count from every other model property.
+
+Training labels update model parameters. Validation labels support checkpoint selection and development decisions. Test labels are intended to characterise the selected model on held-out examples. Evaluation examples must not contribute supervised updates because scoring a model on memorised targets would underestimate error on new recordings. Speaker-disjoint evaluation imposes the stronger requirement that no speaker contributing a held-out recording also contributes training recordings. The chapter does not, however, retrospectively claim that all test evidence remained untouched during research development: WAXAL test results informed the historical choice of the acoustic curriculum carried into the waveform study. Section~\ref{sec:validity} explains the resulting restriction on inferential claims.
+
+For controlled comparisons, data membership, reference text, pretrained revision within a model-size family, seed, optimisation settings, exposure budget, decoding, and checkpoint-selection rules are fixed unless explicitly manipulated. Each run starts independently from the pretrained model; a treatment is not continued from a trained control. Seeds 42, 43, and 44 provide matched repeated runs where a condition was replicated. The initial curriculum screen did not replicate every condition three times, and some extra seeds were added after inspection of that screen. Those runs are post hoc replications, not retrospectively part of one fully prespecified initial trial.
+
+The split remains unchanged across seeds. A seed can affect shuffled order and stochastic masks, but it does not create a new dataset partition or a new pretrained initialisation. Three seed values therefore need not produce three independent model realisations. Under a fixed ordering, deterministic execution, and no active dropout, repeated seeds can yield identical outputs. Such identity is a repeatability result, not three independent demonstrations of an effect \citep{Reimers2017}.
+
+This limitation occurred in the completed Base study: C3 seeds 42 and 43 produced byte-identical model and prediction artifacts, and C3 seed 44 was not retrained. The verified C3 predictions were compared with each stochastic C0 control, and the A1 waveform-study control reused that single distinct C3 result. These comparisons share a trained control and do not constitute three independent C3 realisations; a zero reported standard deviation is structural, not evidence that uncertainty is absent. An exact C5 seed-42 rerun also reproduced the checkpoint hashes and metrics without adding an independent observation. These Base reuse decisions are distinct from the prepared three-seed Medium matrix.
+
+\subsection{Sequence of investigations}
+
+Exploratory work established ingestion, transcript processing, acoustic inspection, and a functioning recogniser. Controlled Base experiments then screened curricula against conventional random shuffling. A waveform factorial crossed random versus joint acoustic ordering with clean versus composite waveform augmentation. Subsequent spectrogram experiments crossed random versus duration-based ordering with two masking strengths. The Medium extension repeats the selected cells while retaining their other scientific settings. A later mechanism-isolation waveform programme was specified, but its training is not evidenced as completed at the reporting cut-off.
+
+These phases have different evidential roles. Exploratory pipelines establish feasibility and motivate hypotheses. Matched comparisons estimate local treatment differences. Post hoc extensions test whether observations persist under additional seeds or another model variant. External evaluation assesses transfer to a different corpus, but once that corpus has been inspected it is not automatically a pristine final holdout for subsequent adaptive choices.
+
+\section{Implementation and reproducibility}
+
+\subsection{Software, hardware, and experiment records}
+
+The controlled environment used Python 3.10.12, PyTorch 2.5.1 with a CUDA 12.4 build, Transformers 4.46.3, Datasets 2.20.0, Accelerate 1.1.1, Evaluate 0.4.2, JiWER 3.0.4, NumPy 1.26.4, and Weights \& Biases 0.28.2. CUDA is NVIDIA's GPU programming platform; the CUDA version associated with PyTorch is not the same quantity as the operating-system driver version. A graphics processing unit (GPU) accelerates the tensor computations used in training. The recorded controlled-run device is an NVIDIA GeForce RTX 4090 with 24 GB of advertised video random-access memory (VRAM). An A100 appears in legacy scheduler material, but the inspected controlled-run manifests do not establish A100 execution. Accordingly, this chapter does not attribute controlled timings or results to an A100.
+
+The environment also records bitsandbytes 0.45.5. An installed package is not evidence that its eight-bit optimiser was used: the controlled runs use PyTorch AdamW, adaptive moment estimation with decoupled weight decay \citep{Loshchilov2019}. SoundFile is the Python interface used to inspect, decode, and write audio through the libsndfile library. Librosa supplies resampling and pitch-preserving time stretching, and SciPy supplies convolution and the follow-up resampling operation. Their roles are stated because ``SoundFile'' denotes a software package, not a particular recording \citep{SoundFile,Librosa}.
+
+Each experiment has a versioned JavaScript Object Notation (JSON) configuration specifying model identifier/revision, input manifests, language/task, seed, optimisation and batching, curriculum, augmentation, resource requirements, output path, and tracking metadata. Secure Hash Algorithm 256-bit (SHA-256) digests fingerprint the bytes of important inputs and outputs. A fingerprint detects a mismatch between preserved files; it cannot reconstruct a missing file or prove that its content is scientifically correct. Configurations, source files, dependency records, and data manifests are therefore retained alongside hashes.
+
+The current entry point is \code{asr.py}; commands are organised beneath \code{asr_experiments/commands}, while curriculum samplers and dynamic state reside in \code{experiment_core}. Guarded shell launchers check prerequisites, create detached terminal-multiplexer sessions, and execute experiments sequentially. A failing stage stops the sequence, and partial outputs are not silently erased. This makes failure attributable to a named run and stage. The same existing Weights \& Biases project, \code{whisper-shona-multilingual}, is used for tracking; credentials are kept outside tracked files.
+
+Large models, optimiser states, and checkpoints reside on external storage. Lightweight scientific evidence is retained in or mirrored to \code{artifacts/experiment_outputs}: metrics, references and hypotheses, edit counts, curriculum orders/scores, configurations, provenance, and logs. A per-run artifact manifest records copied-file sizes and hashes. Historical local models reside under the ignored \code{outputs} directory. Storage inside the repository tree is distinguished from Git tracking: generated prediction JSON Lines files and logs can be present locally but excluded from Git. Copied summaries may retain original external path strings as provenance.
+
+Refactoring changed implementation locations and source hashes without intentionally changing scientific procedures. Historical hashes are not rewritten to appear identical. Unit tests, configuration-parity checks, and runner dry-runs support compatibility, but none alone proves identical full-training trajectories. The software revision used by an actual run is therefore part of its experimental record.
+
+\section{WAXAL acquisition and preparation}
+\label{sec:waxal}
+
+\subsection{Corpus selection and local export}
+
+The upstream account by \citet{Diack2026} describes a Google-funded collection effort from January 2021 to March 2024 with African partners. Participants described images spanning at least 50 topics in their own languages and natural environments. The authors describe recordings of at least 15 seconds, transcription of a subset representing 10\% of the overall collected audio by paid local language experts, one annotator per recording, and quality checks for clarity, language, prompt relevance, and appropriate content. These statements describe the provider's process, not procedures performed by this thesis. The local files include recordings shorter than 15 seconds, and the local labelled/unlabelled duration ratio must not be equated with the paper's overall collection fraction. This distinction preserves published context without forcing local measurements to match a general collection statement.
+
+The primary labelled corpus is the Shona ASR configuration, \code{sna_asr}, of \code{google/WaxalNLP}. The resource aggregates African-language speech through partner organisations; its dataset card identifies Digital Umuganda as the Shona provider and Creative Commons Attribution--ShareAlike 4.0 (CC-BY-SA-4.0) as the applicable licence \citep{WaxalDataset}. Labelled Shona audio and speaker identifiers make this resource suitable for supervised adaptation and a direct speaker-overlap audit. Its natural-speech setting also differs from the read-speech external corpus. Collection-policy claims are not assumed to hold uniformly for every locally downloaded record. In particular, a universal 15-second minimum and a local 10\% transcription proportion are not established by the inspected artifacts.
+
+The acquisition script loaded original training, validation, and test splits, skipped empty or whitespace-only references, and saved available source audio bytes as local files without deliberately changing their encoding. This is the concrete operation meant by the earlier term ``materialisation''. Duration was measured from audio frame count divided by sample rate using SoundFile, rather than trusting potentially inconsistent metadata. The labelled acquisition script did not pin a Hub revision; the later reproducible experiments therefore rely on frozen local manifests and audio/hash inventories, not a retroactively inferred acquisition commit. A revision pinned for separate unlabelled-data work does not establish the revision of the earlier labelled download.
+
+The resulting JSON Lines (JSONL) manifests store one JSON object per line, including an absolute audio path, duration, transcript, utterance identifier, and available speaker, language, and gender fields. This representation is accepted by NVIDIA NeMo's Speech Data Explorer (SDE), an interactive audio/transcript inspection tool \citep{NeMoSDE}. The local export contained 14,109 training, 1,727 validation, and 1,749 test examples. Local raw labelled duration was approximately 99.39 hours; the final pooled normalised inventory after filtering and the recorded silence treatment contained approximately 98.91 hours. Publication-level totals from another release, and totals combining labelled and unlabelled audio, must not be substituted for these experiment-specific quantities.
+
+\subsection{Inspection, rate measures, and quality filtering}
+
+SDE was used because linked inspection of a recording, its transcript, and derived statistics makes mismatches easier to review than a manifest alone. It assisted inspection and rule development; a separate cleaning implementation applied the rules numerically. For utterance $i$, let $y_i$ denote the supplied transcript and $d_i>0$ the measured duration in seconds. Character and word rates are
+\begin{equation}
+r_i^{\mathrm{char}}=\frac{\operatorname{len}(y_i)}{d_i},\qquad
+r_i^{\mathrm{word}}=\frac{\operatorname{len}(\operatorname{split}(y_i))}{d_i}.
+\end{equation}
+The character numerator includes spaces and punctuation present in the supplied string; the word numerator counts whitespace-separated tokens. The measures are transcript density in characters per second and words per second, not direct physiological speaking rates. High density can signal duration errors or transcript/audio mismatch, whereas low density can indicate extensive silence or missing text. Naturally rapid speech can also have high density; the diagnostic alone is not proof of incorrect annotation.
+
+A record passed the fixed numerical filters when
+\begin{equation}
+d_i\geq1,\qquad 1\leq r_i^{\mathrm{char}}\leq25,\qquad r_i^{\mathrm{word}}\leq4.
+\end{equation}
+Equality at each boundary passed. The duration floor restricted extremely short clips for which density measures become unstable and supervision may contain little speech. The density limits operationalised anomalies observed during preparation. These thresholds were local screening choices, not validated universal Shona boundaries: no separate threshold-optimisation study is claimed. The preserved rejection manifests show that all 392 excluded examples triggered both the high-character-rate and high-word-rate rules; the short-duration and low-character-rate rules did not independently account for any observed rejection in this export.
+
+The same fixed rules were applied to all original splits to define a consistent curated corpus instead of comparing a cleaned training population with differently specified evaluation material. This decision changes the evaluation target: error rates describe retained examples, not automatically the full unfiltered release. Corpus inspection included held-out characteristics, so this preparation is reported as data curation before experimental freezing, not evidence that held-out recordings were never inspected. Unexpected symbols and newlines were review flags rather than automatic exclusions. Apostrophes can be meaningful in Shona orthography, as illustrated by \emph{n'anga}; indiscriminate punctuation removal would therefore risk changing the written target.
+
+\begin{table}[htbp]\centering
+\caption{Local labelled WAXAL filtering.}\label{tab:cleaning}
+\begin{tabular}{lrrr}\toprule Split & Input & Retained & Rejected\\\midrule
+Training & 14,109 & 13,799 & 310\\
+Validation & 1,727 & 1,683 & 44\\
+Test & 1,749 & 1,711 & 38\\\midrule
+Total & 17,585 & 17,193 & 392\\\bottomrule
+\end{tabular}\end{table}
+
+Five audit products were retained: a cleaned manifest; a rejected manifest with reasons; an enriched manifest with derived measurements; a comma-separated values (CSV) table for review; and a JSON policy record with thresholds, input-manifest hashes, counts, and output paths. Original audio was not deleted. Retaining accepted and rejected records makes the consequences of the rules reproducible rather than leaving exclusions implicit.
+
+\subsection{Silence treatment and acoustic auditing}
+
+Low-energy leading and trailing regions were inspected using 100-millisecond frames. Root-mean-square (RMS) amplitude for samples $x_1,\ldots,x_L$ is
+\begin{equation}R=\sqrt{L^{-1}\sum_{n=1}^{L}x_n^2}.\end{equation}
+If $R_{\max}$ is the highest frame RMS in a recording, a frame was active when its RMS was at least $0.01R_{\max}$. This is 40 decibels (dB) below the peak-frame amplitude because $20\log_{10}(0.01)=-40$. A relative threshold accommodates recording-level differences without imposing one absolute amplitude on all microphones. It is still a heuristic detector: quiet speech, background sound, and reverberation can influence its decisions.
+
+Where at least two seconds of trailing silence were detected, the original training recording was shortened after the final active region with 250 milliseconds of retained padding. The gate restricted intervention to substantial tails, while the end margin reduced the risk of cutting a final speech segment at an uncertain activity boundary. The 100 ms, 40 dB, two-second, and 250 ms settings were engineering choices informed by the audit, not demonstrated optima or universal speech constants. New Free Lossless Audio Codec (FLAC) files were written and originals preserved. FLAC reduces storage without the additional coding artifacts of a lossy codec for the encoded sample representation; any prior sample conversion remains a separate operation.
+
+Trimming affected 530 of the 13,799 original retained training recordings, leaving 13,269 unchanged. Original validation/test recordings were not trimmed by that procedure. Normalisation then read the trimmed training manifest and cleaned, untrimmed validation/test manifests. The later speaker-disjoint split pooled these records: 434 trimmed replacements entered final v2 training, 58 validation, and 38 test. Thus it would be wrong to claim that no final held-out recording had undergone the earlier label-independent treatment. This original-split asymmetry is disclosed rather than silently reinterpreted as a uniform final-split operation.
+
+A separate acoustic audit inspected activity ratio, silence, amplitude, duration agreement, and clipping indicators. Flagged records were not automatically excluded from the controlled v2 corpus. The 593 review exclusions used in an exploratory quality-ready curriculum subset did not reduce the controlled v2 training population. A duration-tolerance or clipping-threshold pass means that the specified criterion was not exceeded, not that every duration is mathematically identical or no sample is clipped.
+
+\subsection{Transcript normalisation}
+
+Unicode Normalization Form C (NFC) composes canonically equivalent character sequences into a consistent representation, reducing differences due solely to character encoding \citep{UnicodeNFC}. Case folding removes capitalization distinctions from the target contract so that an incidental case convention does not create unnecessary lexical variants. Specified typographic apostrophes, including backticks in the WAXAL implementation, were mapped to the ASCII apostrophe; ASCII denotes the American Standard Code for Information Interchange. Letters, digits, and the canonical apostrophe were retained. Dashes and other unwanted characters were replaced by spaces, and repeated whitespace was collapsed. Substitution by spaces, rather than deletion, avoids accidentally joining neighbouring words.
+
+Retaining digits preserves written information that would otherwise disappear. Number-bearing records were flagged because spoken number forms do not necessarily align with a numeral in one unambiguous way; there was no automatic English-based number verbalisation. Saved normalisation records identify 27 original training and four original test records containing digits. No empty or non-Latin-letter outputs were reported. These checks describe the implemented audit, not comprehensive linguistic correction.
+
+Original references were retained in \code{text_raw} and normalised targets in \code{text}, enabling later inspection of what preprocessing changed. The phrase in the earlier draft stating that ``retained letters, digits and apostrophes were removed'' is corrected here: those character classes were preserved. Distinguishing raw and processed text also prevents conflating an annotator's transcription with a transformation introduced by the experimenter.
+
+\section{Duplicate screening and speaker-disjoint partitions}
+\label{sec:splits}
+
+\subsection{Canonical PCM hashing}
+
+Pulse-code modulation (PCM) represents a waveform as numerical samples. To fingerprint decoded content rather than filenames or file-container metadata, the audit decoded audio to 32-bit floating-point samples, clipped values to $[-1,1]$, multiplied by 32,767, rounded, and converted to signed 16-bit little-endian integers. SHA-256 was calculated over these sample bytes with an ASCII prefix containing sample rate and channel count. Audio is decoded and the resulting representation is hashed; the hash itself is not decoded.
+
+Matching fingerprints identify equality of this canonical sample representation, even where filenames or non-audio metadata differ. A whole-file hash instead tests equality of the complete encoded file. Canonicalisation includes quantisation; it is not equality of all possible floating-point samples. Conversely, trimming, resampling, channel changes, noise, or lossy encoding can change a fingerprint while leaving perceptually related audio. A lack of exact matches therefore does not establish the absence of near duplicates, common recording origins, or every form of leakage.
+
+The original WAXAL cross-split audit found no exact canonical-PCM duplicates. One normalised transcription occurred across original training and validation without duplicated audio. That audit used original pre-trim training paths. A subsequent v2 acoustic audit verified 16,663 unchanged-path hashes and calculated new hashes for 530 trimmed replacements, with maximum duration discrepancy 2.75 ms. These are distinct audit stages and must not be collapsed into an unrestricted claim of ``no leakage''.
+
+\subsection{Speaker-overlap problem and local v1 limitation}
+
+Different recordings can still contain familiar voices. In the original WAXAL partition, 94 of 97 validation speakers and 101 of 110 test speakers also occurred in training; 1,700 of 1,711 retained test utterances came from training-seen speakers. Such evaluation chiefly measures new-recording performance on familiar speakers, not speaker-independent generalisation. A separate partition was therefore necessary.
+
+The first local speaker-disjoint version removed overlap but left concentration: one speaker accounted for about 51.1\% of validation rows and another for about 35.1\% of test rows. A corpus metric can then be dominated by very few voices despite nominal speaker disjointness. Version 2 added concentration constraints for both utterance count and audio duration. The labels v1 and v2 here identify this study's local protocols, not necessarily an upstream WAXAL release with a similar name.
+
+\subsection{Construction algorithm}
+
+The original normalised manifests were pooled into 17,193 utterances from 161 speakers. Records were grouped by speaker identifier, and a speaker's entire group was assigned to one split. Starting from sorted identifiers, Python's pseudorandom generator with seed 42 shuffled speakers repeatedly to form 50,000 candidate assignments. Each candidate assigned 24 speakers to validation, 24 to test, and 113 to training. This is a reproducible sampled search, not exhaustive enumeration or proof of global optimality.
+
+For candidate $a$, let $n_k(a)$ and $h_k(a)$ denote utterance count and hours in split $k$, and let $N$ and $H$ denote pooled totals. With target fractions $r_{\mathrm{train}}=0.8$ and $r_{\mathrm{val}}=r_{\mathrm{test}}=0.1$, the objective was
+\begin{equation}
+J(a)=\sum_{k\in\{\mathrm{train},\mathrm{val},\mathrm{test}\}}
+\left[\left(\frac{n_k(a)-r_kN}{r_kN}\right)^2+
+\left(\frac{h_k(a)-r_kH}{r_kH}\right)^2\right].
+\end{equation}
+The relative penalties express departures from each split's own target, while including both rows and hours prevents matching counts with substantially different audio exposure. A candidate was rejected if any validation or test speaker exceeded 20\% of that split's rows or 20\% of its duration. Equality at the threshold was accepted. The lowest-objective feasible candidate was selected.
+
+The 20\% cap responds to the measured dominance in v1; it is not a published universal threshold. It constrains dominance under both recording-count and time-weighted views. Fixing 24 held-out speakers improves voice coverage within the 161-speaker inventory; the 50,000-candidate budget broadens the search at a manageable one-off cost. These choices were not tuned by recogniser WER. The split objective and constraints do not guarantee balance in gender, topic, or microphone, which were not explicitly optimised.
+
+\begin{table}[htbp]\centering
+\caption{Study-specific speaker-disjoint WAXAL v2. Hours are manifest durations, before Whisper input-window truncation.}\label{tab:v2}
+\begin{tabular}{lrrr}\toprule Split & Utterances & Hours & Speakers\\\midrule
+Training & 13,807 & 79.762 & 113\\
+Validation & 1,715 & 9.590 & 24\\
+Test & 1,671 & 9.558 & 24\\\bottomrule
+\end{tabular}\end{table}
+
+The largest validation speaker contributed approximately 19.48\% of rows and 19.79\% of hours; the largest test speaker contributed 17.18\% and 17.35\%, respectively. Checks established unique identifiers, existing audio paths, non-empty transcripts, and zero speaker overlap. Manifests and their hashes were frozen across experimental seeds, avoiding the additional variation that would arise from drawing a new split for every run.
+
+\section{Google FLEURS external evaluation}
+
+Few-shot Learning Evaluation of Universal Representations of Speech (FLEURS) is Google's multilingual speech benchmark based on read sentence prompts \citep{Conneau2022}. Its Shona configuration, \code{sn_zw}, supplies a labelled external corpus with a different speaking task and text distribution from WAXAL. Out-of-domain (OOD) evaluation here means this cross-corpus change, not merely an unseen speaker inside WAXAL. A cross-corpus difference can reflect several factors and cannot identify which factor alone caused a performance change.
+
+Preparation used revision \code{70bb2e84b976b7e960aa89f1c648e09c59f894dd}. It retained 2,463 official training recordings, 393 validation recordings, and 925 test recordings, approximately 9.979, 1.546, and 3.818 hours. The training partition was preserved for provenance but not used in controlled WAXAL-only fine-tuning. Earlier FLEURS-only and WAXAL--FLEURS combined pilots remain exploratory; their existence must not be confused with the external evaluation of the controlled models.
+
+An early preparation removed numbers and treated repeatable sentence identifiers as unique recording identifiers. The corrected local FLEURS v2 protocol retained all 3,781 recordings and their audio/split membership, assigning unique recording IDs from audio filenames. It preserved the original sentence ID as \code{source_id}. Several speakers can read one prompt, so that field intentionally repeats. There are 150 distinct validation prompts and 348 test prompts. Speaker IDs are unavailable in the prepared evaluation data, a limitation reflected in the bootstrap procedure below.
+
+Corrected FLEURS text uses NFC, case folding, canonical apostrophes, other-punctuation replacement by spaces, and collapsed whitespace. Its Unicode category test retains letters, combining marks, and numbers, whereas WAXAL uses Python letter/digit predicates and a slightly different apostrophe mapping. Thus the two implementations share a normalisation purpose but are not literally identical: combining marks and numeric forms such as fractions, and the handling of backticks, are concrete distinctions. Every model evaluated on corrected FLEURS nevertheless receives the same frozen references, so its within-corpus comparisons share the exact scoring target.
+
+The audit confirmed 16 kHz mono audio, no exact within/cross-FLEURS canonical-PCM duplicates, and no exact match against the original-path WAXAL fingerprint inventory. Because sample rate enters the hash and native WAXAL is 48 kHz, this is not a resampling-invariant cross-corpus identity test. Nor does it rule out Whisper pretraining exposure. FLEURS is therefore described as external to this study's fine-tuning data, not as proven unseen during foundation-model pretraining.
+
+\section{Baseline recogniser and model inputs}
+\label{sec:baseline}
+
+\subsection{Pretrained model choice}
+
+Whisper is an encoder--decoder Transformer trained using approximately 680,000 hours of multilingual, multitask supervision \citep{Radford2023}. The encoder turns acoustic features into contextual representations; the autoregressive decoder predicts tokens conditioned on those representations and preceding tokens. The original training mixture includes English transcription, non-English transcription, and translation supervision. Adding only two transcription subsets therefore does not account for the complete multitask total. Multilingual pretraining does not imply equal accuracy across languages or guarantee strong zero-shot Shona performance.
+
+The controlled screen used \code{openai/whisper-base}, revision \code{e37978b90ca9030d5170a5c07aadb050351a65bb}, approximately 74 million parameters. The extension uses \code{openai/whisper-medium}, revision \code{abdf7c39ab9d0397620ccaea8974cc764cd0953e}, approximately 764 million parameters. Base enables a broad matched screen within finite computation; Medium tests transfer to a substantially larger pretrained variant. Other sizes occurred in exploratory work but were not included in this repeated controlled matrix. Exclusion is therefore a scope/resource decision, not evidence that larger models are inferior or universally infeasible on the available GPU.
+
+\subsection{Audio features and target tokens}
+
+The loader verifies audio paths and non-empty targets. Recordings are decoded as mono (one channel) and resampled to 16,000 samples per second because this is the selected Whisper processor's expected input rate. Native WAXAL is 48 kHz; conforming FLEURS audio is already 16 kHz. Resampling enforces a sampling-grid contract and does not by itself improve recording quality.
+
+A short-time Fourier transform represents the frequency content of overlapping waveform windows. The processor applies a Mel-spaced filter bank and logarithmic scaling, producing an 80-channel log-Mel spectrogram. This is a matrix over time and perceptually spaced frequency bands, with values representing transformed energy. The Base and Medium variants used here share this feature dimensionality. Padding or truncation yields 3,000 feature frames for Whisper's 30-second input window, allowing fixed-size acoustic batches consistent with pretraining \citep{Radford2023}.
+
+Some retained recordings exceed 30 seconds. The short-form implementation truncates audio but does not realign or truncate the reference text accordingly, potentially leaving reference content from discarded audio. This can introduce deletion pressure. It is a shared limitation of the comparisons, not a treatment-specific change, and manifest hours must not be interpreted as the exact number of unpadded seconds used by the encoder. An attention-mask array records valid versus padded frames and is passed through the collator; it also bounds time masking. Its presence does not establish that every internal model operation is mathematically unaffected by padding.
+
+Whisper's multilingual tokenizer maps text to integer identifiers for subword units and special control symbols, rather than necessarily one token per word. Shona/transcription configuration supplies language and task context; it does not train a new tokenizer or restrict the entire vocabulary to Shona. During teacher-forced training, preceding reference tokens are supplied to predict the next target token. During generation, preceding generated tokens are used instead.
+
+Target sequences are padded to the longest target within a batch so that tensor dimensions agree. Label padding is replaced by $-100$, the cross-entropy ignore index, so those positions do not contribute supervised loss. These are text-token positions, not acoustic frames. A leading beginning-of-sequence token is removed only when the collator finds it in the first position of every label sequence in the batch. Other special target tokens are not all automatically removed from the training loss.
+
+\subsection{Optimisation, checkpoints, and decoding}
+
+An epoch is one scheduled traversal of the condition's presentation list; for a cumulative curriculum that list can repeat eligible examples. A minibatch is the group processed together before an update attempt. Back-propagation computes gradients, the derivatives of the loss with respect to parameters, and the optimiser uses them to update weights. Gradient accumulation would combine gradients from several minibatches before updating; accumulation one means no such multi-minibatch accumulation is used. These definitions distinguish sample exposure from optimiser attempts and from successful numerical updates.
+
+\begin{table}[htbp]\centering
+\caption{Matched controlled fine-tuning contract.}\label{tab:training}
+\begin{tabular}{p{0.38\linewidth}p{0.53\linewidth}}\toprule Setting & Specification\\\midrule
+Budget & Three epochs; 13,807 presentations per epoch\\
+Train/evaluation batch & Six examples each\\
+Gradient accumulation & One batch per update attempt\\
+Optimiser & PyTorch AdamW; learning rate $10^{-5}$\\
+Schedule & 500 warm-up steps; linear decay thereafter\\
+Precision & FP16 automatic mixed precision\\
+Activation memory & Non-reentrant gradient checkpointing\\
+Validation/saving & Epoch boundaries\\
+Selection & Lowest validation WER among saved epoch checkpoints\\
+Decoding & Greedy Shona transcription; maximum length 225 tokens\\
+Evaluation augmentation & Disabled\\\bottomrule
+\end{tabular}\end{table}
+
+Three epochs give a fixed, tractable budget for a multi-condition study, not an asserted universal optimum. Fixing presentations and scheduled updates prevents a strategy benefiting merely from more optimisation. With 13,807 presentations and batch six, there are 2,302 batches per epoch, including a smaller final batch, and 6,906 scheduled attempts over three epochs. Mixed-precision overflow may skip a numerical update, so attempted and successful updates are not automatically identical.
+
+The learning rate $10^{-5}$ is inherited from the established baseline as a conservative fine-tuning setting intended to avoid abrupt disruption of pretrained representations. Five hundred warm-up steps gradually increase the learning rate before linear decay. These choices are held constant to isolate schedule/augmentation effects; an exhaustive Shona-specific optimiser search was not performed. Non-overridden AdamW arguments remain tied to the pinned Transformers/PyTorch defaults and are recoverable from resolved training arguments. Installed bitsandbytes does not change this optimiser into an eight-bit variant.
+
+Warm-up spans approximately $500/6906\approx7.24\%$ of the scheduled update budget. The intended learning-rate schedule at step $t$, with peak rate $\eta_{\max}$ and total steps $T$, is
+\begin{equation}
+\eta_t=\begin{cases}
+\eta_{\max}t/500,&0\leq t<500,\\
+\eta_{\max}\max\{0,(T-t)/(T-500)\},&t\geq500.
+\end{cases}
+\end{equation}
+This describes scheduler progression, not a guarantee that every attempted mixed-precision step updates parameters. The ordinary supervised batch loss is the sum of valid-token negative log-likelihoods (NLLs) divided by the number of valid target tokens. That token-weighted training objective must not be confused with the audio-duration-normalised per-utterance difficulty score used by C5.
+
+The pinned training-argument defaults supply Adam moment coefficients $\beta_1=0.9$ and $\beta_2=0.999$, numerical-stability constant $\epsilon=10^{-8}$, zero weight decay, and maximum gradient norm 1.0. Thus the use of AdamW does not imply a nonzero weight-decay penalty in these runs. Label smoothing is zero, so targets are not deliberately softened across alternative tokens. The incomplete final minibatch is retained rather than dropped, data-loader subprocess count is zero, training statistics are logged every 250 steps in the controlled configurations, and up to three epoch checkpoints are retained. These inherited settings are reported for reproducibility rather than presented as independently tuned improvements.
+
+FP16 means 16-bit floating-point automatic mixed precision, which lowers memory requirements and exploits GPU acceleration while retaining higher precision where required. Dynamic gradient scaling mitigates underflow; overflow can reduce the scale and skip an attempted update. Gradient checkpointing discards selected intermediate activations and recomputes them in back-propagation, reducing activation memory at additional compute cost \citep{Micikevicius2018,Chen2016}. Both settings remain fixed in matched comparisons.
+
+Validation WER is measured and checkpoints saved at the three epoch boundaries. ``Best checkpoint'' means the best of these observations, not necessarily the best state encountered anywhere in the trajectory. A model could deteriorate between evaluations without the precise onset being observed. Epoch-boundary evaluation was retained for comparable computational budgets; denser validation would be a separately defined diagnostic, not a mid-experiment protocol change. Training loss logged between evaluations cannot substitute for validation recognition performance.
+
+After training, the selected checkpoint is evaluated again on validation and test, and a separate item-level export generates references, hypotheses, and edit counts. Consequently, the three epoch evaluations are not the total number of evaluation passes. Metrics from separately executed generation passes can differ slightly; item-level summaries and prediction hashes are the canonical basis of paired thesis comparisons, whereas training-result files describe loss and runtime. The recorded training runtime already includes scheduled epoch evaluation and must not have that duration added twice.
+
+Greedy decoding chooses the highest-scoring next token without beam search or sampling. It avoids an additional decoding-search factor and is cheaper than maintaining multiple candidate sequences, but it does not guarantee hardware-independent bitwise results or equivalence to beam search. The generation context is Shona transcription. Forced decoder identifiers and the default token-suppression list are cleared consistently across controlled runs. Maximum generation length is 225 tokens; repetition and maximum-length termination are diagnostics because they can materially affect insertion and deletion rates.
+
+\subsection{Untouched pretrained reference}
+
+Zero-shot evaluation loads the pretrained checkpoint without task-specific updates, separating what pretraining already provides from supervised adaptation. The pinned Base zero-shot reference was evaluated on WAXAL v2 and corrected FLEURS validation/test with the controlled generation contract. It was added retrospectively, not before all fine-tuned experiments as stated in the earlier draft. No completed Medium zero-shot artifact was located by the reporting cut-off. ``Zero-shot'' means no Shona fine-tuning by this study, not proof that upstream Whisper training contained no Shona.
+
+\section{Curriculum-learning framework}
+\label{sec:curriculum}
+
+\subsection{Notation and percentile scaling}
+
+Write $\mathcal D=\{(x_i,y_i,d_i,u_i)\}_{i=1}^{N}$ for the labelled training set, where $x_i$ is audio, $y_i$ the reference, $d_i$ manifest duration, and $u_i$ a unique identifier. A curriculum defines priorities, eligibility, and presentation order. Static scores use fixed recording properties; dynamic scores use model feedback; hybrid scores combine both. None makes ``easy'' an objective linguistic label.
+
+To combine quantities measured in different units, the acoustic and hybrid implementations use training-set percentile ranks. For raw value $v_i$,
+\begin{equation}
+P(v_i)=\frac{\#\{j:v_j<v_i\}+\tfrac12(\#\{j:v_j=v_i\}-1)}{N-1}.
+\label{eq:percentile}
+\end{equation}
+This is a zero-based average rank divided by $N-1$, with 0.5 assigned for a singleton. Ties receive the same rank, and tied extrema need not attain zero or one. Relative ranking avoids allowing extreme raw seconds or decibels to dominate a composite; it is not min--max scaling of the raw acoustic values.
+
+\subsection{C0: random-order reference}
+
+C0 presents every utterance once per epoch in a seeded random permutation. Explicit training and data seeds, together with the pinned Transformers/Accelerate sampler, determine the presentation process. C0 is the reference for assessing ordering without altering the dataset or budget. ``Random baseline'' refers to presentation order; model weights still start from the pretrained checkpoint, not random initialisation.
+
+\subsection{C1: duration-based SortaGrad}
+
+C1 sorts the first epoch from shortest to longest and uses seeded full-data random permutations thereafter, transferring SortaGrad from Deep Speech 2 to pretrained Whisper fine-tuning \citep{Amodei2016}. Shorter recordings offer a simple model-independent proxy: they generally involve fewer sequential recognition decisions, although short speech need not be phonetically or semantically easy. Later shuffling avoids enforcing a length progression throughout optimisation.
+
+First-epoch ties use string utterance identifier and original index. Later permutations use a PyTorch generator seeded with the run seed plus the zero-based epoch index. Every item occurs once per epoch. There is no omission, oversampling, or shuffled length-bin approximation, so the treatment changes order rather than exposure count. This is a transferred algorithmic principle, not replication of the original recogniser architecture.
+
+\subsection{Acoustic signal-to-noise proxy and C2}
+
+Signal-to-noise ratio (SNR) compares speech and noise power. Natural WAXAL recordings do not provide separate clean/noise signals, so the study uses an estimated energy proxy rather than ground-truth SNR. At native 48 kHz, 100 ms frames are classified with the 40 dB-relative activity rule. The speech-level estimate is the 75th-percentile active-frame RMS, and the noise-level estimate is the 20th-percentile RMS over all frames. Their logarithmic ratio is capped at 60 dB:
+\begin{equation}
+\widehat a_i=\min\{60,20\log_{10}(R_{i,\mathrm{speech}}/R_{i,\mathrm{noise}})\},
+\end{equation}
+with a numerical floor before logarithms. Percentiles reduce dependence on individual peaks or quiet frames, but non-stationary noise and background speech can bias the estimate. The ceiling avoids extreme ratios when estimated noise is very small; 2,665 training records reached it, so deterministic tie handling is important.
+
+C2 uses $s_i^{\mathrm{C2}}=1-P(\widehat a_i)$ in ascending order, presenting apparently higher-SNR examples first. The same full-data order is repeated every epoch, with identifier and original index resolving equal scores. Noise-robust ASR curriculum studies motivate investigating acoustic quality \citep{Braun2017}; the precise local proxy and strict repeated order are adaptations, not replication of a progressively changing published noise schedule.
+
+\subsection{C3: joint duration--SNR curriculum}
+
+C3 assigns
+\begin{equation}s_i^{\mathrm{C3}}=\tfrac12P(d_i)+\tfrac12[1-P(\widehat a_i)].\end{equation}
+Combining temporal length and acoustic quality avoids reducing difficulty to either signal alone. Equal weights are a transparent choice when no validated tuning evidence establishes a preferred balance; percentile conversion makes the equal-weight sum meaningful across unlike units. The weights are study-specific, not an asserted optimum. The same ascending score order is used each epoch, with identifier/index ties and every item presented once. When C3 is paired with waveform augmentation, its scores use clean training metadata so that transformed duration does not silently introduce a different curriculum.
+
+\subsection{C4 and C4R: cumulative eligibility}
+
+C4 uses the C3 ranking and eligible fractions $f_e=1/3,2/3,1$ across three epochs. The accessible prefix size is $K_e=\lceil f_eN\rceil$, producing 4,603, 9,205, and 13,807 unique eligible examples. To match C0's training budget, the eligible list is shuffled, cycled until it supplies $N$ presentations, and shuffled again with the same advancing generator seeded by run seed plus epoch index. This is balanced repetition, not independent draws with replacement.
+
+The first epoch therefore exposes fewer distinct utterances but not fewer presentations or scheduled updates. At $N=13,807$, 4,601 of the 4,603 eligible examples appear three times and two appear twice; in epoch two, 4,602 of 9,205 appear twice and 4,603 once; in epoch three, all appear once. The repeated subset itself could influence optimisation, so C4R uses exactly the same pool expansion and presentation budget with a once-randomised priority ranking instead of acoustic difficulty. C4 versus C4R separates acoustic prioritisation from generic early pool restriction. These are curriculum-pacing adaptations \citep{Bengio2009}, not claims to implement a latent-variable self-paced-learning objective.
+
+\subsection{C5: online sequence-to-sequence negative log-likelihood}
+
+C5 uses model feedback, adapting sequence-loss curricula investigated by \citet{Karakasidis2022}. Sequence-to-sequence (S2S) learning predicts a target token sequence from an input speech sequence. Epoch one is an explicit seeded random permutation, not ``no ordering''. For example $i$ presented in batch $b$ of epoch $e$, the score is
+\begin{equation}
+s_i^{\mathrm{C5},e}=\frac{-\sum_{t\in V_i}\log p_{\theta_{e,b}}(y_{i,t}\mid y_{i,<t},x_i)}{d_i},
+\label{eq:s2s}
+\end{equation}
+where $V_i$ comprises non-ignored target positions and $\theta_{e,b}$ is the current model state. This is summed token negative log-likelihood (NLL) per manifest audio second. The preceding tokens $y_{i,<t}$ are ground-truth tokens under teacher forcing, not generated hypotheses. Unreduced cross-entropy is computed from float32 logits, padding contributes zero, and valid-token counts are audited. The sum, not the token mean, is divided by duration. A separate consistency check reconstructs the ordinary token-mean batch training loss.
+
+Duration normalisation reduces the direct tendency of longer utterances to accumulate larger losses merely because they contain more speech. It defines surprise per audio second; it does not remove every dependence on speaking rate, token count, or annotation quality. Manifest duration, including any portion beyond the 30-second model window, remains the denominator and is a limitation of the implemented proxy.
+
+Scores are collected during training forward passes to avoid a separate full-data scoring pass. Because the model changes during an epoch, this computational saving makes the scores path-dependent: early and late utterances are measured under different parameter states, rather than a common frozen epoch checkpoint. The completed epoch's raw NLL-per-second scores determine the next epoch's ascending order. Duration, identifier, and original index resolve ties. Percentile fields are also recorded for audit, but they do not determine C5 sorting. Each example remains present once per epoch.
+
+\subsection{C6: online utterance WER}
+
+C6 uses the error of a generated transcript as a difficulty signal:
+\begin{equation}s_i^{\mathrm{C6},e}=\frac{S_i^e+D_i^e+I_i^e}{R_i},\end{equation}
+where $S_i^e$, $D_i^e$, and $I_i^e$ are word substitutions, deletions, and insertions and $R_i$ is the reference word count. This aligns more directly with the recognition endpoint than duration or SNR, but it is not automatically a universally better difficulty estimate. Short references and insertion-heavy generation can produce unstable utterance ratios.
+
+Before the supervised forward pass, the implementation temporarily switches the model to evaluation mode, greedily generates under inference mode without gradient recording, decodes reference/prediction tokens while skipping control symbols, and calculates JiWER errors without an extra case/punctuation normaliser. It restores the previous training mode afterward. This additional generation pass costs computation; it is not a free diagnostic supplied by the ordinary loss calculation.
+
+Epoch one uses the same seeded random bootstrap principle as C0/C5; later epochs sort by preceding-epoch raw WER with duration, identifier, and index tie-breaks. The audit also records
+\begin{equation}\widetilde{s}_i=(s_i-s_{\min})/(s_{\max}-s_{\min}),\end{equation}
+or zero if all scores match. This min--max transformation acts on scores, not on transcriptions. The actual ordering uses raw WER; the non-degenerate transformation would preserve rank but is not the controlling implementation. WER scores can exceed one because insertion counts are unbounded relative to reference length. The online scoring remains path-dependent, as with C5 \citep{Karakasidis2022}.
+
+\subsection{C7: hybrid acoustic and model-derived priority}
+
+C7 combines the fixed C3 acoustic score $A_i$ with the percentile-ranked preceding-epoch C5 score:
+\begin{equation}s_i^{\mathrm{C7},e}=\tfrac12A_i+\tfrac12P(s_i^{\mathrm{C5},e}).\end{equation}
+The acoustic component supplies a stable prior; the model component reflects current learning. Percentile scaling prevents the raw NLL scale from dominating the acoustic scale. Equal weights are again a simple local design choice, not a tuned or universally supported optimum. The first epoch is random, and subsequent epochs sort the hybrid scores with the dynamic tie-break policy. This is an original composite adaptation of published curriculum ideas rather than a ready-made Whisper recipe.
+
+\subsection{Exploratory methods that must remain separate}
+
+An earlier quality-ready subset contained 13,206 records after excluding 593 review-flagged examples. Its archival description combines duration rank, speaking-rate deviation rank, inverse SNR rank, and inverse speech-activity rank with weights 0.40, 0.25, 0.20, and 0.15, and describes cumulative subsets of 4,402, 8,804, and 13,206 examples. Those data exclusions and weights are not the controlled C3/C4 procedure. Without a matched exposure budget and population, the results cannot isolate the effect of the same curriculum factor. The controlled method is fully specified above; archival descriptions are not used to fill its implementation details.
+
+Similarly, archival uniform difficulty mixing describes exchanging 20\% of an easy tier using medium/hard examples, but controlled C5--C7 do not perform that exchange. The claimed 356/533 replacement counts and whether archival selection swaps or duplicates records cannot be verified from the located controlled implementation. They are not reported as controlled actions. Stored names containing \code{margin} are historical identifiers, not evidence of a probability-gap margin: the controlling scores are the NLL and WER equations given above. This distinction also prevents falsely claiming replication of the published difficulty-mixing system \citep{Karakasidis2022}.
+
+\section{Augmentation methods and factorial comparisons}
+\label{sec:augmentation}
+
+\subsection{Purpose and evaluation boundary}
+
+Augmentation deliberately transforms training inputs while retaining their labels. It may discourage dependence on incidental acoustic features, but excessive corruption can erase speech or introduce label mismatch. It is therefore an intervention whose benefits must be measured, not assumed. Ordinary validation, test, and external-corpus inference are unaugmented so that the comparison isolates training exposure. Separately constructed corrupted validation views are explicitly labelled conditions rather than an unannounced change in evaluation material.
+
+\subsection{Exploratory Hugging Face mask-budget policies}
+
+SpecAugment operates on the log-Mel input rather than synthesising new words or changing reference text \citep{Park2019}. A time mask obscures adjacent frames across frequency, forcing reliance on remaining temporal context. A frequency mask obscures adjacent frequency bands across time, reducing dependence on a narrow spectral region. Masking is active only in training mode because evaluation should assess the learnt model on the specified uncorrupted corpus, not on randomly altered inputs.
+
+The earlier Whisper pilot used Hugging Face's mask-budget interface: time probability 0.05, length eight frames, minimum one time span; frequency probability 0.05, length eight Mel bins, minimum one span. Mask values were zero. Zero in a normalised log-Mel representation is a feature replacement, not necessarily physical silence. These parameters define a mild local adaptation, not the canonical LibriSpeech policies. The span-budget probability differs from an example-level augmentation probability. Minimum counts and overlap mean that 0.05 does not guarantee exactly 5\% distinct positions are hidden; for 80 Mel bins, the forced minimum eight-bin span is consequential.
+
+The pilot compared clean, always-masked, and mixed conditions. Mixed masking used an independent Bernoulli decision with probability 0.5 per example presentation; a Bernoulli variable has two outcomes with the specified probability. It does not guarantee exactly half the examples in a finite epoch or exactly half of each utterance's three presentations. The data were not doubled, and feature masks were generated during training rather than stored. These runs used the earlier speaker-overlapping protocol and remain exploratory evidence separate from the controlled v2 study.
+
+\subsection{LB and LD masks without time warping}
+
+The controlled follow-up transfers masking parameters from the LibriSpeech Basic (LB) and LibriSpeech Double (LD) policies of \citet{Park2019}. LibriSpeech is the English read-speech corpus for which those policies were developed; transfer to low-resource Shona and pretrained Whisper is an empirical question. The original time-warp operation deforms the feature-time axis. It is omitted here to reduce computation and implementation complexity, consistent with the original paper's discussion of masking as the more influential component. The treatment is therefore called ``LB/LD masks without time warping'', not an exact replication of complete SpecAugment.
+
+For an 80-band spectrogram and $L$ valid time frames, frequency width is sampled uniformly from integer values $0,\ldots,F$, followed by a uniformly sampled feasible start band. The selected band is zeroed across the time axis, including padding. Time width is sampled uniformly from $0,\ldots,\min(T,\lfloor pL\rfloor,L)$, with a feasible start that keeps the mask within valid frames. Each mask is independently sampled. Width zero and overlap are possible, so the count specifies mask attempts, not guaranteed nonempty, non-overlapping regions.
+
+\begin{table}[htbp]\centering
+\caption{Paper-style controlled masks, applied to every training presentation only.}\label{tab:masks}
+\begin{tabular}{lrrrrr}\toprule Policy & $F$ & Frequency count & $T$ & $p$ & Time count\\\midrule
+LB, no warp & 27 & 1 & 100 & 1.0 & 1\\
+LD, no warp & 27 & 2 & 100 & 1.0 & 2\\\bottomrule
+\end{tabular}\end{table}
+
+LD preserves the widths but doubles the counts; it tests masking dose rather than wider individual masks. At a 10 ms input-frame interval, 100 frames represent approximately one second before encoder downsampling. Fixed published masking values reduce discretionary tuning, while architecture, corpus, schedule, and omitted warping remain disclosed adaptations.
+
+Cells are S0 (clean random), S1 (clean SortaGrad), S2 (LB random), S3 (LB SortaGrad), S4 (LD random), and S5 (LD SortaGrad). S0/S1 reuse same-seed C0/C1 controls. Seeds 42--44 are matched across cells. Waveform augmentation is disabled throughout this family. Comparisons isolate LB versus clean within an ordering, LD versus LB within an ordering, and ordering under one mask policy.
+
+\subsection{A-series composite waveform augmentation}
+
+A room impulse response (RIR) describes the response of a propagation environment to an impulse, including reflections. Convolving speech with an RIR approximates reverberant propagation. Additive non-speech noise introduces competing energy; tempo perturbation changes rate while approximately preserving pitch. These mechanisms are literature motivated, but their particular probabilities, composition, and schedule are study-specific \citep{Ko2015,Ko2017}.
+
+The asset source is Open Speech and Language Resources (OpenSLR) resource SLR28, the Room Impulse Response and Noise Database. It contains real and simulated RIRs and several noise categories; the A-series uses simulated RIRs and point-source noises, not the entire database indiscriminately. A simulated response is computationally generated rather than measured in a particular room; point-source noise models a localised source. The resource provides 16 kHz, 16-bit audio under Apache 2.0 \citep{SLR28}.
+
+A stable seed derived from run seed and utterance identifier determines one materialised waveform per utterance. The operation order is:
+\begin{enumerate}
+\item With probability 0.5, apply librosa pitch-preserving time stretching at factor 0.9 or 1.1 with equal probability. The factors introduce moderate temporal variation around the original rate. This differs from resampling-based speed perturbation, which also changes pitch; the appropriate description is tempo perturbation with Ko-inspired factors, not exact Kaldi-style speed augmentation \citep{Ko2015}.
+\item With probability 0.3, select a simulated RIR, normalise its energy, convolve it with speech, and truncate the convolution tail to the waveform length immediately before convolution. This introduces reverberation without keeping the entire new tail. The probability limits repeated strong distortion but was not independently shown optimal.
+\item With probability 0.5, select noise and a target SNR uniformly between 10 and 25 dB. A random noise segment is used; short noise files may be tiled in this original implementation. For current-waveform RMS $R_x$, noise RMS $R_n$, and target $q$ dB, gain $g=R_x/(R_n10^{q/20})$ yields mixture $x+gn$. The SNR is relative to the waveform at that stage, potentially already tempo-perturbed or reverberant, not a known decomposition of the natural recording.
+\item If needed, reduce overall amplitude so its absolute peak does not exceed 0.99 and write 16-bit FLAC. This avoids newly introduced clipping; it does not restore information already changed by augmentation.
+\end{enumerate}
+
+The probabilities and severity interval are a fixed moderate local recipe, not values prescribed universally for Shona by the cited studies. Under independent transform decisions, the expected fraction receiving at least one selected transform is $1-(0.5)(0.7)(0.5)=0.825$, and all three is 0.075. These are policy probabilities, not exact observed finite-sample proportions. Even a row assigned no transform is decoded and rewritten by the materialisation pipeline and is not necessarily byte-identical to its original file.
+
+The same materialised view is reused across epochs. This neither resamples augmentation online every epoch nor expands the dataset threefold. The audit records identifiers/order, assets, offsets, factors, target/achieved SNR, anti-clipping gain, and output hashes. Reusing these views across matched Base and Medium runs avoids generating a new augmentation dataset when model size changes. Validation, test, and FLEURS audio are unmodified by this training intervention.
+
+The factorial cells are A0 (clean C0 random), A1 (clean C3), A2 (waveform random), and A3 (waveform C3). A2/A3 share each seed's materialised data, and A3 retains the clean acoustic ranking. These controls isolate ordering, composite augmentation, and their interaction, but cannot determine which component of a composite effect is caused by noise, tempo, or reverberation individually.
+
+\subsection{Prospective B-series follow-up}
+
+The B-series was specified to isolate mechanisms before combining them. It defines clean B00, noise-only BN, RIR-only BR, resampling-speed BT with factors 0.9/1.0/1.1, and a conditional combined BNR treatment. BT is not the A-series pitch-preserving tempo operation. Content-hash-disjoint augmentation assets separate training, validation, and test resources, and the follow-up noise routine requires a sufficiently long segment rather than tiling short noise.
+
+The prepared inventory contains 843 point-source noises and 60,000 simulated RIRs. Noise partitions contain 689/77/77 assets and RIR partitions 48,118/5,891/5,991 for training/validation/test. Eight authoritative validation views preserve the same 1,715 utterance IDs: clean, noise at 5/10/15 dB, RIR, and combined noise--RIR at 5/10/15 dB. Older clean views that altered gain or duration and earlier periodically tiled-noise views were superseded without deleting their audit history. The later views preserve clean source paths for D0, use duration-compatible noise, and retain reverberation tails only up to the 30-second cap, recording truncation and gain limiting explicitly.
+
+By the reporting cut-off, asset inventories and paired synthetic validation views existed, but B-series training outputs were not found. It is therefore a proposed/prepared follow-up, not a completed second training series. Its later protocol amendment specifies seed-42 validation selection over clean-presentation fractions $1/3$, $1/2$, and $2/3$ and noise severities 5, 10, and 15 dB, followed by frozen confirmation at seeds 43--46. D0 denotes clean validation; DN, DR, and DNR denote noise, reverberation, and combined-corruption views. The planned selection endpoint is the equal-weight average of corruption-family WERs with a constraint on clean-performance degradation. This amendment supersedes the earlier fixed-policy proposal and must be distinguished from the completed A-series and the 42--44 Medium matrix.
+
+\section{Matched Whisper Medium extension}
+\label{sec:medium}
+
+\subsection{Purpose and matrix}
+
+The Medium extension tests whether findings persist for a substantially larger pretrained variant. Keeping the paired Base settings avoids changing model size together with an optimisation schedule or batch composition. Each Medium run starts independently from revision \code{abdf7c39ab9d0397620ccaea8974cc764cd0953e}. The planned matrix has 27 runs: seeds 42, 43, and 44 for C0, C1, C3, A2, A3, and S2--S5. Clean C3 controls are included because A3's curriculum is SNR-duration, not SortaGrad; comparing A3 only with C1 would not isolate augmentation under the same ordering.
+
+\begin{table}[htbp]\centering
+\caption{Prepared Medium comparison matrix; each row has seeds 42, 43, and 44. Preparation does not imply completion.}\label{tab:medium-matrix}
+\begin{tabular}{lll}\toprule Cell & Training treatment & Principal matched control\\\midrule
+C0 (A0/S0) & Clean random & Pretrained reference where available\\
+C1 (S1) & Clean SortaGrad & C0\\
+C3 (A1) & Clean SNR-duration & C0\\
+A2 & Waveform, random & C0\\
+A3 & Waveform, SNR-duration & C3 and A2\\
+S2 & LB masks, random & C0\\
+S3 & LB masks, SortaGrad & C1\\
+S4 & LD masks, random & S2; clean C0 contextual\\
+S5 & LD masks, SortaGrad & S3; clean C1 contextual\\\bottomrule
+\end{tabular}\end{table}
+
+Every generated configuration records its Base source path and SHA-256. Full-config parity tests allow only model ID/revision and operational metadata (names, paths, control IDs, tracking, resource admission) to differ. Historical audits matched scientific configuration blocks and recorded package versions for all 27 Base sources. Eighty-seven comparisons checked current train/validation/test and acoustic-metadata hashes against historical manifests across seven unique inputs. These checks strengthen matching but cannot establish equivalence of all unrecorded hardware or software behaviour.
+
+\subsection{Exact batching and bounded memory test}
+
+The initial preparation proposed microbatch two with accumulation three. Although nominal effective batch size remains six, such a change can alter token-weighted loss aggregation, incomplete final batches, stochastic masking, and optimiser bookkeeping. Before Medium training began, it was superseded by exact Base batching: train/evaluation batch six and accumulation one. Learning rate, FP16, optimiser, gradient checkpointing, update schedule, and checkpoint criterion were not changed. No automatic memory fallback is permitted because an undeclared batching adjustment would add a second experimental factor.
+
+Feasibility on the 24 GB RTX 4090 was tested with a separate bounded runtime diagnostic using real long-tokenised training examples, the production loader/collator, FP16, checkpointing, and AdamW. It required two non-skipped optimiser steps, then normal generation evaluation and a separately labelled full-length generation stress condition. Saving, automatic checkpoint selection, and Weights \& Biases reporting were disabled for the diagnostic only. Diagnostic weights were discarded and never used as experiment initialisation.
+
+The first two-attempt clean probe was inconclusive because FP16 scaling skipped both updates and Adam state was not allocated. Corrected clean and LD-mask probes each completed two non-skipped updates after four initial skipped attempts. Peak PyTorch allocated memory was approximately 14.235 gibibytes (GiB, $2^{30}$ bytes), and reserved memory approximately 14.994 GiB. Allocated memory is active tensor storage; reserved memory also includes allocator-held capacity. These measurements exclude other processes and some CUDA overhead and support attempting the exact batch contract, not a guarantee for every batch, seed, or full-run fragmentation pattern.
+
+\subsection{Dated execution status}
+
+The queue was launched on 6 October 2026 with one job at a time. At the evidence cut-off on 13 October 2026, C0 seeds 42--44 and C1 seed 42 had completed training, final evaluation, prediction export, and mirroring. C1 seed 43 reached epoch three and retained all three epoch checkpoints, but its post-training validation log ended at 204 of 286 batches. Final model export, final validation/test artifacts, and item predictions were incomplete. No active Medium process/session was found, and the remaining 22 planned runs had no output directories in the inspected roots.
+
+No logged traceback or out-of-memory event established the interruption's cause. A retained checkpoint proves a saved training state, not successful completion of all later stages. Consequently, the chapter reports a partially executed extension rather than 27 completed experiments. Recovery would require validating the selected checkpoint and finishing missing evaluation/export without silently adding optimisation; no recovery was performed as part of this methodological audit. Completed Medium FLEURS and Medium zero-shot artifacts were also absent. Subsequent comparisons must retain the corrected FLEURS references, decoding, and scoring rules used for Base.
+
+The extension estimates the effect of using pretrained Medium rather than Base under matched fine-tuning. Architecture, capacity, and pretrained weights change together, so it cannot attribute any difference uniquely to parameter count. Equal seeds do not guarantee identical masking draws or numerical trajectories across architectures. These qualifications are necessary even when all exposed training settings match.
+
+\section{Evaluation and statistical analysis}
+\label{sec:statistics}
+
+\subsection{WER, CER, and diagnostic loss}
+
+WER uses a minimum-edit alignment between reference and hypothesis word sequences. A substitution changes a word, a deletion omits a reference word, and an insertion adds a hypothesis word. For total counts $S,D,I$ and $R$ reference words,
+\begin{equation}\operatorname{WER}=\frac{S+D+I}{R}\times100\%.\end{equation}
+Lower is better. Insertions are not bounded by reference length, so WER can exceed 100\%; such a result is possible and should prompt inspection of insertion or repetition behaviour rather than automatic dismissal as invalid.
+
+Character error rate analogously counts character substitutions $S_c$, deletions $D_c$, insertions $I_c$, and reference characters $R_c$:
+\begin{equation}\operatorname{CER}=\frac{S_c+D_c+I_c}{R_c}\times100\%.\end{equation}
+CER complements WER because a partly correct morphologically complex word can receive a whole-word error while preserving many characters. It is not a semantic-intelligibility score. Neither metric alone establishes whether a mistake changes an utterance's meaning.
+
+Corpus errors are computed by summing edits and reference counts before division, not averaging utterance percentages. Averaging per-utterance WER would disproportionately weight short references. The item exporter records word edits, hits, reference-word totals, references, and hypotheses so corpus WER is recomputable. JiWER provides word and character alignments; its character processing operates on the decoded strings, including retained spaces under that contract, rather than an assumed letters-only sequence \citep{JiWER}.
+
+Evaluate supplies the training-time WER interface used for checkpoint selection. The canonical prediction exporter calls JiWER directly for WER/CER. Tokenizer control symbols are skipped during decoding; this is not arbitrary removal of punctuation from generated text. Reference normalisation occurred during preparation, and canonical controlled export adds no new post-hoc case/punctuation normaliser. Additional raw/normalised reports produced by exploratory or older zero-shot tooling must not be mixed with this contract without explicit alignment.
+
+Validation loss is teacher-forced cross-entropy on held-out references, whereas WER/CER evaluate generated sequences. They can move differently and should not be described as the same measure. Training loss, wall-clock runtime, memory, and checkpoint size are retained for optimisation and resource diagnosis. Full-stage time includes preprocessing, training with epoch evaluation, final evaluation, exporting, and saving. Elapsed time is not integrated GPU-compute time. Already-included epoch-evaluation time is not added twice when reporting totals.
+
+\subsection{Paired cluster bootstrap and seed variation}
+
+For matched predictions, improvement is $\Delta=\operatorname{WER}_{\mathrm{baseline}}-\operatorname{WER}_{\mathrm{candidate}}$ in absolute percentage points, so positive values favour the candidate. Identical IDs and reference text are required before comparison. Pairing avoids comparing models on different material.
+
+Following bootstrap-based ASR comparison principles \citep{BisaniNey2004}, WAXAL uncertainty uses paired speaker-cluster resampling: all utterances of a sampled speaker are included together for both models. Each of 10,000 replicates samples the original number of clusters with replacement and recomputes corpus error differences from summed counts. The 2.5th and 97.5th percentiles define a 95\% percentile interval. Speaker clustering addresses dependence among recordings of one voice, but only 24 held-out speakers limit precision and the generality of population claims.
+
+FLEURS contains repeated readings of a sentence and lacks prepared speaker IDs, so its bootstrap uses \code{source_id} prompt clusters: 150 validation and 348 test prompts. This addresses known prompt dependence but cannot reconstruct missing speaker relationships across prompts. It must not be called a speaker bootstrap. The cluster manifest and its hash are retained with comparisons.
+
+Intervals are conditional on fixed trained checkpoints. They do not capture retraining variability, hyperparameter search, selecting a best checkpoint, or choosing a curriculum. Individual seed results and descriptive mean, sample standard deviation, and range are therefore reported separately where the seeds genuinely produce different models \citep{Reimers2017}. Reused deterministic models and exact reruns are not counted as independent training replications. Fractions of bootstrap replicates favouring a candidate are bootstrap support summaries, not Bayesian posterior probabilities of a hypothesis.
+
+\subsection{Interactions, multiplicity, and practical thresholds}
+
+For a curriculum-by-augmentation factorial, let $W_{00}$ denote clean random WER, $W_{10}$ clean curriculum WER, $W_{01}$ augmented random WER, and $W_{11}$ augmented curriculum WER. Augmentation improvements are $G_0=W_{00}-W_{01}$ and $G_1=W_{10}-W_{11}$. Their interaction on an improvement scale is
+\begin{equation}I=G_1-G_0=(W_{10}-W_{11})-(W_{00}-W_{01}).\end{equation}
+A positive $I$ means augmentation helped more under that curriculum. A low WER for the combined cell alone is not evidence of interaction. Inferential interaction claims require a joint bootstrap over the same clusters across all four cells; seed-mean differences alone are descriptive.
+
+The initial RQ1 screen examined several contrasts without family-wise correction. Its intervals must be described as unadjusted, not retroactively as family-wise significant. Later protocols specify Holm's step-down correction for a declared comparison family \citep{Holm1979}. For $m$ valid test $p$-values sorted increasingly, the threshold at rank $j$ is $\alpha/(m-j+1)$. A software option is not evidence that a particular completed analysis used it: adjustment claims must be supported by the relevant artifact. Likewise, a planned joint bootstrap is not an already established interaction result.
+
+Some follow-up protocols define practical promotion as at least 0.5 absolute validation-WER percentage points improvement, a paired interval favouring the treatment, and no material insertion/repetition degradation. The 0.5-point value is a local practical relevance rule, not a universal literature-derived significance threshold. Test/FLEURS results must not select parameters in those prospective protocols. Model-selection uncertainty remains even where a bootstrap interval is narrow.
+
+\section{Validity, ethics, and evidential boundaries}
+\label{sec:validity}
+
+Speaker-disjoint WAXAL supports claims about unseen voices in this curated corpus, whereas FLEURS tests a specific cross-corpus transfer. Neither establishes performance across all Shona dialects, devices, environments, or demographic groups. Exact fingerprints do not eliminate near duplicates or establish absence from pretraining. Filtering, the original-split-specific silence treatment, and 30-second truncation further restrict interpretation of absolute performance.
+
+The research history includes test-informed selection: C3 was carried forward after WAXAL test performance had been inspected. Its test results therefore have a selection-stage role, not an untouched final confirmation of a validation-only choice. After FLEURS had been examined, later follow-ups also faced possible adaptive influence. The term ``controlled'' describes matched experimental settings, not automatic protection against all adaptive selection. A new untouched corpus would be needed for a stronger final confirmation of subsequently selected procedures.
+
+Negative and unsuccessful conditions remain in the record. Stronger augmentation can require a different budget, and three epochs with sparse checkpoint evaluation can miss an intermediate optimum. Underperformance in this setting does not invalidate a method in all settings. Conversely, greater model capacity does not establish that capacity alone caused improvement. The study reports the scope of supported comparisons instead of equating configuration matching with complete causal certainty.
+
+Shona WAXAL use follows provider-specific CC-BY-SA-4.0 terms; SLR28 follows Apache 2.0. Speaker IDs are used for grouping and leakage prevention rather than private-attribute inference. Upstream claims about consent, annotator compensation, anonymisation, or removal of personally identifiable information require primary documentation and are not asserted as actions performed by this study without evidence. Local cleaning preserved source audio and an auditable rejection trail.
+
+The WAXAL publication reports consent, annotator compensation, and provider-side removal of personally identifiable information \citep{Diack2026}; these are attributed upstream statements, not an independent re-audit of those processes. There is also a source discrepancy: the paper uses a general Creative Commons Attribution 4.0 (CC-BY-4.0) statement, whereas the dataset card assigns the Digital Umuganda/Shona subset CC-BY-SA-4.0. The provider-specific distribution terms are retained for this study, and clarification is needed before treating the discrepancy as resolved or redistributing under more permissive terms.
+
+RQ4 pseudo-label preparation and transfer work are outside the two questions formalised here. If retained as thesis contributions, they require separately scoped research questions and methods rather than being implied by unrelated repository scripts. At submission, completion statements must be updated from artifacts; a queue definition, retained checkpoint, or stale ``waiting'' log is not sufficient evidence of an active or completed run.
+
+\section{Summary}
+
+The methodology combines an auditable local data pipeline, concentration-controlled speaker-disjoint partitions, a fixed Whisper fine-tuning contract, explicitly implemented static/dynamic/hybrid schedules, separately defined waveform and feature-mask interventions, and paired error analysis. Published work motivates the mechanisms, while local parameters and limitations are stated inline. The Medium extension preserves exact Base batching after bounded memory verification, and its partial completion is reported explicitly. This structure permits defensible interpretation without conflating exploratory protocols, planned studies, or operational artifacts with completed controlled evidence.
+
+\begin{thebibliography}{99}
+\bibitem[Amodei et~al.(2016)]{Amodei2016} Amodei, D., et~al. (2016). Deep Speech 2: End-to-End Speech Recognition in English and Mandarin. \emph{Proceedings of ICML}, 48, 173--182. \url{https://proceedings.mlr.press/v48/amodei16.html}.
+\bibitem[Bengio et~al.(2009)]{Bengio2009} Bengio, Y., Louradour, J., Collobert, R., and Weston, J. (2009). Curriculum Learning. \emph{Proceedings of ICML}. \url{https://doi.org/10.1145/1553374.1553380}.
+\bibitem[Bisani and Ney(2004)]{BisaniNey2004} Bisani, M., and Ney, H. (2004). Bootstrap Estimates for Confidence Intervals in ASR Performance Evaluation. \emph{Proceedings of ICASSP}. \url{https://doi.org/10.1109/ICASSP.2004.1326000}.
+\bibitem[Braun et~al.(2017)]{Braun2017} Braun, S., Neil, D., and Liu, S.-C. (2017). A Curriculum Learning Method for Improved Noise Robustness in Automatic Speech Recognition. \emph{Proceedings of EUSIPCO}. \url{https://doi.org/10.23919/EUSIPCO.2017.8081267}.
+\bibitem[Chen et~al.(2016)]{Chen2016} Chen, T., Xu, B., Zhang, C., and Guestrin, C. (2016). Training Deep Nets with Sublinear Memory Cost. arXiv:1604.06174. \url{https://arxiv.org/abs/1604.06174}.
+\bibitem[Conneau et~al.(2022)]{Conneau2022} Conneau, A., et~al. (2022). FLEURS: Few-shot Learning Evaluation of Universal Representations of Speech. arXiv:2205.12446. \url{https://arxiv.org/abs/2205.12446}.
+\bibitem[Diack et~al.(2026)]{Diack2026} Diack, A., et~al. (2026). WAXAL: A Large-Scale Multilingual African Language Speech Corpus. arXiv:2602.02734, version 3. \url{https://arxiv.org/html/2602.02734v3}.
+\bibitem[Google and WAXAL partners(2026)]{WaxalDataset} Google and WAXAL partner organisations (2026). \emph{WAXAL dataset card: google/WaxalNLP}, Shona configuration \code{sna_asr}. \url{https://huggingface.co/datasets/google/WaxalNLP}. Accessed 13 October 2026. The live card may describe later releases than the local acquisition.
+\bibitem[Holm(1979)]{Holm1979} Holm, S. (1979). A Simple Sequentially Rejective Multiple Test Procedure. \emph{Scandinavian Journal of Statistics}, 6(2), 65--70.
+\bibitem[JiWER contributors(n.d.)]{JiWER} JiWER contributors (n.d.). \emph{JiWER: Word error rate and related measures}, version 3.0.4 used in this study. \url{https://github.com/jitsi/jiwer}.
+\bibitem[Karakasidis et~al.(2022)]{Karakasidis2022} Karakasidis, G., Gr\'osz, T., and Kurimo, M. (2022). Comparison and Analysis of New Curriculum Criteria for End-to-End ASR. \emph{Proceedings of Interspeech}. \url{https://doi.org/10.21437/Interspeech.2022-10046}.
+\bibitem[Ko et~al.(2015)]{Ko2015} Ko, T., Peddinti, V., Povey, D., and Khudanpur, S. (2015). Audio Augmentation for Speech Recognition. \emph{Proceedings of Interspeech}. \url{https://doi.org/10.21437/Interspeech.2015-711}.
+\bibitem[Ko et~al.(2017)]{Ko2017} Ko, T., Peddinti, V., Povey, D., Seltzer, M.~L., and Khudanpur, S. (2017). A Study on Data Augmentation of Reverberant Speech for Robust Speech Recognition. \emph{Proceedings of ICASSP}. \url{https://doi.org/10.1109/ICASSP.2017.7953152}.
+\bibitem[Librosa contributors(n.d.)]{Librosa} Librosa contributors (n.d.). \emph{librosa documentation}. \url{https://librosa.org/doc/latest/}. Accessed 13 October 2026.
+\bibitem[Loshchilov and Hutter(2019)]{Loshchilov2019} Loshchilov, I., and Hutter, F. (2019). Decoupled Weight Decay Regularization. \emph{International Conference on Learning Representations}. \url{https://arxiv.org/abs/1711.05101}.
+\bibitem[Micikevicius et~al.(2018)]{Micikevicius2018} Micikevicius, P., et~al. (2018). Mixed Precision Training. \emph{International Conference on Learning Representations}. \url{https://arxiv.org/abs/1710.03740}.
+\bibitem[NVIDIA(n.d.)]{NeMoSDE} NVIDIA (n.d.). \emph{NeMo Speech Data Explorer}. Software documentation. \url{https://github.com/NVIDIA/NeMo/tree/main/tools/speech_data_explorer}. Accessed 13 October 2026.
+\bibitem[OpenSLR(n.d.)]{SLR28} OpenSLR (n.d.). \emph{Room Impulse Response and Noise Database}, resource 28. \url{https://www.openslr.org/28/}. Accessed 13 October 2026.
+\bibitem[Park et~al.(2019)]{Park2019} Park, D.~S., Chan, W., Zhang, Y., Chiu, C.-C., Zoph, B., Cubuk, E.~D., and Le, Q.~V. (2019). SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition. \emph{Proceedings of Interspeech}. \url{https://doi.org/10.21437/Interspeech.2019-2680}.
+\bibitem[Radford et~al.(2023)]{Radford2023} Radford, A., Kim, J.~W., Xu, T., Brockman, G., McLeavey, C., and Sutskever, I. (2023). Robust Speech Recognition via Large-Scale Weak Supervision. \emph{Proceedings of ICML}, 202, 28492--28518. \url{https://proceedings.mlr.press/v202/radford23a.html}. Preprint first released in 2022.
+\bibitem[Reimers and Gurevych(2017)]{Reimers2017} Reimers, N., and Gurevych, I. (2017). Reporting Score Distributions Makes a Difference: Performance Study of LSTM-networks for Sequence Tagging. \emph{Proceedings of EMNLP}. \url{https://doi.org/10.18653/v1/D17-1035}.
+\bibitem[SoundFile contributors(n.d.)]{SoundFile} SoundFile contributors (n.d.). \emph{python-soundfile documentation}. \url{https://python-soundfile.readthedocs.io/}. Accessed 13 October 2026.
+\bibitem[Unicode Consortium(n.d.)]{UnicodeNFC} Unicode Consortium (n.d.). \emph{Unicode Standard Annex 15: Unicode Normalization Forms}. \url{https://unicode.org/reports/tr15/}. Accessed 13 October 2026.
+\end{thebibliography}
+\end{document}

@@ -1,0 +1,1158 @@
+% =====================================================================
+% Chapter 3: Methodology -- revised draft
+% Required packages (in addition to your existing preamble):
+%   amsmath, amssymb, graphicx, float, natbib, todonotes, array
+% New citation keys are supplied in chapter3_new_references.bib.
+% Items marked \todo{CONFIRM ...} require information that is not
+% recorded in the project repository and must be verified by the author.
+% =====================================================================
+
+\section{Methodology}
+
+\subsection{Introduction}
+
+This chapter describes the methodology used to investigate curriculum learning
+for automatic speech recognition (ASR) in Shona (ChiShona), a Bantu language
+spoken mainly in Zimbabwe for which comparatively little transcribed speech is
+available. Curriculum learning is a training strategy in which examples are
+presented to a model in a deliberately chosen order, typically from examples
+judged to be easier towards examples judged to be harder, rather than in a
+uniformly random order \citep{Bengio2009}. We adopted an experimental approach
+to determine whether ordering training data according to an estimate of sample
+difficulty improves the recognition accuracy of a pretrained ASR model that is
+fine-tuned on limited Shona speech. Fine-tuning refers to continuing the
+training of a model that has already been trained on a large general corpus,
+using a smaller task-specific dataset, so that the general knowledge of the
+model is adapted to the new language or domain.
+
+The chapter first describes the research design and the computing environment.
+It then describes how the speech data were acquired, inspected, cleaned,
+normalized, and re-partitioned so that the speakers used for evaluation never
+appear in training. Next, it describes the baseline ASR model, the curriculum
+learning strategies, and the data augmentation techniques. Data augmentation
+refers to artificially modifying training examples, for example by adding
+background noise, so that the model is exposed to more acoustic variability than
+the original recordings contain. The chapter then describes a model-capacity
+extension in which the principal experiments were repeated with a larger model.
+Finally, it defines the evaluation metrics and the statistical procedures used
+to compare training strategies.
+
+Word error rate (WER) was the primary evaluation metric and character error rate
+(CER) was the secondary metric; both are defined formally in
+Section~\ref{sec:evaluation}. Every training strategy was compared with a
+matched baseline that differed from it in only one factor, so that any
+difference in WER could be attributed to that factor.
+
+\subsection{Research Design}
+\label{sec:research-design}
+
+\subsubsection{Experimental approach}
+
+We approached this study with a quantitative experimental design. ASR systems
+were trained under controlled conditions and evaluated on utterances that were
+not seen during training. Evaluation on unseen utterances was necessary because
+the purpose of an ASR system is to transcribe new speech; performance on the
+training utterances would measure how well the model had memorized those
+specific recordings rather than how well it generalizes. For the same reason, the
+principal evaluation partitions were constructed so that their speakers were
+also absent from training (Section~\ref{sec:speaker-disjoint}).
+
+\subsubsection{Variables}
+
+The \textbf{primary independent variable} was the curriculum schedule, that is,
+the order in which the labelled training utterances were presented to the model
+during fine-tuning. Three \textbf{secondary independent variables} were studied:
+
+\begin{enumerate}
+    \item the \emph{data augmentation policy}, which was either no augmentation,
+    synthetic waveform augmentation (additive noise, simulated reverberation, and
+    tempo change applied to the audio signal), or spectrogram masking
+    augmentation (SpecAugment, applied to the model's input features);
+    \item the \emph{interaction} between the curriculum schedule and the
+    augmentation policy, examined through factorial designs in which every
+    combination of the two factors was trained; and
+    \item the \emph{model capacity}, examined by repeating the principal
+    conditions with Whisper Medium (769 million parameters) in addition to
+    Whisper Base (74 million parameters).
+\end{enumerate}
+
+The \textbf{primary dependent variable} was corpus-level WER, because WER is the
+standard measure of ASR transcription accuracy and allows our results to be
+compared with published work. \textbf{Secondary dependent variables} were CER and
+the evaluation loss. CER was included because Shona is an agglutinative language
+in which words are formed by joining several meaningful units (morphemes); a
+single incorrect morpheme makes the whole word incorrect under WER, so CER can
+reveal partial improvements that WER conceals. The evaluation loss (the
+cross-entropy of the reference transcription under the model, defined in
+Section~\ref{sec:input-preprocessing}) was recorded as an optimization diagnostic
+only. It was not used to judge transcription quality, because a model can assign
+higher probability to the reference text without producing a better transcription
+when it decodes freely.
+
+The \textbf{controlled variables} were the pretrained model and its exact
+version, the data partitions, the text normalization, the number of training
+epochs, the optimizer and learning-rate schedule, the batch size, the random seed,
+the decoding configuration, and the checkpoint-selection rule. These were held
+constant within every comparison so that only the factor under investigation
+differed.
+
+\subsubsection{Research questions}
+
+The methodology was designed to answer the following research questions:
+
+\begin{enumerate}
+    \item[\textbf{RQ1:}] What are the effects of static and dynamic acoustic
+    data-level curriculum learning on the fine-tuning of ASR foundation models
+    on limited Shona speech?
+    \item[\textbf{RQ2:}] How does combining curriculum schedulers with synthetic
+    data augmentation affect the in-domain and out-of-domain generalization of
+    Shona ASR models?
+\end{enumerate}
+
+An ASR \emph{foundation model} is a large model pretrained on very large and
+diverse speech corpora that can be adapted to many downstream tasks; Whisper
+\citep{Radford2022} is the foundation model used in this study. \emph{Static}
+curricula compute the difficulty of each utterance once, before training, from
+properties of the recording; \emph{dynamic} curricula update difficulty during
+training from the behaviour of the model itself (Section~\ref{sec:curriculum}).
+\emph{In-domain} generalization refers to unseen speakers recorded under the same
+collection protocol as the training data, while \emph{out-of-domain}
+generalization refers to speech collected through a different process, with
+different speakers, recording conditions, and text topics
+(Section~\ref{sec:fleurs}).
+
+\subsubsection{Experimental sequence}
+
+The experiments were carried out in the following order. Each step depended on
+the outcome of the previous one, and the order was fixed before results were
+inspected so that later choices could not be tuned to favour a preferred
+conclusion.
+
+\begin{enumerate}
+    \item Construct and freeze a speaker-disjoint data protocol, the transcript
+    normalization, and the acoustic measurements used for difficulty scoring.
+    \item Establish a baseline that used conventional random ordering and no
+    augmentation.
+    \item Compare static, dynamic, and hybrid curriculum strategies against that
+    baseline with Whisper Base (RQ1).
+    \item Evaluate data augmentation independently of curriculum, and in
+    combination with the best-performing curriculum, using factorial designs
+    (RQ2).
+    \item Evaluate the in-domain models on an out-of-domain corpus only after the
+    curriculum choice had been fixed using in-domain validation data (RQ2).
+    \item Repeat the principal conditions with Whisper Medium to determine whether
+    the conclusions depend on model capacity (Section~\ref{sec:medium}).
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{pipeline_diagram.png}
+    \caption{Overview of the experimental pipeline, from data acquisition and
+    speaker-disjoint partitioning to curriculum and augmentation experiments,
+    model-capacity extension, and evaluation.}
+    \label{fig:pipeline}
+\end{figure}
+
+\subsubsection{Exploratory and controlled phases}
+
+The work was conducted in two phases. The \textbf{exploratory phase} used
+interactive notebooks to investigate model sizes, preliminary curriculum
+strategies, and preliminary augmentation settings, and to build the data
+preparation and training pipeline. Because these exploratory runs often changed
+more than one factor at a time, and because they used the original WAXAL
+partitions in which most evaluation speakers also appear in training
+(Section~\ref{sec:leakage}), they were retained only as exploratory evidence that
+informed later design choices. They were not used to make causal claims.
+
+The \textbf{controlled phase} used a configuration-driven pipeline in which every
+experiment was defined by a versioned configuration file, every data file was
+identified by a cryptographic hash, the exact version of the pretrained model was
+fixed, and random seeds were set explicitly. All conclusions reported for RQ1 and
+RQ2 are drawn from this phase.
+
+\subsubsection{Controlled comparisons, random seeds, and replication}
+\label{sec:seeds}
+
+We treated a comparison as controlled only when the dataset, the training budget,
+the random seed, the decoding configuration, and the evaluation partitions were
+identical between the two conditions being compared. Earlier runs that altered
+more than one of these factors were retained as exploratory evidence.
+
+Training a neural network involves several random processes, including the order
+in which examples are shuffled, the initialization of any newly created
+parameters, and stochastic augmentation decisions. A random seed is the number
+used to initialize the pseudo-random number generator, so the same seed
+reproduces the same sequence of random decisions. Different seeds can produce
+noticeably different final models even when every other setting is identical
+\citep{Reimers2017, Dodge2020}. For this reason the controlled experiments were
+repeated with three seeds (42, 43, and 44). The same three seeds were shared
+across conditions, so that each treatment run could be paired with a control run
+that experienced the same random decisions wherever the treatment allowed. Three
+seeds were chosen as the largest number that the available computing budget
+permitted across all conditions; this allowed us to observe run-to-run
+variability and to avoid attributing a lucky or unlucky seed to the treatment.
+Three seeds are, however, too few to estimate the full distribution of seed
+effects, and this limitation is considered when results are interpreted.
+
+Not every condition was replicated from the outset. The initial curriculum
+screen trained each condition with seed 42 only, in order to remove clearly
+unpromising strategies cheaply. Seeds 43 and 44 were added afterwards for the
+baseline and for selected conditions (C1, C2, C3, C5, and C6). Because these
+additional runs were chosen after the seed-42 results had been inspected, they
+are reported as post hoc replications rather than as part of a single
+prespecified three-seed trial.
+
+Two curricula (C2 and C3, Section~\ref{sec:curriculum}) present the training data
+in a fully deterministic order that does not depend on the seed, and Whisper's
+dropout probability is zero in its released configuration. These two conditions
+therefore produced byte-identical models for all three seeds. Their repeated runs
+demonstrate exact reproducibility rather than independent replication, and their
+results are compared against the three independently seeded baseline runs to
+quantify the variability of the control.
+
+\subsection{Implementation Environment}
+\label{sec:implementation}
+
+The training pipeline was implemented in Python 3.10.12 using PyTorch 2.5.1
+\citep{Paszke2019}, an open-source deep-learning library. The following
+additional packages were used, each with the role described:
+
+\begin{itemize}
+    \item \textbf{Transformers 4.46.3} \citep{Wolf2020}: provides the pretrained
+    Whisper models, the feature extractor, the tokenizer, and the
+    \texttt{Seq2SeqTrainer} training loop;
+    \item \textbf{Datasets 2.20.0} \citep{Lhoest2021}: loads the data manifests and
+    decodes and resamples audio on demand;
+    \item \textbf{Accelerate 1.1.1}: manages device placement and mixed-precision
+    training;
+    \item \textbf{Evaluate 0.4.2} and \textbf{JiWER 3.0.4}: compute WER and CER
+    (Section~\ref{sec:metric-computation});
+    \item \textbf{NumPy 1.26.4}: numerical computation for audio analysis and
+    statistics;
+    \item \textbf{SoundFile}, \textbf{librosa} \citep{McFee2015}, and
+    \textbf{SciPy}: reading and writing audio files, pitch-preserving tempo
+    modification, and convolution for waveform augmentation;
+    \item \textbf{bitsandbytes 0.45.5} \citep{Dettmers2022}: provides an 8-bit
+    optimizer that was used only in the exploratory Whisper Large run, not in
+    any controlled run; and
+    \item \textbf{Weights \& Biases (W\&B) 0.28.2} \citep{Biewald2020}: records
+    training curves, configurations, and system metrics for every run.
+\end{itemize}
+
+All controlled experiments were trained on an NVIDIA GeForce RTX 4090 graphics
+processing unit (GPU) with 24~GB of video memory (VRAM), using CUDA 12.4, NVIDIA's
+programming platform for GPU computation.
+\todo{CONFIRM: an NVIDIA A100 (40~GB) appears only in a legacy cluster
+scheduler script; no controlled-run manifest records an A100. If the A100 was
+used, state which exploratory runs used it and why (for example, runs that did
+not fit in 24~GB). Otherwise remove it.}
+Using a single GPU type for all controlled comparisons was a deliberate decision:
+different GPU architectures perform floating-point arithmetic in slightly
+different orders, which can change results, so training a treatment and its
+control on different hardware would introduce an uncontrolled factor.
+
+Each experiment was defined by a versioned configuration file in JavaScript
+Object Notation (JSON), a plain-text format for structured data. Each
+configuration recorded the model identifier and its exact repository revision
+(a fixed version identifier that prevents the model from silently changing if
+its publisher updates it), the paths of the data manifests, the language and
+task, the random seed, the batch and gradient-accumulation settings, the
+optimization schedule, the augmentation policy where one was applied, the output
+location, and the experiment-tracking metadata. Before training, the pipeline
+wrote a run manifest containing the Secure Hash Algorithm 256-bit (SHA-256) hash
+of the training script, the configuration, the dependency list, and every data
+manifest, together with the package versions, the GPU model, and the effective
+seed. A SHA-256 hash is a 64-character fingerprint computed from the contents of a
+file; any change to the file, however small, produces a different hash.
+Recording hashes therefore made it possible to prove, after the fact, that two
+runs used exactly the same data and code. Long-running jobs were executed inside
+detached terminal sessions so that training continued if the remote connection
+to the server was interrupted, and resource checks confirmed that sufficient GPU
+memory and disk space were available before each run was launched.
+
+\subsection{Dataset and Data Preparation}
+\label{sec:data}
+
+\subsubsection{The WAXAL corpus}
+
+This study used the Shona component of the WAXAL speech corpus \citep{Diack2026}
+as the primary source of training and evaluation data. WAXAL was collected
+through a multi-year effort funded by Google in partnership with organizations
+across the African continent. The Shona component contains 99.2 hours of
+transcribed speech and a total of 574.2 hours of speech when untranscribed
+recordings are included. Only the transcribed portion was used in this study.
+The collection process was designed to elicit natural rather than read speech
+and involved the following stages:
+
+\begin{itemize}
+    \item \textbf{Image-prompted speech:} participants were shown images covering
+    50 topics and asked to describe what they saw in their native language.
+    Describing an image, rather than reading a prepared sentence, produces
+    spontaneous speech with natural hesitations and vocabulary.
+    \item \textbf{Recording:} recordings were captured in the speakers' natural
+    environments rather than in a studio, so they contain realistic background
+    noise and room acoustics. \citet{Diack2026} describe a minimum recording
+    length of 15 seconds as part of the collection protocol; the released Shona
+    clips used in this study are nevertheless shorter in some cases (3.6 to 35.9
+    seconds after preparation), so the 15-second figure describes the provider's
+    elicitation protocol rather than every released clip.
+    \item \textbf{Transcription:} approximately 10\% of the audio collected
+    across the whole WAXAL project was transcribed by paid professional local
+    linguists \citep{Diack2026}. This proportion refers to the overall
+    multilingual collection; it should not be computed from the Shona hours
+    alone. Each recording was transcribed by a single annotator.
+    Because transcriptions were not cross-checked by a second annotator, some
+    transcription errors are expected; Section~\ref{sec:filtering} describes the
+    automatic checks used to detect the most severe mismatches.
+    \item \textbf{Quality control:} each recording was checked for clarity,
+    language accuracy, and relevance to the prompt, and personally identifiable
+    information was removed where present.
+\end{itemize}
+
+Each released record contains the audio, a reference transcription, an
+utterance identifier, a speaker identifier, the language, and, where available,
+the speaker's gender. The speaker identifier is essential to this study because
+it makes it possible to construct evaluation partitions whose speakers are absent
+from training (Section~\ref{sec:speaker-disjoint}).
+
+\subsubsection{Acquisition and manifest conversion}
+\label{sec:acquisition}
+
+Audio and transcript analysis was conducted with the NVIDIA NeMo Speech Data
+Explorer (SDE) \citep{Bakhturina2021}. NeMo is NVIDIA's open-source toolkit for
+speech and language models, and SDE is an interactive, browser-based tool within
+it that displays a speech dataset as sortable tables and plots and allows any
+utterance to be played back alongside its transcription, waveform, and
+spectrogram. We chose SDE because it was designed specifically for auditing ASR
+datasets: it computes duration, character-rate, and word-rate distributions
+automatically, highlights out-of-vocabulary characters, and allows outliers to be
+listened to directly, without writing custom visualization code.
+
+SDE reads data in the NeMo manifest format, which is a JSON Lines (JSONL) file:
+a plain-text file in which each line is one JSON object describing one
+utterance. We therefore wrote a script that loaded the published training,
+validation, and test partitions of the WAXAL Shona ASR subset from the Hugging
+Face dataset repository \texttt{google/WaxalNLP}, skipped records whose
+transcription was empty, and wrote one manifest per partition. Each audio clip was
+saved as a separate local file, organized by partition, in its original encoding;
+the audio was not re-encoded, because re-encoding to a lossy format could
+introduce compression artefacts. The duration of each clip was computed from the
+audio file itself, as the number of audio samples (frames) divided by the
+sampling rate, using SoundFile, a Python library that reads audio files through
+the libsndfile C library. We measured duration directly rather than trusting the
+duration recorded in the dataset metadata because later steps (rate-based
+filtering, silence trimming, and duration-based curricula) depend on duration
+being exact. Each manifest row stored the absolute audio path, the measured
+duration, the transcription, the utterance identifier, and, where available, the
+speaker, language, and gender fields.
+
+The resulting manifests contained 14,109 training, 1,727 validation, and 1,749
+test utterances.
+
+\subsubsection{Quality analysis and rule-based filtering}
+\label{sec:filtering}
+
+We used SDE to inspect utterance duration, transcription length, speaking-rate
+outliers, unexpected characters, and other anomalies. The patterns observed
+during this inspection were then converted into fixed rules that were applied by
+a script. This division of labour was deliberate: SDE supported exploration and
+listening, while the actual decisions to keep or reject an utterance were made by
+code, so that they were reproducible and documented rather than dependent on
+manual judgement.
+
+For each utterance $i$ we calculated the character rate and the word rate.
+These rates measure how much text is associated with each second of audio. For
+correctly transcribed speech they fall within a predictable range, so an extreme
+value indicates that the transcription and the audio do not match, for example
+because the transcription belongs to a different recording, describes only part
+of the recording, or the audio was truncated:
+
+\begin{equation}
+    r_i^{\text{char}} = \frac{|y_i|}{d_i}, \qquad
+    r_i^{\text{word}} = \frac{\operatorname{words}(y_i)}{d_i},
+    \label{eq:rates}
+\end{equation}
+
+where
+$r_i^{\text{char}}$ is the character rate (characters per second) of utterance $i$;
+$r_i^{\text{word}}$ is the word rate (words per second) of utterance $i$;
+$i$ is the index identifying a specific audio clip and its transcription;
+$y_i$ is the reference transcription of utterance $i$;
+$|y_i|$ is the number of characters in $y_i$, including spaces and any
+punctuation present in the supplied transcription;
+$\operatorname{words}(y_i)$ is the number of whitespace-separated words in $y_i$; and
+$d_i$ is the duration of the audio clip in seconds.
+
+An utterance was automatically rejected if any of the following conditions held:
+
+\begin{enumerate}
+    \item \textbf{Duration below one second.} The WAXAL elicitation task asked
+    speakers to describe an image, which cannot be done meaningfully in less than
+    a second. A clip shorter than one second therefore almost certainly
+    represents a failed, truncated, or accidental recording rather than a valid
+    utterance.
+    \item \textbf{Character rate below 1 or above 25 characters per second.}
+    Conversational speech typically corresponds to roughly 10--15 written
+    characters per second. A rate below 1 means that most of the audio has no
+    corresponding text (for example, a transcription covering only the first few
+    words), while a rate above 25 means that more text is attributed to the audio
+    than could plausibly have been spoken in that time. Both thresholds are
+    deliberately wide, so that only clear mismatches are removed and naturally
+    fast or slow speakers are retained.
+    \item \textbf{Word rate above 4 words per second.} Typical conversational
+    speaking rates are approximately 2--3 words per second \citep{Yuan2006}, and
+    Shona words are, on average, long because of agglutination, which lowers the
+    expected word rate further. A rate above 4 words per second is therefore
+    implausible for genuine Shona speech and indicates a transcription mismatch.
+\end{enumerate}
+
+The thresholds were applied to all three partitions, not only to the training
+data. A mismatched reference in a validation or test partition would penalize a
+model for failing to produce words that were never spoken, inflating WER with
+errors that reflect the dataset rather than the model. Filtering the evaluation
+partitions with the same rules therefore made the evaluation a more valid
+measure of recognition accuracy, and applying identical rules everywhere kept the
+three partitions statistically comparable. Because the same rules were fixed
+before any model was trained, they could not have been tuned to favour a
+particular model. The thresholds are local screening choices informed by the
+inspection described above. They are not validated universal boundaries for
+Shona, and no separate threshold-optimization study was carried out. The
+preserved rejection manifests show that every one of the 392 rejected
+utterances violated both the upper character-rate limit and the word-rate
+limit; the duration rule and the lower character-rate rule did not, by
+themselves, reject any utterance in this export. In practice, therefore, the
+filter removed utterances whose transcriptions contained far more text than
+their audio could contain.
+
+The script also flagged transcriptions containing embedded line breaks or
+characters outside the expected inventory. Flagged utterances were reviewed
+manually rather than rejected automatically, because some characters that appear
+unusual are linguistically meaningful in Shona. For example, the apostrophe in
+\emph{n'anga} (traditional healer) marks the velar nasal sound, written
+\emph{n'} and pronounced like the \emph{ng} in English \emph{sing}, which
+distinguishes it from the sequence \emph{n} + \emph{g}. Removing such characters
+automatically would change the words and their pronunciation.
+
+Table~\ref{tab:filtering} summarizes the outcome. In total, 392 utterances
+(2.2\%) were rejected.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|r|r|r|}
+        \hline
+        Partition & Input & Retained & Rejected \\
+        \hline
+        Training & 14,109 & 13,799 & 310 \\
+        \hline
+        Validation & 1,727 & 1,683 & 44 \\
+        \hline
+        Test & 1,749 & 1,711 & 38 \\
+        \hline
+    \end{tabular}
+    \caption{Number of utterances retained and rejected by the rule-based quality
+    filter in each original WAXAL partition.}
+    \label{tab:filtering}
+\end{table}
+
+For each partition the cleaning process produced five artefacts: (i) a cleaned
+manifest containing the retained utterances; (ii) a rejected manifest listing
+every rejected utterance together with the rule that caused its rejection; (iii)
+an enriched manifest containing all derived measurements; (iv) a
+comma-separated values (CSV) file for manual review in a spreadsheet; and (v) a
+JSON policy record. The policy record stored the fixed thresholds, the SHA-256
+hash of the input manifest, the numbers of retained and rejected utterances, and
+the output paths. No source audio was deleted, so every decision can be reversed
+or audited.
+
+\subsubsection{Silence trimming and acoustic audit}
+\label{sec:silence}
+
+We examined the retained training audio for long periods of silence. Long
+silences are undesirable for two reasons. First, Whisper processes audio in
+fixed 30-second windows (Section~\ref{sec:input-preprocessing}), so silence
+occupies part of the window without contributing information. Second, Whisper is
+known to produce fluent but entirely fabricated text, often called
+\emph{hallucination}, when given long stretches of non-speech audio
+\citep{Koenecke2024}; training on silence paired with text could reinforce this
+behaviour. Long silences also distort the duration-based measurements used for
+filtering and for curriculum scoring.
+
+Each recording was divided into consecutive 100-millisecond frames, and the
+root mean square (RMS) energy of each frame was computed:
+
+\begin{equation}
+    \operatorname{RMS}_f = \sqrt{\frac{1}{M}\sum_{m=1}^{M} x_{f,m}^2},
+    \label{eq:rms}
+\end{equation}
+
+where $x_{f,m}$ is the $m$-th audio sample in frame $f$ and $M$ is the number of
+samples per frame. A frame was classified as \emph{active} (containing speech or
+other sound) when its RMS energy was within 40 decibels (dB) of the loudest frame
+in the same recording:
+
+\begin{equation}
+    20\log_{10}\!\left(\frac{\operatorname{RMS}_f}{\max_{g}\operatorname{RMS}_g}\right) \geq -40~\text{dB}.
+    \label{eq:active}
+\end{equation}
+
+A threshold of $-40$~dB corresponds to an amplitude of 1\% of the loudest frame.
+The threshold is defined relative to each recording's own peak rather than as an
+absolute level because WAXAL recordings were captured on different devices at
+different recording levels; a relative threshold adapts automatically to each
+device. The value of 40~dB is a study-specific heuristic: it is low enough that
+quiet speech sounds such as word-final consonants remain classified as active,
+yet high enough that the steady background hiss of a typical consumer recording
+is classified as inactive. The same definition was later reused for the
+signal-to-noise ratio estimate (Section~\ref{sec:snr}), so that all acoustic
+measurements in the study share one definition of activity.
+
+When at least two seconds of trailing silence were detected after the last active
+frame, the recording was trimmed after that frame, retaining 250 milliseconds of
+padding. The two-second threshold ensured that only clearly excessive tails were
+removed, while the natural short pauses that occur at the end of spoken
+utterances were left untouched. The 250-millisecond padding protected the decaying
+end of the final word, because low-energy sounds such as fricatives and voice
+decay can fall below the activity threshold even though they belong to the
+speech. Leading silence was measured and flagged for review but was not trimmed,
+because the start of a recording was more likely than the end to contain quiet
+speech onsets.
+
+The trimmed audio was saved as a new file in the Free Lossless Audio Codec (FLAC)
+format, and the original file was preserved. FLAC was chosen because it is
+lossless, meaning that the decoded audio is sample-for-sample identical to the
+input, while occupying substantially less disk space than uncompressed audio; it
+is also read natively by SoundFile and by the Hugging Face audio loader. Trimming
+was applied only to the original WAXAL training partition, where it affected 530
+of the 13,799 retained recordings; the remaining 13,269 recordings were
+unchanged, and the original validation and test recordings were not trimmed.
+When the three partitions were later pooled and re-divided by speaker
+(Section~\ref{sec:speaker-disjoint}), the 530 trimmed recordings were
+distributed across the new partitions: 434 entered the new training partition,
+58 the new validation partition, and 38 the new test partition. Consequently, a
+small number of held-out recordings (5.7\% of new test utterances or fewer)
+had undergone label-independent trimming while the others had not. Trimming
+removes only trailing non-speech and does not use the transcription, so it
+cannot leak label information, but the asymmetry is disclosed here because it
+means the held-out partitions were not processed entirely uniformly. A CSV audit file linked every original path and
+duration to its output path, its new duration, and the number of seconds removed.
+
+An acoustic audit then decoded every retained training recording and measured
+duration agreement with the manifest, sampling rate, number of channels, peak and
+average RMS level, clipping (the fraction of samples at the maximum representable
+amplitude, which indicates distortion), direct-current offset (a constant shift of
+the waveform away from zero, which indicates a faulty recording chain), the ratio
+of active to total frames, leading and trailing silence, and a signal-to-noise
+ratio estimate. All training files decoded successfully and matched their manifest
+durations, and no clipping or residual long trailing silence was found.
+Recordings that were potentially difficult but valid, such as those with long
+leading silence, a low proportion of active speech, or low amplitude, were flagged
+for review rather than removed, because removing them would make the training data
+artificially clean and less representative of real-world speech.
+
+\subsubsection{Transcript normalization}
+\label{sec:normalization}
+
+WER and CER are computed by comparing the model's output with the reference text
+character by character and word by word. Any difference in the written form of
+the same spoken words, such as capitalization or punctuation, would therefore be
+counted as a recognition error even though it carries no acoustic information.
+To prevent such spurious errors, we applied a single text-normalization procedure
+(the \emph{text contract}) to the training, validation, and test partitions, and
+the same procedure was later applied to the out-of-domain corpus
+(Section~\ref{sec:fleurs}). The procedure consisted of the following steps.
+
+\begin{enumerate}
+    \item \textbf{Unicode NFC normalization.} Unicode, the international standard
+    for encoding text, allows some characters to be encoded in more than one way;
+    for example, an accented letter can be stored either as a single precomposed
+    character or as a base letter followed by a separate combining accent. The two
+    forms look identical but are different sequences of codes, so a string
+    comparison would treat them as different. Normalization Form Canonical
+    Composition (NFC) \citep{UAX15} converts every such character to a single
+    canonical form, ensuring that visually identical text is also identical for
+    comparison.
+    \item \textbf{Apostrophes and dashes.} Typographic (curly) apostrophes
+    (\texttt{'} and similar characters) were mapped to the plain American Standard
+    Code for Information Interchange (ASCII) apostrophe, and the various
+    typographic dashes were standardized. Different transcribers and keyboards
+    produce different apostrophe characters for the same Shona sound; without this
+    step, \emph{n'anga} typed with a curly apostrophe and with a straight
+    apostrophe would be counted as different words.
+    \item \textbf{Case folding.} All text was converted to lower case. Capital
+    letters are a writing convention that cannot be heard in speech, and the
+    WAXAL transcriptions applied capitalization inconsistently, so retaining case
+    would penalize the model for orthographic choices rather than recognition
+    errors.
+    \item \textbf{Punctuation removal.} Letters, digits, and apostrophes were
+    retained; all other punctuation and symbols were replaced by spaces, and
+    repeated spaces were then collapsed into a single space. Punctuation is not
+    spoken, and transcribers punctuated inconsistently. Punctuation was replaced
+    with a space rather than deleted so that two words separated only by a
+    punctuation mark (for example, \emph{word,word}) were not merged into a single
+    incorrect word. Apostrophes were retained because, as explained in
+    Section~\ref{sec:filtering}, they are part of Shona spelling.
+\end{enumerate}
+
+The original transcription was preserved in a separate \texttt{text\_raw} field
+and the normalized form was stored in the \texttt{text} field. Retaining the
+original made the normalization fully reversible and auditable: any normalized
+transcription can be compared with its source to verify that the procedure did
+not remove meaningful content, and a different normalization could be applied in
+future work without re-downloading the corpus. Normalization produced no empty
+transcriptions and no transcriptions in a non-Latin script.
+
+Twenty-seven training and four test transcriptions in the original partitions
+contained digits (for example, \emph{5} rather than the spoken Shona number
+word). These were flagged for manual review
+rather than converted automatically. Speakers say number words, not digits, so a
+digit in the reference cannot match any spoken form; however, automatic
+conversion would require a Shona-specific number-to-word converter, and applying
+English conventions would produce incorrect Shona. Because the affected
+utterances represent approximately 0.2\% of the data, they were retained
+unchanged and documented as a known source of minor label noise.
+
+\subsubsection{Duplicate and split-leakage audit}
+\label{sec:leakage}
+
+We checked whether any recording occurred more than once, either within a
+partition or across partitions. If the same audio appeared in both the training
+and test partitions, the model could recognize it from memory, inflating test
+accuracy. This type of contamination is known as \emph{data leakage}
+\citep{Kaufman2012}.
+
+To detect duplicates, every audio file was decoded into its raw pulse-code
+modulation (PCM) samples, the sequence of numerical amplitude values that
+represents the digital waveform, and a SHA-256 hash was computed over those
+samples. Hashing the decoded samples rather than the file itself was necessary
+because two files can contain identical audio but differ in their headers,
+metadata, or compression settings, which would give them different file hashes;
+two recordings with identical decoded samples, by contrast, always produce the
+same PCM hash. No exact audio duplicates were found within any partition or
+across the training, validation, and test partitions. Two groups of repeated
+transcriptions, comprising four training records, were retained because their
+audio differed, which indicates different speakers or different takes of the same
+description. One normalized transcription was shared between the training and
+validation partitions, but its audio was not duplicated.
+
+The audit revealed a more serious form of overlap. The original WAXAL partitions
+do not provide a speaker-independent test set: 94 of the 97 validation speakers
+and 101 of the 110 test speakers also appear in the training partition, and 1,700
+of the 1,711 retained test utterances were produced by speakers who are present in
+training. A model evaluated on these partitions has already learned the voices,
+accents, vocabulary, and recording devices of almost all the test speakers, so
+the original test set measures recognition of familiar speakers more than
+generalization to new ones. Because a deployed Shona ASR system would be used
+predominantly by people whose voices were never seen during training, we
+constructed new speaker-disjoint partitions for all controlled experiments, as
+described in the next section. Standard ASR benchmarks such as TIMIT
+\citep{Garofolo1993} and LibriSpeech \citep{Panayotov2015} use speaker-disjoint
+evaluation sets for the same reason.
+
+\subsubsection{Speaker-disjoint split construction}
+\label{sec:speaker-disjoint}
+
+\paragraph{Pooling and grouping.}
+To construct the speaker-disjoint partitions, the three cleaned and normalized
+WAXAL manifests were pooled into a single set of 17,193 utterances
+($13{,}799 + 1{,}683 + 1{,}711$). Each utterance was then grouped by its speaker
+identifier: a mapping was built from each of the 161 distinct speaker identifiers
+to the list of all utterances recorded by that speaker. Assignment to the new
+partitions was performed on these speaker groups rather than on individual
+utterances, so that all utterances of a given speaker were placed in the same
+partition and no speaker could appear in more than one partition. Every
+utterance was required to have a speaker identifier; the script stopped with an
+error if any identifier was missing.
+
+\paragraph{Target proportions.}
+The target proportions were 80\% of the data for training and 10\% each for
+validation and test, matching the approximate proportions of the original WAXAL
+release. Because speakers contribute very different numbers of utterances, it is
+not possible to choose groups of whole speakers that reach these proportions
+exactly; the task is therefore an optimization problem in which we seek the
+assignment of speakers that comes closest to the targets.
+
+\paragraph{Objective function.}
+For a candidate assignment $a$ of speakers to partitions, the deviation from the
+targets was measured by the objective
+
+\begin{equation}
+J(a) = \sum_{k \in \{\text{train}, \text{validation}, \text{test}\}} \left[ \left( \frac{n_k(a) - r_k N}{r_k N} \right)^2 + \left( \frac{h_k(a) - r_k H}{r_k H} \right)^2 \right],
+\label{eq:split-objective}
+\end{equation}
+
+where $k$ indexes the three partitions; $r_k$ is the target proportion of
+partition $k$ (0.8, 0.1, and 0.1); $n_k(a)$ is the number of utterances that
+assignment $a$ places in partition $k$; $h_k(a)$ is the corresponding total
+duration in hours; $N$ is the total number of utterances (17,193); and $H$ is the
+total duration in hours. The quantities $r_k N$ and $r_k H$ are therefore the
+target number of utterances and the target duration of partition $k$.
+
+Each term in Equation~\eqref{eq:split-objective} is a \emph{squared relative
+deviation}: the difference between the achieved and target size, divided by the
+target size, and squared. Dividing by the target size makes each term a
+proportion, so that a 5\% shortfall in the small test partition is penalized as
+heavily as a 5\% shortfall in the large training partition; without this
+normalization, the objective would be dominated by the training partition, and
+the held-out partitions could deviate substantially from their targets. Squaring
+makes all deviations positive and penalizes large deviations more than several
+small ones, which favours assignments in which all partitions are close to their
+targets. Both the number of utterances and the duration were included, with
+equal weight, because they capture different properties: the number of utterances
+determines how many independent items contribute to the evaluation, whereas the
+duration determines how much speech the model is trained or evaluated on. Since a
+few speakers recorded many short or many long utterances, balancing only one
+measure could leave the other badly unbalanced. A perfect assignment would give
+$J(a) = 0$. Because the three partition sizes must sum to the total, only two of
+the three partitions vary independently for each measure; this does not affect
+the procedure, because $J(a)$ is used only to rank candidate assignments, not as a
+statistical test.
+
+\paragraph{Concentration constraint.}
+Minimizing $J(a)$ alone does not prevent a single speaker from dominating a
+held-out partition. If one speaker contributed, for example, half of the test
+utterances, the test WER would largely measure how well the model recognized that
+one person. A candidate assignment was therefore eligible only if no single
+speaker contributed more than 20\% of the utterances or more than 20\% of the
+duration of the validation or test partition. A cap of 20\% guarantees that at
+least five speakers make substantial contributions to each held-out partition and
+that no individual voice can determine the evaluation result, while remaining
+achievable given how unevenly speakers contribute to WAXAL.
+
+\paragraph{Search procedure.}
+The number of possible ways to divide 161 speakers into partitions of 113, 24, and
+24 speakers is astronomically large, so evaluating every assignment was
+infeasible. We therefore used a seeded randomized search. The speaker identifiers
+were first sorted alphabetically, so that the search did not depend on the order in
+which records happened to be read. In each of 50,000 trials, the sorted list was
+randomly permuted using a pseudo-random number generator initialized with seed
+42; the first 24 speakers in the permutation were assigned to validation, the next
+24 to test, and the remaining 113 to training. The trial was discarded if it
+violated the concentration constraint; otherwise $J(a)$ was computed and the
+assignment was retained if it had the lowest value found so far. Using a fixed
+seed made the search exactly reproducible: running the script again produces the
+same partitions.
+
+\paragraph{Version history.}
+A first version of the procedure (version~1) evaluated 20,000 trials and assigned
+16 speakers (10\% of 161) to each held-out partition, without a concentration
+constraint. It achieved zero speaker overlap and well-balanced sizes, but one
+speaker contributed 51.1\% of the validation utterances and another 35.1\% of the
+test utterances. Version~1 was therefore retained only as a diagnostic pilot.
+Version~2 added the 20\% concentration constraint, increased the number of
+held-out speakers to 24 per partition, because with only 16 speakers the
+constraint could rarely be satisfied, and increased the search to 50,000 trials,
+because the constraint rejects many candidates. Version~2 was used for all
+controlled experiments.
+
+\paragraph{Result and verification.}
+The selected version~2 assignment achieved $J(a) = 0.0029$. It contained 13,807
+training utterances (79.76 hours, 113 speakers), 1,715 validation utterances
+(9.59 hours, 24 speakers), and 1,671 test utterances (9.56 hours, 24 speakers).
+Relative to the targets, the training partition was 0.4\% larger in utterances
+and 0.8\% larger in duration, the validation partition was 0.3\% smaller in
+utterances and 3.0\% smaller in duration, and the test partition was 2.8\% smaller
+in utterances and 3.4\% smaller in duration. The largest single-speaker share was
+19.5\% of utterances (19.8\% of duration) in validation and 17.2\% of utterances
+(17.3\% of duration) in test. Automated assertions verified that every pooled
+utterance was assigned exactly once, that utterance identifiers were unique, that
+every audio file existed, that no transcription was empty, and that no speaker
+appeared in more than one partition. The source and output manifests, the
+speaker assignments, the constraints, the objective value, and all file hashes
+were stored in a protocol summary file.
+
+\subsubsection{Acoustic measurements for difficulty scoring}
+\label{sec:snr}
+
+Several curricula (Section~\ref{sec:curriculum}) rank utterances by their
+signal-to-noise ratio (SNR), the ratio of the power of the speech to the power of
+the background noise, expressed in decibels. A high SNR indicates clean speech
+and a low SNR indicates noisy speech. WAXAL does not provide separate clean speech
+and noise signals, so the true SNR cannot be computed; instead, we estimated an
+SNR \emph{proxy} from the frame energies of each recording, decoded at its native
+sampling rate of 48~kHz:
+
+\begin{equation}
+    \widehat{\mathrm{SNR}}_i = \min\!\left(60,\;
+    20\log_{10}\frac{P_{75}\big(\{\operatorname{RMS}_f : f~\text{active}\}\big)}
+    {P_{20}\big(\{\operatorname{RMS}_f : \text{all}~f\}\big)}\right)~\text{dB},
+    \label{eq:snr-proxy}
+\end{equation}
+
+where $P_{75}$ denotes the 75th percentile and $P_{20}$ the 20th percentile, and
+active frames are defined by Equation~\eqref{eq:active}. The 75th percentile of
+the active frames represents a typical level of speech while being robust to a
+few unusually loud frames, and the 20th percentile of all frames represents the
+quiet background between words. The estimate was capped at 60~dB because, in
+recordings with near-digital silence between words, the denominator approaches
+zero and the ratio becomes arbitrarily large without reflecting any meaningful
+difference in perceived quality. In the training partition the proxy ranged from
+7.7 to 60.0~dB, with a median of 33.4~dB; 2,665 training utterances (19.3\%)
+reached the 60~dB cap. The measurements were computed once, aligned to the
+speaker-disjoint manifests by utterance identifier, and frozen with a SHA-256 hash
+before any curriculum experiment was run.
+
+\subsubsection{FLEURS out-of-domain evaluation data}
+\label{sec:fleurs}
+
+To evaluate out-of-domain generalization (RQ2), we used the Shona configuration
+(\texttt{sn\_zw}) of FLEURS (Few-shot Learning Evaluation of Universal
+Representations of Speech) \citep{Conneau2022}. FLEURS contains 2,463 training,
+393 validation, and 925 test utterances for Shona. We chose FLEURS because it is,
+to our knowledge, the only other publicly available, openly licensed corpus of
+transcribed Shona speech with standard partitions, and because it differs from
+WAXAL in every major respect that defines a domain. FLEURS consists of \emph{read}
+speech: speakers read aloud sentences translated from English Wikipedia articles,
+whereas WAXAL speakers spontaneously described images. FLEURS was therefore
+recorded by different speakers, with different devices and recording conditions,
+in a different speaking style, and on different topics and vocabulary. A model
+that improves on FLEURS as well as on WAXAL is therefore likely to have learned
+something general about Shona speech rather than the particularities of the WAXAL
+collection. Evaluating ASR models on corpora other than the one used for training
+is recommended practice for assessing robustness \citep{Likhomanenko2021}.
+
+No FLEURS utterance was used for training, for selecting a curriculum, or for
+tuning any hyperparameter. FLEURS results were computed only after the curriculum
+choice had been fixed using WAXAL validation data, so that the out-of-domain
+evaluation remained an independent check.
+
+We applied a text contract with the same purpose and steps as for WAXAL
+(Section~\ref{sec:normalization}): Unicode NFC normalization, case folding,
+standardization of apostrophes and dashes, retention of letters, numbers,
+combining marks, and apostrophes, replacement of other punctuation and symbols
+with spaces, and collapsing of repeated spaces. The original transcription was
+retained separately. The two implementations differ in minor details: the
+FLEURS version selects characters by Unicode category (and therefore also keeps
+separate combining marks and numeric forms such as fractions), whereas the
+WAXAL version uses letter-and-digit tests and additionally maps backticks to
+apostrophes. These differences affect very few characters. Every model was
+scored against the same frozen FLEURS references, so comparisons between
+models on FLEURS are unaffected, but absolute WAXAL and FLEURS WER values should
+not be compared as if the scoring rules were identical.
+
+An initial preparation of FLEURS removed digits as well as punctuation. Because
+this deleted spoken numbers from 531 training transcriptions and created
+mismatches between audio and text, runs that used that preparation were
+excluded from all controlled comparisons. The initial manifests also reused the
+same sentence identifier for several recordings of the same sentence, so the
+corrected version assigned each recording a unique identifier derived from its
+audio, while retaining the original sentence identifier for analysis.
+
+After normalization, all 3,781 FLEURS utterances were retained in their original
+partitions. An audit verified that every file was 16~kHz single-channel (mono)
+audio as Whisper requires, that every manifest duration matched its audio, that
+every utterance identifier was unique, and that no recording was duplicated
+within FLEURS or shared with WAXAL (using the PCM hashes described in
+Section~\ref{sec:leakage}). Because the hash includes the sampling rate, and
+WAXAL is stored at 48~kHz while FLEURS is stored at 16~kHz, this cross-corpus
+check can detect only exact copies, not the same recording stored at a different
+rate. Nor can it establish whether FLEURS was part of Whisper's pretraining
+data. FLEURS is therefore described as external to this study's fine-tuning
+data, not as speech that Whisper has never encountered.
+
+\subsubsection{Summary of data protocols}
+
+Table~\ref{tab:protocols} summarizes the data versions used in the study. Only
+the speaker-disjoint version~2 protocol was used for the controlled RQ1 and RQ2
+experiments; the other versions are listed because they underlie exploratory
+results referred to in this thesis.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{4.2cm}|p{4.2cm}|r|r|r|}
+        \hline
+        Protocol & Purpose & Train & Validation & Test \\
+        \hline
+        Normalized original partitions & Exploratory baselines and model-size study & 13,799 & 1,683 & 1,711 \\
+        \hline
+        Speaker-disjoint version 1 & Diagnostic pilot only & 13,778 & 1,696 & 1,719 \\
+        \hline
+        Speaker-disjoint version 2 & All controlled experiments & 13,807 & 1,715 & 1,671 \\
+        \hline
+        FLEURS Shona (corrected) & Out-of-domain evaluation only & 2,463 & 393 & 925 \\
+        \hline
+    \end{tabular}
+    \caption{Data protocols used in the study (number of utterances).}
+    \label{tab:protocols}
+\end{table}
+
+\subsection{Model Input Preprocessing}
+\label{sec:input-preprocessing}
+
+Before training, the pipeline verified that every referenced audio file existed
+and that every transcription was non-empty, so that a missing file could not
+cause training to fail or silently skip examples part-way through.
+
+\paragraph{Resampling.}
+All audio was decoded as single-channel speech and resampled to 16~kHz, meaning
+that the waveform was represented by 16,000 amplitude values per second. The
+WAXAL recordings were stored at 48~kHz. Resampling to 16~kHz was required because
+Whisper was pretrained exclusively on 16~kHz audio and its feature extractor
+assumes that rate; supplying audio at any other rate would shift every frequency
+the model sees. A 16~kHz rate represents frequencies up to 8~kHz (half the
+sampling rate, by the sampling theorem \citep{Shannon1949}), which contains the
+information most important for recognizing speech.
+
+\paragraph{Log-Mel spectrogram.}
+The Whisper feature extractor converted each waveform into an 80-channel
+log-Mel spectrogram. A spectrogram is a time--frequency representation of sound:
+the waveform is divided into short overlapping windows, and the energy at each
+frequency is computed for each window using the short-time Fourier transform
+(STFT). Whisper uses 25-millisecond windows (400 samples) advanced in steps of
+10~milliseconds (160 samples), producing 100 frames per second
+\citep{Radford2022}. The frequency axis is then mapped onto the Mel scale, a
+perceptual scale on which equal distances correspond to equal perceived
+differences in pitch \citep{Stevens1937}. It has finer resolution at low
+frequencies, where most speech information lies, and coarser resolution at high
+frequencies. The energies are summed into 80 Mel-spaced frequency bands and their
+logarithm is taken, because human loudness perception is approximately
+logarithmic and the logarithm compresses the very large range of speech energies
+into a range suitable for a neural network \citep{Davis1980}. The result is a
+matrix with 80 rows (frequency bands) and one column per 10-millisecond frame.
+
+\paragraph{Fixed 30-second window.}
+Whisper's encoder accepts exactly 3,000 frames, corresponding to 30 seconds of
+audio, because it was pretrained on 30-second segments. Shorter utterances were
+padded with silence-equivalent values to 3,000 frames. Utterances longer than 30
+seconds were truncated to the first 30 seconds. In the speaker-disjoint protocol,
+520 training utterances (3.8\%), 21 validation utterances, and 40 test utterances
+exceeded 30 seconds; for these utterances the end of the audio was not seen by the
+model while the reference transcription remained complete. This affects all
+experimental conditions equally and therefore does not bias comparisons between
+them, but it does introduce a small amount of label noise in training and
+unavoidable deletion errors in evaluation, which are discussed as a limitation.
+
+\paragraph{Attention mask.}
+An attention mask, a binary vector marking which frames contain real audio and
+which contain padding, was retained for each input. Whisper's encoder itself
+always processes the complete 3,000-frame window, as during pretraining. The mask
+was retained so that SpecAugment time masks (Section~\ref{sec:specaugment}) were
+placed only within the real audio; a mask applied to padding would have no
+effect and would silently weaken the augmentation for short utterances.
+
+\paragraph{Tokenization.}
+Target transcriptions were converted into sequences of integer tokens using the
+Whisper multilingual tokenizer. A tokenizer splits text into sub-word units
+drawn from a fixed vocabulary; Whisper uses a byte-level byte-pair encoding (BPE)
+vocabulary \citep{Sennrich2016, Radford2022}, in which frequent character
+sequences are represented by single tokens and rare words are split into several
+tokens. The same vocabulary is shared across all of Whisper's 99 languages,
+including Shona. The tokenizer was configured with the language set to Shona and
+the task set to transcription. With this configuration, every target sequence
+begins with a fixed prefix of special tokens,
+\texttt{<|startoftranscript|><|sn|><|transcribe|><|notimestamps|>}, which tells
+the decoder that the audio is Shona (\texttt{sn} is the language code for Shona),
+that it should transcribe rather than translate into English, and that it should
+not predict timestamps, and every sequence ends with an end-of-text token. Using
+the same prefix in training and decoding ensured that the model was fine-tuned
+for exactly the task on which it was evaluated.
+
+\paragraph{Padding and the loss function.}
+Training processes several utterances simultaneously in a \emph{batch}, which
+must be stored as a rectangular array. Because transcriptions differ in length,
+shorter token sequences were padded to the length of the longest sequence in the
+batch. The padded positions do not correspond to real text, so the model must not
+be trained to predict them. Each padded position was therefore replaced by the
+value $-100$. The model was trained by minimizing the token-level cross-entropy
+loss, which measures how much probability the model assigns to each correct
+token:
+
+\begin{equation}
+    \mathcal{L} = -\frac{1}{|\mathcal{V}|}\sum_{(b,t)\in\mathcal{V}}
+    \log p_\theta\!\left(y_{b,t} \mid y_{b,<t}, x_b\right),
+    \qquad
+    \mathcal{V} = \{(b,t) : y_{b,t} \neq -100\},
+    \label{eq:ce-loss}
+\end{equation}
+
+where $b$ indexes the utterances in the batch, $t$ indexes token positions,
+$y_{b,t}$ is the reference token, $y_{b,<t}$ are the preceding reference tokens,
+$x_b$ is the input spectrogram, and $p_\theta$ is the probability predicted by the
+model with parameters $\theta$. In PyTorch, the cross-entropy function excludes
+every position whose target equals its \texttt{ignore\_index} parameter, whose
+default value is $-100$. Positions labelled $-100$ are therefore excluded from both
+the sum and the count $|\mathcal{V}|$: they contribute neither to the loss nor to
+its gradient, and the loss is averaged over real tokens only. The leading
+\texttt{<|startoftranscript|>} token was removed from the labels because the
+Whisper decoder inserts it automatically as its first input.
+
+\subsection{Baseline ASR Model}
+\label{sec:baseline}
+
+\subsubsection{Whisper}
+
+Whisper \citep{Radford2022} is a family of ASR models released by OpenAI. Each
+model is an encoder--decoder Transformer \citep{Vaswani2017}. The encoder converts
+the log-Mel spectrogram into a sequence of internal representations of the audio,
+and the decoder generates the transcription one token at a time, each time
+conditioning on the encoder representations and on the tokens it has already
+generated. The models were trained on 680,000 hours of audio paired with
+transcripts collected from the internet. Of these, 438,000 hours were English
+speech with English transcripts, 126,000 hours were non-English speech paired with
+English translations, and 117,000 hours were non-English speech with transcripts
+in the same language, covering 96 languages other than English. Because the
+training data are dominated by English and a few high-resource languages, Whisper
+performs considerably better on those languages than on low-resource languages
+such as Shona, for which only a very small amount of pretraining data was
+available. This gap is the motivation for fine-tuning Whisper on Shona.
+
+Whisper was chosen as the foundation model for three reasons. First, Shona is one
+of its supported languages, with its own language token, so the model could be
+fine-tuned without modifying its vocabulary or architecture. Second, its
+multilingual pretraining provides acoustic and linguistic knowledge that can be
+transferred to a language with limited data. Third, its openly available
+checkpoints in several sizes made it possible to study the effect of model
+capacity under otherwise identical conditions.
+
+\subsubsection{Model sizes}
+
+During the exploratory phase we examined the Tiny, Base, Small, Medium, Large,
+and Large-v3 checkpoints. The controlled experiments used Whisper Base
+(74 million parameters; 6 encoder and 6 decoder layers with 512-dimensional
+representations) as the screening model, and Whisper Medium (769 million
+parameters; 24 encoder and 24 decoder layers with 1,024-dimensional
+representations) for the model-capacity extension (Section~\ref{sec:medium}).
+
+Whisper Base was chosen as the screening model because the RQ1 and RQ2 designs
+required many conditions, each with three seeds; one Base training run took
+approximately 0.6 GPU-hours, which made the complete design feasible. Whisper
+Large was not carried into the controlled experiments for three reasons. First,
+in the exploratory comparison on the original partitions, Large reduced test WER by
+only a further 1.0 point relative to Medium (22.75\% versus 23.77\%), whereas
+Medium reduced test WER by 4.7 points relative to Base. Second, one Large run took
+15.35 hours, approximately six times as long as Medium (2.56 hours), so the full
+design would have required several hundred GPU-hours. Third, Large did not fit in
+24~GB of GPU memory with the training settings used for Base; it required a batch
+size of one with gradient accumulation and an 8-bit optimizer, so a Large run
+would have differed from the Base and Medium runs in its optimization procedure,
+not only in its size, and any difference could not have been attributed to model
+capacity alone. Tiny and Small were not carried forward because Base and Medium
+already bracketed the range of capacities that was computationally feasible.
+
+\subsubsection{Zero-shot evaluation}
+
+The pinned Whisper Base checkpoint was also evaluated \emph{zero-shot}, that is,
+without any training on Shona, using the same speaker-disjoint partitions,
+FLEURS references, language and task prefix, decoding settings, and text
+contract as its fine-tuned counterparts. This established how much of the final
+performance was due to fine-tuning rather than to the pretrained model. The
+zero-shot evaluation was added after the fine-tuning experiments rather than
+before them, which does not affect its validity because it involves no training
+or selection. A zero-shot evaluation of Whisper Medium had not been completed at
+the time of writing. \todo{Update if the Medium zero-shot evaluation is run.}
+``Zero-shot'' here means that no Shona fine-tuning was performed in this study;
+it does not imply that Whisper's pretraining data contained no Shona. Because WER counts insertions as errors, it can
+exceed 100\% when a model produces many words that are not in the reference, as
+an untrained model typically does.
+
+\subsubsection{Fine-tuning configuration}
+\label{sec:finetuning}
+
+Every controlled run started from the pinned pretrained checkpoint (Whisper Base
+revision \texttt{e37978b9} and Whisper Medium revision \texttt{abdf7c39}); no run
+was initialized from the weights of a previous experiment, so that each condition
+was independent of every other. All parameters of the model were updated
+(full fine-tuning). The following settings were identical for every controlled
+run, for both model sizes.
+
+\begin{itemize}
+    \item \textbf{Optimizer:} AdamW \citep{Loshchilov2019}, the default optimizer
+    of the Transformers training loop. AdamW adapts the step size of each
+    parameter according to running averages of its past gradients and squared
+    gradients, which makes training robust to differences in scale between
+    parameters. The pinned library defaults were used: moment coefficients
+    $\beta_1 = 0.9$ and $\beta_2 = 0.999$, numerical-stability constant
+    $\epsilon = 10^{-8}$, and gradients clipped to a maximum norm of 1.0. Weight
+    decay was zero, so although AdamW supports decoupled weight decay, no weight
+    penalty was applied in these runs. Label smoothing was also zero. These
+    inherited defaults were not tuned and were identical across conditions.
+    \item \textbf{Learning rate:} $1 \times 10^{-5}$. The learning rate controls
+    the size of each parameter update. A small learning rate was chosen because
+    large updates can overwrite the knowledge acquired during pretraining, a
+    problem known as catastrophic forgetting; small learning rates are standard
+    for fine-tuning large pretrained Transformers \citep{Mosbach2021}, and
+    $1 \times 10^{-5}$ is the value used in the widely adopted Whisper fine-tuning
+    recipe \citep{Gandhi2022}.
+    \item \textbf{Warm-up:} 500 steps, during which the learning rate increased
+    linearly from zero to $1 \times 10^{-5}$, after which it decreased linearly
+    towards zero by the end of training. At the start of fine-tuning, the
+    optimizer's running estimates of gradient statistics are unreliable and the
+    model has not yet adapted to the new data, so full-size updates can be
+    unstable; a gradual warm-up avoids large, damaging early updates
+    \citep{Goyal2017, Mosbach2021}. The value of 500 steps, approximately 7\% of
+    the 6,906 total updates, follows the same recipe \citep{Gandhi2022}.
+    \item \textbf{Batch size:} six utterances per update, with no gradient
+    accumulation. This was the largest batch that fitted comfortably in GPU memory
+    for Base. The same batch size was retained for Medium, which fitted with a
+    peak memory reservation of approximately 15~GB, so that both model sizes
+    received exactly the same sequence of updates.
+    \item \textbf{Epochs:} three complete passes over the training data. With
+    13,807 utterances and a batch size of six, one epoch comprises 2,302 updates
+    (the final batch of each epoch contains one utterance), and three epochs
+    comprise 6,906 updates. Three epochs was the largest number that allowed every
+    condition to be trained with three seeds within the available computing budget.
+    The training budget was fixed in advance and identical for all conditions,
+    because curricula are known to change how quickly a model learns; comparing
+    conditions at the same number of updates is therefore essential for a fair
+    comparison. Conclusions are consequently conditional on this budget.
+    \item \textbf{Mixed precision (FP16):} most calculations were performed in
+    16-bit floating-point format rather than 32-bit. This approximately halves the
+    memory needed for activations and substantially increases speed on modern
+    GPUs, while a master copy of the weights in 32-bit precision and dynamic loss
+    scaling preserve numerical accuracy \citep{Micikevicius2018}. Dynamic loss
+    scaling multiplies the loss by a large factor so that small gradients do not
+    round to zero in 16-bit format; if the scaled gradients overflow, the update is
+    skipped and the factor is reduced. A small number of such skipped updates
+    occurred at the very start of each run.
+    \item \textbf{Gradient checkpointing:} instead of storing every intermediate
+    result during the forward pass for use in the backward pass, only selected
+    results were stored and the rest were recomputed when needed. This reduces
+    memory use substantially at the cost of approximately one additional forward
+    computation \citep{Chen2016}, and was what allowed Medium to be trained with
+    the same batch size as Base on a 24~GB GPU.
+    \item \textbf{Deterministic execution:} deterministic GPU algorithms were
+    enabled so that re-running a configuration on the same hardware and software
+    reproduced the same model; this was verified by an exact re-run of one
+    dynamic-curriculum condition (C5, seed 42), which reproduced the checkpoint
+    hashes and metrics. Determinism is not guaranteed across different GPU types
+    or library versions.
+\end{itemize}
+
+\subsubsection{Decoding}
+\label{sec:decoding}
+
+Transcriptions were generated with greedy decoding, in which the decoder selects
+the single most probable token at each step. Greedy decoding was used for all
+controlled experiments because it is deterministic, so that differences between
+conditions cannot arise from randomness in decoding, and because it is
+considerably cheaper than beam search, which tracks several candidate
+transcriptions in parallel. Using one fixed decoding method also ensured that
+decoding did not become an additional factor in the comparison of training
+strategies; we do not claim that greedy decoding gives the best achievable WER.
+The maximum output length was 225 tokens, which is sufficient for a 30-second
+Shona utterance and prevents a model that has begun repeating itself from
+generating indefinitely. The language and task were set explicitly to Shona
+transcription. The legacy forced-decoder-token setting and the default list of
+suppressed tokens were cleared in every run, following the standard Whisper
+fine-tuning recipe \citep{Gandhi2022}, so that the language and task were
+specified in only one place and every condition decoded with exactly the same
+vocabulary.
+
+\subsubsection{Checkpointing and model selection}
+\label{sec:checkpointing}
+
+The model was evaluated on the validation partition, and a checkpoint (a saved
+copy of the model) was written, at the end of each epoch, that is, after updates
+2,302, 4,604, and 6,906. Evaluating at epoch boundaries, rather than every fixed
+number of updates, ensured that every saved model had seen each training
+utterance the same number of times. This matters because, part-way through an
+epoch, a curriculum model has seen only the easiest utterances whereas a randomly
+ordered model has seen a representative sample, so mid-epoch checkpoints would
+compare models that had been exposed to systematically different data. The
+checkpoint with the lowest validation WER was selected as the final model and
+evaluated once on the test partition. The test partition was never used to select
+checkpoints or hyperparameters.
+
+% Input Part 2: Curriculum, Augmentation, Medium Extension, and Evaluation Metrics
+\input{chapter3_methodology_part2.tex}
+
+\end{document}

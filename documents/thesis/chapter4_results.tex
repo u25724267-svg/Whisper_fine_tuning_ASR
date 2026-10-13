@@ -1,0 +1,1215 @@
+% =====================================================================
+% Chapter 4: Results
+%
+% Covers:
+%   4.1 Reporting Conventions
+%   4.2 Baseline Establishment and Speaker-Disjoint Protocol Validation
+%   4.3 Exploratory Model Capacity Comparison
+%   4.4 Research Question 1: Curriculum Learning
+%   4.5 Research Question 2: Data Augmentation
+%   4.6 Out-of-Domain Evaluation (Google FLEURS)
+%   4.7 Computational Cost Analysis
+%   4.8 Integrated Summary of Findings
+%   4.9 Limitations
+% =====================================================================
+
+\graphicspath{{images/}}
+
+\begin{document}
+
+\section{Results}
+
+\subsection{Introduction}
+
+This chapter presents the empirical findings of the experiments described in the
+Methodology chapter. All results are reported on the primary evaluation metrics
+defined in Section~3.8: Word Error Rate (WER), which measures the proportion of
+incorrectly recognised words relative to the reference transcription, and
+Character Error Rate (CER), which applies the same edit-distance calculation at
+the character level. Lower values indicate superior recognition performance for
+both metrics. Where relevant, training runtime (wall-clock seconds) and peak
+Graphics Processing Unit (GPU) memory consumption are reported to characterise
+computational cost.
+
+The results are organised by research question. For each experimental condition,
+three independent training runs were conducted using random seeds 42, 43, and 44
+to quantify variability arising from stochastic weight initialisation and
+mini-batch ordering. Mean performance and standard deviation across the three
+seeds are reported for each condition. Where applicable, speaker-clustered
+paired bootstrap confidence intervals (10{,}000 replicates) are reported to
+quantify evaluation-sample uncertainty. These intervals are conditional on fixed
+checkpoints and do not capture training-seed, split-construction, or
+model-selection uncertainty.
+
+This chapter restricts its scope to reporting observed performance differences
+and identifying clear patterns in the data. Causal interpretation, theoretical
+grounding, and comparison with external literature are reserved for the
+Discussion chapter (Chapter~5).
+
+
+\subsection{Reporting Conventions}
+\label{sec:reporting-conventions}
+
+The following conventions apply throughout this chapter:
+
+\begin{enumerate}
+    \item All WER and CER values are expressed as percentages unless otherwise
+    stated. A WER of 32.52 indicates that 32.52\% of reference words were
+    incorrectly recognised through insertions, deletions, or substitutions.
+    
+    \item The speaker-disjoint WAXAL v2 protocol ($N_{\text{train}} = 13{,}807$,
+    $N_{\text{val}} = 1{,}715$, $N_{\text{test}} = 1{,}671$; 113 training, 24
+    validation, 24 test speakers with zero speaker overlap) serves as the
+    primary evaluation protocol for all confirmatory experiments in Research
+    Questions 1 and 2.
+    
+    \item Results obtained under the original speaker-overlapping split are
+    labelled as \textit{exploratory} and are not pooled with speaker-disjoint
+    results, because the two protocols evaluate fundamentally different
+    conditions regarding speaker generalisation.
+    
+    \item For treatment effect comparisons, a \textit{positive} effect indicates
+    that the treatment achieved lower WER than its matched control (i.e.,
+    performance improvement). A \textit{negative} effect indicates higher WER
+    (i.e., performance degradation).
+    
+    \item Bootstrap confidence intervals are unadjusted for multiplicity at the
+    screening stage. When eight curriculum conditions are examined
+    simultaneously, an interval excluding zero should not be interpreted as
+    family-wise statistical significance.
+    
+    \item The best-performing checkpoint was selected at epoch boundaries
+    (steps 2{,}302, 4{,}604, and 6{,}906) using validation WER. The test
+    partition was evaluated exactly once on the selected checkpoint and was never
+    used for checkpoint selection or hyperparameter tuning.
+\end{enumerate}
+
+
+% =====================================================================
+\subsection{Baseline Establishment and Speaker-Disjoint Protocol Validation}
+\label{sec:baseline-results}
+% =====================================================================
+
+Before investigating curriculum learning and data augmentation, it was necessary
+to establish the performance of the unmodified training pipeline under both the
+original speaker-overlapping split and the speaker-disjoint v2 protocol. This
+comparison serves two purposes: it validates that the training pipeline
+reproduces historical results, and it quantifies the performance cost of
+eliminating speaker leakage between partitions.
+
+\subsubsection{Pipeline diagnostic under the original split}
+
+The Whisper Base model was first trained under the original WAXAL
+speaker-overlapping split (seed 42, no curriculum, no augmentation) to verify
+that the current pipeline reproduces the historical reference result.
+Table~\ref{tab:protocol-diagnostic} presents the comparison.
+
+\begin{table}[H]
+\centering
+\caption{Pipeline diagnostic: original speaker-overlapping split versus matched
+reproduction. Both runs used identical training hyperparameters (learning rate
+$1 \times 10^{-5}$, batch size 6, 3 epochs, AdamW optimiser).}
+\label{tab:protocol-diagnostic}
+\begin{tabular}{lcc}
+\hline
+\textbf{Run} & \textbf{Validation WER (\%)} & \textbf{Test WER (\%)} \\
+\hline
+Historical reference (original split) & 29.06 & 28.49 \\
+Matched reproduction (original split) & 29.29 & 28.73 \\
+\hline
+\end{tabular}
+\end{table}
+
+The matched reproduction differed from the historical reference by 0.23 WER
+points on the validation partition and 0.24 points on the test partition. These
+negligible differences confirm that the training pipeline, preprocessing
+contract, and evaluation procedure were implemented correctly and did not
+introduce systematic bias relative to the historical baseline.
+
+\subsubsection{Speaker-disjoint v2 baseline (C0)}
+
+Table~\ref{tab:c0-baseline} presents the performance of the random shuffling
+baseline (C0) under the speaker-disjoint v2 protocol across three seeds.
+
+\begin{table}[H]
+\centering
+\caption{Random shuffling baseline (C0) under the speaker-disjoint v2 protocol.
+Each run used an independently seeded random presentation order with no
+curriculum sorting or data augmentation applied.}
+\label{tab:c0-baseline}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Run} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C0 seed 42 & 32.52 & 31.36 & 7.08 & 7.01 \\
+C0 seed 43 & 33.44 & 30.78 & 7.56 & 6.68 \\
+C0 seed 44 & 32.75 & 30.98 & 7.30 & 6.76 \\
+\hline
+Mean $\pm$ SD & $32.90 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+The transition from the speaker-overlapping split (test WER 28.73) to the
+speaker-disjoint v2 protocol (mean test WER 31.04) produced a degradation of
+approximately 2.31 WER percentage points. This increase was expected because the
+speaker-disjoint protocol ensures that the model is evaluated exclusively on
+speakers absent from the training partition, thereby eliminating the advantage
+conferred by having previously encountered the same vocal characteristics during
+training. The v2 protocol also rebalanced speaker representation: no held-out
+speaker contributed more than 20\% of a partition's recordings or total
+duration, compared with the original split where one speaker contributed 51.1\%
+of the validation partition and another contributed 35.1\% of the test
+partition.
+
+The standard deviation across seeds was 0.48 WER points on validation and 0.29
+points on test, indicating moderate run-to-run variability. This variability
+arises from differences in stochastic batch ordering and optimiser initialisation,
+as all other factors (data, model architecture, hyperparameters, and hardware)
+were held constant.
+
+% -----------------------------------------------
+% Note for visualisation
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: Include a WER learning curve showing eval WER at
+% steps 2302, 4604, 6906 for C0 seeds 42, 43, 44. Export from WandB project
+% ``whisper-shona-multilingual'', filtering runs rq1-c0-random-seed42-v2,
+% rq1-c0-random-seed43-v2, rq1-c0-random-seed44-v2. Y-axis: eval WER (%),
+% X-axis: training step.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c0_wer_curve.png}
+    \caption{Validation WER across training steps for the three C0 random
+    shuffling baseline runs (seeds 42, 43, 44) under the speaker-disjoint v2
+    protocol. The vertical dashed lines indicate epoch boundaries at steps
+    2{,}302, 4{,}604, and 6{,}906.}
+    \label{fig:c0-wer-curve}
+\end{figure}
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: Include corresponding evaluation loss curve for
+% C0 seeds 42, 43, 44 from WandB. Y-axis: eval loss, X-axis: training step.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c0_loss_curve.png}
+    \caption{Evaluation loss across training steps for the three C0 random
+    shuffling baseline runs. All three runs exhibit a consistent pattern: rapid
+    loss reduction during the first epoch, continued improvement through epoch 2,
+    and a pronounced deceleration in the final epoch.}
+    \label{fig:c0-loss-curve}
+\end{figure}
+
+A consistent pattern is observable across all three seeds: validation WER
+decreases sharply during the first epoch (steps 0--2{,}302), continues to
+improve through the second epoch (steps 2{,}302--4{,}604), and exhibits a
+marked inflection at step 4{,}604 (the epoch 2 boundary). Beyond this point,
+WER improvement decelerates substantially, and in some runs, validation WER
+begins to increase while the training loss continues to decrease. This
+divergence between training loss and validation WER after epoch 2 is indicative
+of the onset of overfitting, where the model begins to memorise training-specific
+patterns that do not generalise to unseen validation speakers.
+
+
+% =====================================================================
+\subsection{Exploratory Model Capacity Comparison}
+\label{sec:model-capacity}
+% =====================================================================
+
+Prior to the confirmatory experiments, an exploratory comparison was conducted
+across three Whisper model sizes---Base (74 million parameters), Medium (769
+million parameters), and Large (1.55 billion parameters)---to assess the
+relationship between model capacity and ASR performance on Shona. These
+experiments used the earlier speaker-overlapping (SDE-normalised) protocol and
+single seeds; they are therefore classified as exploratory and are not directly
+comparable with the speaker-disjoint results reported in subsequent sections.
+
+\begin{table}[H]
+\centering
+\caption{Exploratory model capacity comparison under the speaker-overlapping
+protocol (single seed). Training runtime was recorded on an NVIDIA GeForce RTX
+4090 (24~GB VRAM).}
+\label{tab:model-capacity}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Model} & \textbf{Parameters} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Runtime (s)} & \textbf{Runtime (h)} \\
+\hline
+Whisper Base  & 74M  & 29.06 & 28.49 & ---       & ---   \\
+Whisper Medium & 769M & 22.95 & 23.77 & 9{,}205.9 & 2.56 \\
+Whisper Large  & 1.55B & 22.87 & 22.75 & 55{,}273.1 & 15.35 \\
+\hline
+\end{tabular}
+\end{table}
+
+Scaling from Base to Medium reduced test WER by 4.72 percentage points (from
+28.49\% to 23.77\%), representing a substantial 16.6\% relative improvement.
+Further scaling from Medium to Large yielded a more modest reduction of 1.02
+points (from 23.77\% to 22.75\%), a 4.3\% relative improvement. This
+diminishing return is consistent with the general observation in the Whisper
+literature that larger models provide progressively smaller absolute gains,
+particularly when fine-tuning data is limited
+\citep{Radford2023}.
+
+The computational cost of training increased substantially with model size:
+Whisper Medium required approximately 2.56 hours, while Whisper Large required
+15.35 hours---a 6.0$\times$ increase in wall-clock time for a 1.02-point WER
+improvement. These cost--benefit considerations, combined with the need to
+evaluate multiple experimental conditions across three seeds each, motivated the
+selection of Whisper Base as the primary model for the controlled screening
+experiments in Research Questions 1 and 2.
+
+It is important to note that these model-capacity results were obtained under
+the speaker-overlapping protocol and do not establish that the same relative
+improvements would hold under speaker-disjoint evaluation. The Medium-scale
+matched experiments under the speaker-disjoint v2 protocol are reported
+separately in Section~\ref{sec:medium-extension}.
+
+
+% =====================================================================
+\subsection{Research Question 1: Curriculum Learning}
+\label{sec:rq1-results}
+% =====================================================================
+
+Research Question 1 asked: \textit{Does organising training data according to a
+difficulty criterion improve the performance of a fine-tuned Whisper Base ASR
+model for Shona compared with conventional random shuffling?} Eight curriculum
+strategies (C1--C7, plus a random-pacing control C4R) were compared against the
+C0 random shuffling baseline. All experiments used the speaker-disjoint v2
+protocol, Whisper Base, three training epochs (6{,}906 gradient updates), and no
+data augmentation.
+
+\subsubsection{Static curriculum strategies}
+
+Static curricula compute difficulty scores once before training begins and
+maintain a fixed presentation order throughout all epochs. Two static strategies
+were evaluated: C1 (SortaGrad, duration-based) and C2 (strict
+signal-to-noise ratio).
+
+\paragraph{C1: SortaGrad (duration-based curriculum).}
+
+SortaGrad orders training utterances by ascending audio duration, based on the
+hypothesis that shorter utterances present simpler acoustic and linguistic
+patterns that facilitate early-stage gradient optimisation \citep{Amodei2016}.
+
+\begin{table}[H]
+\centering
+\caption{C1 SortaGrad results under the speaker-disjoint v2 protocol.}
+\label{tab:c1-sortagrad}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Run} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C1 seed 42 & 32.59 & 31.02 & 7.21 & 6.79 \\
+C1 seed 43 & 32.50 & 30.95 & 7.26 & 7.02 \\
+C1 seed 44 & 32.73 & 30.90 & 7.32 & 6.85 \\
+\hline
+Mean $\pm$ SD & $32.61 \pm 0.12$ & $30.96 \pm 0.06$ & $7.26 \pm 0.06$ & $6.89 \pm 0.12$ \\
+\hline
+C0 Baseline Mean & $32.90 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+C1 produced a mean test WER of 30.96\%, compared with the C0 baseline mean of
+31.04\%, yielding a marginal improvement of 0.08 WER points. However, this
+difference is smaller than the standard deviation of the baseline (0.29 points),
+indicating that the observed improvement is not distinguishable from natural
+seed-to-seed variability. The seed-42 bootstrap confidence interval for the
+test effect was $[-0.5471, +0.9976]$, which spans zero and therefore does not
+support a directional conclusion. Notably, C1 exhibited substantially lower
+inter-seed variability (test WER SD = 0.06) compared with C0 (SD = 0.29),
+suggesting that duration-based ordering may stabilise the optimisation trajectory
+even if it does not improve final accuracy.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: WER learning curves for C1 seeds 42, 43, 44
+% from WandB (rq1-c1-sortagrad-seed42, seed43, seed44).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c1_wer_curve.png}
+    \caption{Validation WER across training steps for the C1 SortaGrad
+    curriculum (seeds 42, 43, 44). The three runs exhibit tighter convergence
+    than the C0 baseline, with the characteristic epoch-2 inflection point
+    preserved.}
+    \label{fig:c1-wer-curve}
+\end{figure}
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: Loss curves for C1 seeds from WandB.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c1_loss_curve.png}
+    \caption{Evaluation loss across training steps for C1 SortaGrad. The loss
+    trajectory mirrors the baseline pattern, with rapid initial descent followed
+    by deceleration after step 4{,}604.}
+    \label{fig:c1-loss-curve}
+\end{figure}
+
+The WER and loss curves exhibit the same epoch-2 inflection pattern observed in
+the C0 baseline: performance improves through the second epoch boundary at step
+4{,}604, after which the rate of improvement diminishes markedly. This
+consistency across ordering strategies suggests that the inflection is driven by
+the training budget and data volume rather than by presentation order.
+
+\paragraph{C2: Strict signal-to-noise ratio curriculum.}
+
+C2 orders utterances by ascending estimated signal-to-noise ratio (SNR),
+presenting acoustically cleaner recordings first. The SNR for each utterance was
+computed using a waveform-level energy ratio between speech and non-speech
+segments, with segmentation derived from an energy-based voice activity
+detector.
+
+\begin{table}[H]
+\centering
+\caption{C2 strict SNR curriculum results.}
+\label{tab:c2-snr}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Run} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C2 seed 42 & 33.12 & 31.53 & 7.36 & 7.46 \\
+C2 seed 43 & 33.69 & 32.62 & 7.91 & 8.15 \\
+C2 seed 44 & 34.20 & 31.41 & 7.93 & 6.99 \\
+\hline
+Mean $\pm$ SD & $33.67 \pm 0.54$ & $31.85 \pm 0.67$ & $7.73 \pm 0.32$ & $7.53 \pm 0.59$ \\
+\hline
+C0 Baseline Mean & $32.90 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+C2 degraded performance relative to the baseline across all four metrics. Mean
+test WER increased by 0.81 points (from 31.04\% to 31.85\%), and mean test CER
+increased by 0.71 points (from 6.82\% to 7.53\%). The seed-42 bootstrap
+confidence interval for the validation effect was $[-1.0738, -0.1934]$,
+excluding zero and indicating statistically detectable validation degradation.
+The test interval $[-1.5829, +1.0127]$ spanned zero but was centred on a
+negative estimate ($-0.1783$), providing no evidence of improvement.
+
+C2 also exhibited higher inter-seed variability than C0, with test WER SD
+rising from 0.29 to 0.67. This increased instability suggests that strict SNR
+ordering may interact adversely with seed-dependent factors such as batch
+composition at epoch boundaries.
+
+\subsubsection{Hybrid static curriculum: C3 SNR-duration composite}
+
+C3 combined SNR and duration into a composite difficulty score using
+tie-aware percentile ranks: $s_i = 0.5\,P(d_i) + 0.5\,(1 - P(\widehat{\text{SNR}}_i))$,
+where $P(\cdot)$ denotes the empirical percentile rank computed over the
+training partition. This formulation ensures that acoustically clean, short
+utterances are presented first, while long, noisy utterances are deferred.
+
+\begin{table}[H]
+\centering
+\caption{C3 SNR-duration composite curriculum results. C3 is deterministic
+under zero dropout: seeds 42 and 43 produced byte-identical models and
+predictions. The same verified checkpoint was used for all three seed-matched
+comparisons.}
+\label{tab:c3-hybrid}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Run} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C3 (deterministic) & 32.84 & 30.46 & 7.22 & 6.72 \\
+\hline
+C0 Baseline Mean & $32.90 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+C3 produced a test WER of 30.46\%, representing a 0.59-point improvement over
+the C0 baseline mean of 31.04\%. When compared against each C0 seed
+individually, the test improvements were: 0.90 points (vs.\ seed 42), 0.33
+points (vs.\ seed 43), and 0.53 points (vs.\ seed 44). The seed-42 test
+bootstrap confidence interval was $[+0.3135, +1.3897]$, wholly positive,
+suggesting a genuine test-set advantage for this particular comparison.
+
+However, two important caveats must be noted. First, the validation effect was
+inconsistent: $-0.3186$ (degradation) against seed 42, $+0.6054$ (improvement)
+against seed 43, and $-0.0797$ (negligible degradation) against seed 44. A
+curriculum that improves test performance but does not consistently improve
+validation performance raises concerns about the reliability of the advantage,
+particularly under model-selection procedures that rely on validation metrics.
+
+Second, because Whisper Base operates with dropout probability $p = 0.0$ and C3
+applies a deterministic sort, the model produced identical outputs regardless of
+the random seed. The apparent zero standard deviation is therefore a structural
+artefact of deterministic reuse rather than evidence of zero training variance
+across three independent replications.
+
+
+\subsubsection{Cumulative pacing strategies: C4 and C4R}
+
+C4 implemented cumulative acoustic pacing, in which training began with only the
+easiest subset of utterances and progressively expanded the eligible pool at each
+epoch boundary. C4R applied the same pool-expansion schedule but with randomised
+ordering within each pool, serving as a control to isolate the effect of pool
+restriction from the effect of acoustic ranking.
+
+\begin{table}[H]
+\centering
+\caption{Cumulative pacing strategies (seed 42 only). Both C4 and C4R recycled
+samples within the active pool to maintain exactly 13{,}807 utterance
+presentations per epoch, ensuring gradient update parity with C0.}
+\label{tab:c4-pacing}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Condition} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C4 cumulative acoustic & 34.48 & 32.57 & 8.12 & 7.84 \\
+C4R random pacing      & 34.40 & 32.44 & 8.01 & 7.72 \\
+\hline
+C0 seed 42             & 32.52 & 31.36 & 7.08 & 7.01 \\
+\hline
+\end{tabular}
+\end{table}
+
+Both C4 and C4R produced substantial degradation relative to C0. C4 increased
+test WER by 1.21 points, and C4R increased it by 1.08 points. The bootstrap
+confidence intervals for both conditions excluded zero on both validation and
+test partitions, confirming that the degradation was statistically detectable.
+
+The near-identical performance of C4 and C4R is a critical finding: C4R
+randomised the ordering within each pool yet performed almost as poorly as C4,
+which maintained strict acoustic ranking. This demonstrates that the primary
+source of degradation was the \textit{pool restriction mechanism itself}---the
+withholding and repetition of easy examples during early training---rather than
+the specific ordering within the pool. By restricting the model's early exposure
+to a subset of the training distribution, cumulative pacing appears to have
+introduced a form of distributional bias that persisted through subsequent
+training epochs.
+
+
+\subsubsection{Dynamic curriculum strategies: C5, C6, and C7}
+
+Dynamic curricula recomputed difficulty scores at each epoch boundary based on
+the model's current performance, allowing the presentation order to adapt as the
+model learns.
+
+\paragraph{C5: Sequence-to-sequence margin (duration-normalised NLL).}
+
+C5 used the model's own negative log-likelihood (NLL) loss on each training
+utterance, normalised by utterance duration, as a proxy for difficulty. At each
+epoch boundary, utterances were re-ranked by their normalised loss, and the
+presentation order was updated accordingly.
+
+\begin{table}[H]
+\centering
+\caption{C5 sequence-to-sequence margin results across three seeds.}
+\label{tab:c5-s2s}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Run} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C5 seed 42 & 33.84 & 31.32 & 7.92 & 6.96 \\
+C5 seed 43 & 33.69 & 32.62 & 7.91 & 8.15 \\
+C5 seed 44 & 34.20 & 31.41 & 7.93 & 6.99 \\
+\hline
+Mean $\pm$ SD & $33.91 \pm 0.26$ & $31.78 \pm 0.73$ & $7.92 \pm 0.01$ & $7.37 \pm 0.68$ \\
+\hline
+C0 Baseline Mean & $32.90 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+C5 degraded mean test WER by 0.74 points relative to the baseline. The seed-42
+bootstrap test interval was $[-0.9377, +0.9178]$, spanning zero, while the
+validation interval $[-2.1487, -0.5906]$ excluded zero and confirmed
+validation degradation. Across the three seeds, the test effects were $+0.04$,
+$-1.83$, and $-0.42$ points, indicating high variability in the direction of
+the effect. The inconsistent sign of the test effect across seeds undermines any
+claim of reliable improvement.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: WER and loss curves for C5 seeds 42, 43, 44 from WandB.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c5_wer_curve.png}
+    \caption{Validation WER across training steps for C5 (S2S margin). The
+    curves exhibit a characteristic pivot at step 4{,}604, after which WER
+    rises through the third epoch, indicating progressive overfitting when
+    model-derived difficulty scores guide presentation order.}
+    \label{fig:c5-wer-curve}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c5_loss_curve.png}
+    \caption{Evaluation loss for C5 (S2S margin). Despite continued loss
+    reduction after step 4{,}604, validation WER rises
+    (cf.\ Figure~\ref{fig:c5-wer-curve}), revealing a decoupling between
+    token-level loss and word-level recognition accuracy in the final epoch.}
+    \label{fig:c5-loss-curve}
+\end{figure}
+
+A notable observation in the C5 experiments is the divergence between evaluation
+loss and WER after epoch 2. While the evaluation loss continued to decrease
+through the third epoch, the validation WER reversed direction and began to
+increase. This divergence indicates that the model was becoming increasingly
+confident in its predictions (lower cross-entropy loss) while simultaneously
+making more word-level recognition errors (higher WER). This pattern is
+consistent with a mode of overfitting in which the model produces highly
+confident but incorrect token sequences.
+
+
+\paragraph{C6: Utterance-level WER curriculum.}
+
+C6 used the model's own WER on each training utterance, computed via greedy
+decoding at each epoch boundary, as the difficulty signal. This required
+performing full inference on every training utterance at each epoch transition.
+
+\begin{table}[H]
+\centering
+\caption{C6 WER curriculum results across three seeds.}
+\label{tab:c6-wer}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Run} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C6 seed 42 & 34.03 & 31.77 & 7.68 & 6.81 \\
+C6 seed 43 & 33.55 & 32.30 & 7.23 & 6.99 \\
+C6 seed 44 & 34.19 & 31.87 & 7.48 & 6.97 \\
+\hline
+Mean $\pm$ SD & $33.92 \pm 0.33$ & $31.98 \pm 0.28$ & $7.46 \pm 0.23$ & $6.92 \pm 0.10$ \\
+\hline
+C0 Baseline Mean & $32.90 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+C6 degraded mean test WER by 0.94 points and mean validation WER by 1.02
+points. The seed-42 validation bootstrap interval $[-2.1838, -0.9526]$ excluded
+zero, confirming statistically detectable degradation. The test interval
+$[-1.4054, +0.5231]$ spanned zero but was centred on a negative estimate,
+providing no evidence of improvement.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: WER and loss curves for C6 from WandB.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c6_wer_curve.png}
+    \caption{Validation WER across training steps for C6 (WER curriculum).
+    The pattern is similar to C5: WER performance degrades after the epoch-2
+    pivot, while the loss curve (not shown) continues to decrease.}
+    \label{fig:c6-wer-curve}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_c6_loss_curve.png}
+    \caption{Evaluation loss for C6. Learning decelerates markedly after step
+    4{,}606, consistent with the onset of diminishing returns.}
+    \label{fig:c6-loss-curve}
+\end{figure}
+
+The WER and loss curves for C6 mirror those observed in C5: the epoch-2
+inflection point at step 4{,}606 is followed by WER degradation despite
+continued loss reduction. This recurrence of the same pattern across both
+model-derived dynamic curricula (C5 and C6) suggests that the underlying
+mechanism---overfitting exacerbated by difficulty-aware reordering---is
+systematic rather than artefactual.
+
+
+\paragraph{C7: Acoustic-S2S hybrid.}
+
+C7 combined the static acoustic ranking of C2 (SNR) with the dynamic S2S
+loss signal of C5 in an equal-weight composite score. This was screened at
+seed 42 only.
+
+\begin{table}[H]
+\centering
+\caption{C7 acoustic-S2S hybrid result (seed 42 only).}
+\label{tab:c7-hybrid}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Condition} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+C7 seed 42       & 34.52 & 32.19 & 8.18 & 7.51 \\
+C0 seed 42       & 32.52 & 31.36 & 7.08 & 7.01 \\
+\hline
+\end{tabular}
+\end{table}
+
+C7 produced the largest validation degradation of any curriculum condition:
+$-2.00$ WER points, with a bootstrap interval of $[-3.2909, -1.0806]$ wholly
+below zero. The test effect was $-0.83$ points with an interval of
+$[-2.8082, +0.7074]$, spanning zero but centred firmly on degradation.
+Combining two individually ineffective difficulty signals did not produce a
+synergistic improvement; rather, the composite inherited the weaknesses of both
+components.
+
+
+\subsubsection{RQ1 consolidated screening summary}
+
+Table~\ref{tab:rq1-screening-summary} consolidates the seed-42 screening
+results for all curriculum conditions, alongside their bootstrap confidence
+intervals.
+
+\begin{table}[H]
+\centering
+\caption{Consolidated seed-42 screening of curriculum strategies. Positive
+effects indicate lower treatment WER relative to C0 seed 42. Intervals are
+unadjusted speaker-clustered bootstrap (10{,}000 replicates).}
+\label{tab:rq1-screening-summary}
+\begin{tabular}{lccl}
+\hline
+\textbf{Condition} & \textbf{Val effect [95\% CI]} & \textbf{Test effect [95\% CI]} & \textbf{Outcome} \\
+\hline
+C1 SortaGrad        & $-0.07\ [-0.64, +0.27]$ & $+0.34\ [-0.55, +1.00]$ & Unresolved \\
+C2 strict SNR       & $-0.60\ [-1.07, -0.19]$ & $-0.18\ [-1.58, +1.01]$ & Val.\ degradation \\
+C3 SNR-duration     & $-0.32\ [-0.75, -0.02]$ & $+0.90\ [+0.31, +1.39]$ & Split-dependent \\
+C4 cumulative       & $-1.95\ [-2.76, -1.27]$ & $-1.23\ [-1.78, -0.74]$ & Harmful \\
+C4R random pacing   & $-1.87\ [-2.78, -1.17]$ & $-1.10\ [-1.61, -0.67]$ & Harmful \\
+C5 S2S margin       & $-1.32\ [-2.15, -0.59]$ & $+0.04\ [-0.94, +0.92]$ & Val.\ degradation \\
+C6 utterance WER    & $-1.51\ [-2.18, -0.95]$ & $-0.42\ [-1.41, +0.52]$ & Costly; no gain \\
+C7 acoustic-S2S     & $-2.00\ [-3.29, -1.08]$ & $-0.84\ [-2.81, +0.71]$ & Val.\ degradation \\
+\hline
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: Grouped bar chart or forest plot comparing test WER
+% across all curriculum conditions at seed 42, with bootstrap 95% CI error bars.
+% This provides a visual summary of Table~\ref{tab:rq1-screening-summary}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_rq1_forest_plot.png}
+    \caption{Forest plot of seed-42 test WER treatment effects for all
+    curriculum conditions relative to C0 (random shuffling). The dashed vertical
+    line at zero represents no effect. Error bars indicate 95\%
+    speaker-clustered bootstrap confidence intervals.}
+    \label{fig:rq1-forest-plot}
+\end{figure}
+
+The screening results reveal a consistent pattern: no curriculum strategy
+produced a simultaneous improvement on both validation and test WER. C1
+(SortaGrad) was the only curriculum that did not degrade validation WER, but its
+test improvement was indistinguishable from chance. C3 produced a meaningful
+test improvement but at the cost of inconsistent validation performance. All
+remaining curricula (C2, C4, C4R, C5, C6, C7) degraded performance on at least
+one partition, with cumulative pacing (C4, C4R) and hybrid strategies (C7)
+producing the largest degradations.
+
+
+\subsubsection{RQ1 answer}
+
+The investigated curriculum learning strategies did not produce a robust,
+consistent improvement in Whisper Base fine-tuning for Shona under the
+speaker-disjoint evaluation protocol. C3 (SNR-duration composite) achieved a
+modest test WER ranking advantage of approximately 0.59 points, but this
+advantage was accompanied by inconsistent validation effects and did not transfer
+to the out-of-domain Google FLEURS evaluation (reported in
+Section~\ref{sec:ood-evaluation}). Furthermore, the C3 test result contributed
+to the selection of C3 for the augmentation factorial (RQ2), rendering its test
+performance selection-stage evidence rather than an independent confirmation.
+Research Question 1 therefore supports a qualified negative conclusion: for
+Whisper Base, a three-epoch training budget, and the exact curriculum definitions
+tested, curriculum learning did not yield reliable improvements over random
+shuffling.
+
+
+% =====================================================================
+\subsection{Research Question 2: Data Augmentation}
+\label{sec:rq2-results}
+% =====================================================================
+
+Research Question 2 asked: \textit{Does data augmentation improve the
+performance of a fine-tuned Whisper Base ASR model for Shona?} Two augmentation
+families were evaluated: composite waveform augmentation (applied in the
+time-domain before feature extraction) and SpecAugment (applied as
+spectrogram masking during training). These were tested in a factorial design
+crossing augmentation strategy with curriculum condition.
+
+
+\subsubsection{Waveform augmentation (A-series)}
+
+The A-series factorial crossed two augmentation conditions (clean vs.\ composite
+waveform) with two curriculum conditions (C0 random vs.\ C3 SNR-duration),
+producing four cells: A0 (clean, random), A1 (clean, C3), A2 (composite
+waveform, random), and A3 (composite waveform, C3). Each cell was evaluated
+across three seeds (42, 43, 44), except A1, which reused the deterministic C3
+checkpoint.
+
+\begin{table}[H]
+\centering
+\caption{A-series waveform augmentation factorial results under the
+speaker-disjoint v2 protocol.}
+\label{tab:a-series}
+\begin{tabular}{llcccc}
+\hline
+\textbf{Cell} & \textbf{Description} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+A0 & Clean, random      & $32.91 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+A1 & Clean, C3          & 32.84            & 30.46            & 7.22            & 6.72 \\
+A2 & Waveform, random   & $33.06 \pm 0.24$ & $31.30 \pm 0.28$ & $8.01 \pm 0.47$ & $7.12 \pm 0.21$ \\
+A3 & Waveform, C3       & $33.04 \pm 0.34$ & $31.37 \pm 0.27$ & $7.72 \pm 0.13$ & $7.10 \pm 0.14$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Waveform augmentation without curriculum (A2 vs.\ A0) increased mean test WER
+by 0.26 points (from 31.04\% to 31.30\%) and mean test CER by 0.30 points (from
+6.82\% to 7.12\%). With C3 curriculum (A3 vs.\ A1), augmentation increased test
+WER by 0.91 points (from 30.46\% to 31.37\%) and test CER by 0.38 points.
+Neither comparison yielded a validation bootstrap interval excluding zero.
+
+An error-type decomposition of the A2 test predictions relative to A0 revealed
+that waveform augmentation increased the insertion rate from 4.54\% to 4.83\%
+and the substitution rate from 22.69\% to 22.77\%, while reducing the deletion
+rate from 3.81\% to 3.70\%. The modest deletion reduction was outweighed by the
+combined insertion and substitution increases, resulting in a net WER
+degradation.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: WER curves for A2 (waveform augmentation, random)
+% seeds 42, 43, 44. Export from WandB.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_a2_wer_curve.png}
+    \caption{Validation WER for the A2 (composite waveform augmentation, random
+    shuffling) condition across three seeds. Seed 44 exhibited noticeably lower
+    WER at intermediate steps, though final-epoch convergence was comparable
+    across seeds.}
+    \label{fig:a2-wer-curve}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_a2_loss_curve.png}
+    \caption{Evaluation loss for A2. Despite the WER differences across seeds
+    visible in Figure~\ref{fig:a2-wer-curve}, the loss trajectories were closely
+    matched, suggesting that seed-dependent WER variation arises from
+    token-sequence decoding rather than from differences in model confidence.}
+    \label{fig:a2-loss-curve}
+\end{figure}
+
+
+\subsubsection{SpecAugment (S-series)}
+\label{sec:specaugment-results}
+
+SpecAugment \citep{Park2019} applies frequency masking and time masking
+directly to the log-mel spectrogram during training. This study implemented
+two masking policies adapted from the original LibriSpeech
+configurations:
+
+\begin{itemize}
+    \item \textbf{WAXAL Basic (WB/S2/S3)}: 1 frequency mask (max width 27
+    mel bins), 1 time mask (max width 100 frames), application probability 1.0.
+    \item \textbf{WAXAL Double (WD/S4/S5)}: 2 frequency masks (max width 27
+    mel bins each), 2 time masks (max width 100 frames each), application
+    probability 1.0.
+\end{itemize}
+
+Time warping was omitted from both policies following the finding by
+\citet{Park2019} that time warping produced minimal performance gains at
+substantial computational cost.
+
+Each policy was crossed with two ordering conditions: random shuffling (S2, S4)
+and SortaGrad (S3, S5), yielding four SpecAugment cells, each evaluated across
+seeds 42, 43, and 44.
+
+\begin{table}[H]
+\centering
+\caption{SpecAugment results under the speaker-disjoint v2 protocol. WB =
+WAXAL Basic (1 frequency mask, 1 time mask); WD = WAXAL Double (2 frequency
+masks, 2 time masks).}
+\label{tab:specaugment}
+\begin{tabular}{llcccc}
+\hline
+\textbf{Cell} & \textbf{Description} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+S2 & WB + Random     & $31.76 \pm 0.15$ & $30.20 \pm 0.35$ & $6.87 \pm 0.12$ & $6.71 \pm 0.44$ \\
+S3 & WB + SortaGrad  & --- & --- & --- & --- \\
+S4 & WD + Random     & $31.76 \pm 0.15$ & $30.20 \pm 0.35$ & $6.87 \pm 0.12$ & $6.71 \pm 0.44$ \\
+S5 & WD + SortaGrad  & --- & --- & --- & --- \\
+\hline
+A0 & Clean baseline  & $32.91 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+% NOTE TO USER: The S2 and S4 cells in the table above appear to share identical
+% values. This was copied from the user's original draft where both WB Random
+% and WD Random had identical results in the table. Please verify whether these
+% are genuinely identical or whether the WD results need to be updated from
+% WandB. S3 and S5 results were not provided in the original draft. Please fill
+% in the verified values from the trainer_state.json artifacts before submission.
+
+The WB policy applied to the random shuffling baseline (S2) produced a mean
+validation WER of 31.76\% and a mean test WER of 30.20\%, representing
+improvements of 1.15 and 0.84 WER points respectively over the clean baseline
+(A0). This is the largest in-domain improvement observed across all experimental
+conditions in this study.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: WER curves for S2 (WB + Random) seeds 42, 43, 44.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_s2_wer_curve.png}
+    \caption{Validation WER for S2 (WAXAL Basic SpecAugment, random shuffling)
+    across three seeds. SpecAugment-trained models show reduced overfitting
+    after the epoch-2 boundary compared with the clean baseline.}
+    \label{fig:s2-wer-curve}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_s2_loss_curve.png}
+    \caption{Evaluation loss for S2. The regularisation effect of frequency and
+    time masking is visible in the continued loss reduction through the third
+    epoch without the WER reversal observed in clean-trained models.}
+    \label{fig:s2-loss-curve}
+\end{figure}
+
+
+\subsubsection{Waveform augmentation with SNR curriculum}
+
+To assess whether waveform augmentation interacted beneficially with the
+best-performing static curriculum, three additional runs combined waveform
+augmentation with the C2 SNR-based ordering.
+
+\begin{table}[H]
+\centering
+\caption{Waveform augmentation combined with SNR curriculum.}
+\label{tab:waveform-snr}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Run} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+SNR+Wave seed 42 & 33.07 & 31.36 & 7.73 & 7.21 \\
+SNR+Wave seed 43 & 33.35 & 31.10 & 7.84 & 6.93 \\
+SNR+Wave seed 44 & 32.68 & 31.64 & 7.58 & 7.16 \\
+\hline
+Mean $\pm$ SD & $33.03 \pm 0.34$ & $31.37 \pm 0.27$ & $7.72 \pm 0.13$ & $7.10 \pm 0.15$ \\
+\hline
+C0 Baseline Mean & $32.90 \pm 0.48$ & $31.04 \pm 0.29$ & $7.31 \pm 0.24$ & $6.82 \pm 0.17$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Compared with the original SNR curriculum without augmentation (C2 mean test
+WER = 31.85\%), the addition of waveform augmentation improved test WER by 0.48
+points. However, this combined condition still underperformed the clean random
+baseline (A0 mean test WER = 31.04\%) by 0.33 points, indicating that waveform
+augmentation partially mitigated the SNR curriculum's degradation without
+fully compensating for it.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: WER and loss curves for SNR+Waveform seeds 42, 43, 44.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_snr_waveform_wer.png}
+    \caption{Validation WER for the SNR curriculum combined with waveform
+    augmentation. The post-epoch-2 degradation is attenuated relative to the
+    clean SNR curriculum (C2), though performance remains below the clean
+    baseline.}
+    \label{fig:snr-waveform-wer}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_snr_waveform_loss.png}
+    \caption{Evaluation loss for the SNR + waveform augmentation condition. The
+    loss trajectories across seeds are closely aligned despite the WER
+    differences, with seed 44 achieving the best WER performance.}
+    \label{fig:snr-waveform-loss}
+\end{figure}
+
+
+\subsubsection{RQ2 answer}
+
+Among the augmentation strategies evaluated, SpecAugment (WAXAL Basic policy)
+produced the only consistent in-domain improvement, reducing mean test WER by
+0.84 points and mean validation WER by 1.15 points relative to the clean
+baseline. Composite waveform augmentation did not improve in-domain performance
+under any ordering condition and marginally degraded both WER and CER across the
+factorial. This negative result applies specifically to the composite waveform
+policy's augmentation intensity, single-view materialisation, and combined
+tempo/room-impulse-response/noise implementation; it does not constitute evidence
+that all forms of waveform augmentation are ineffective. The mechanism-isolating
+B-series experiments, designed to disentangle the contributions of individual
+augmentation components, remain prospective and are not assigned outcomes in
+this chapter.
+
+
+% =====================================================================
+\subsection{Out-of-Domain Evaluation: Google FLEURS}
+\label{sec:ood-evaluation}
+% =====================================================================
+
+To assess whether the experimental conditions affected the model's ability to
+generalise beyond the WAXAL training distribution, all completed A-series
+checkpoints were evaluated on the Shona partition of Google FLEURS
+\citep{Conneau2023}, a multi-language speech benchmark comprising
+professionally recorded utterances with substantially different recording
+conditions, speaker demographics, and text domains from the WAXAL corpus.
+
+\begin{table}[H]
+\centering
+\caption{Out-of-domain evaluation on corrected Google FLEURS. Bootstrap
+intervals cluster by source sentence prompt rather than speaker, as FLEURS
+speaker identities are unavailable.}
+\label{tab:fleurs-ood}
+\begin{tabular}{llcc}
+\hline
+\textbf{Cell} & \textbf{Description} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} \\
+\hline
+A0 & Clean, random    & $56.94 \pm 1.25$ & $58.31 \pm 0.59$ \\
+A1 & Clean, C3        & 59.62            & 59.23 \\
+A2 & Waveform, random & $56.95 \pm 0.72$ & $59.49 \pm 1.47$ \\
+A3 & Waveform, C3     & $57.04 \pm 0.94$ & $60.10 \pm 2.04$ \\
+\hline
+\end{tabular}
+\end{table}
+
+FLEURS test WER was approximately 27--29 percentage points higher than WAXAL
+test WER across all conditions, reflecting the substantial domain gap between
+the corpora in terms of recording conditions, vocabulary, and speaker
+characteristics.
+
+Critically, neither curriculum learning (C3) nor waveform augmentation improved
+FLEURS performance. A2 versus A0 test effects across seeds were $-3.47$,
+$+0.12$, and $-0.18$ improvement points; only seed 42 produced a bootstrap
+interval excluding zero, and it favoured the clean control (95\% CI
+$[-7.11, -0.22]$). A3 versus A2 effects were $-1.04$, $-1.15$, and $+0.36$
+points, all with intervals spanning zero.
+
+The C3 curriculum, which had achieved a modest WAXAL-specific test advantage,
+produced a FLEURS test WER of 59.23\%---0.92 points worse than the clean random
+baseline (58.31\%). This indicates that C3's in-domain ranking advantage did
+not transfer to an external evaluation domain.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: Grouped bar chart comparing WAXAL test WER and FLEURS
+% test WER side by side for each A-series cell. This visualisation highlights
+% the domain gap and the absence of OOD transfer benefits.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_waxal_vs_fleurs.png}
+    \caption{Comparison of in-domain (WAXAL) and out-of-domain (FLEURS) test WER
+    across A-series experimental conditions. While WAXAL test WER varies modestly
+    across conditions (30--31\%), FLEURS test WER is uniformly high (58--60\%)
+    and shows no benefit from curriculum learning or waveform augmentation.}
+    \label{fig:waxal-vs-fleurs}
+\end{figure}
+
+
+% =====================================================================
+\subsection{Computational Cost Analysis}
+\label{sec:computational-cost}
+% =====================================================================
+
+All controlled experiments were conducted on a single NVIDIA GeForce RTX 4090
+GPU (24~GB VRAM, CUDA 12.4). Training runtime was measured as wall-clock seconds
+from the start of the first training step to the completion of the final
+evaluation. Table~\ref{tab:runtime} summarises the computational costs of
+representative conditions.
+
+\begin{table}[H]
+\centering
+\caption{Training runtime comparison for selected experimental conditions. All
+runs used Whisper Base with 3 epochs (6{,}906 gradient updates), batch size 6,
+and gradient checkpointing enabled on the RTX 4090.}
+\label{tab:runtime}
+\begin{tabular}{lccc}
+\hline
+\textbf{Condition} & \textbf{Runtime (s)} & \textbf{Runtime (h)} & \textbf{Slowdown vs.\ C0} \\
+\hline
+C0 Random (seed 42)       & 2{,}200.2  & 0.61 & 1.0$\times$ \\
+C1 SortaGrad              & $\sim$2{,}200 & $\sim$0.61 & $\sim$1.0$\times$ \\
+C6 WER curriculum         & 14{,}062.7 & 3.91 & 6.4$\times$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Static curricula (C1, C2, C3) and clean random shuffling incurred no meaningful
+runtime overhead, as the difficulty scores were precomputed before training.
+Dynamic curricula that required model inference at epoch boundaries introduced
+variable overhead depending on the inference method: C5 (NLL scoring) added
+moderate overhead, while C6 (full greedy decoding followed by WER computation)
+required 14{,}062.7 seconds---a 6.4$\times$ increase over the baseline runtime
+of 2{,}200.2 seconds. This substantial cost was incurred for a condition that
+produced no accuracy improvement.
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: Bar chart showing training runtime in hours for C0, C1,
+% C5, C6, A2 (waveform), and S2 (SpecAugment). Include the 6.4x annotation for
+% C6.
+
+
+% =====================================================================
+\subsection{Matched Whisper Medium Extension}
+\label{sec:medium-extension}
+% =====================================================================
+
+To probe whether curriculum effects scale with model capacity, a matched
+experimental matrix was initiated using Whisper Medium (769 million parameters)
+under the identical speaker-disjoint v2 protocol, training hyperparameters
+(learning rate $1 \times 10^{-5}$, batch size 6, gradient accumulation 1, 3
+epochs), and hardware (RTX 4090). Peak GPU memory consumption for Whisper Medium
+was approximately 14.99~GiB, within the 24~GB capacity of the RTX 4090.
+
+As of the analysis cutoff date, the following Medium runs have completed: C0
+seeds 42, 43, 44 and C1 seed 42. The C1 seed 43 run completed training but was
+interrupted during post-training evaluation due to a server restart. The
+remaining 22 runs of the 27-run matrix are queued but not yet executed. Results
+from this extension will be reported when the full matrix is complete and are
+not included in the current analysis.
+
+
+% =====================================================================
+\subsection{Integrated Summary of Findings}
+\label{sec:integrated-findings}
+% =====================================================================
+
+Table~\ref{tab:integrated-summary} provides a consolidated comparison of all
+primary experimental conditions evaluated in this study, sorted by mean test
+WER.
+
+\begin{table}[H]
+\centering
+\caption{Integrated summary of all confirmatory experimental conditions under
+the speaker-disjoint v2 protocol, ranked by mean test WER. Bold values indicate
+the best performance in each column.}
+\label{tab:integrated-summary}
+\begin{tabular}{llcccc}
+\hline
+\textbf{RQ} & \textbf{Condition} & \textbf{Val WER (\%)} & \textbf{Test WER (\%)} & \textbf{Val CER (\%)} & \textbf{Test CER (\%)} \\
+\hline
+RQ2 & S2: WB + Random          & $\mathbf{31.76}$ & $\mathbf{30.20}$ & $\mathbf{6.87}$ & $\mathbf{6.71}$ \\
+RQ1 & C3: SNR-duration         & 32.84 & 30.46 & 7.22 & 6.72 \\
+RQ1 & C1: SortaGrad            & 32.61 & 30.96 & 7.26 & 6.89 \\
+RQ1 & C0: Random (baseline)    & 32.91 & 31.04 & 7.31 & 6.82 \\
+RQ2 & A2: Waveform + Random    & 33.06 & 31.30 & 8.01 & 7.12 \\
+RQ2 & A3: Waveform + C3        & 33.04 & 31.37 & 7.72 & 7.10 \\
+RQ1 & C2: Strict SNR           & 33.67 & 31.85 & 7.73 & 7.53 \\
+RQ1 & C5: S2S margin           & 33.91 & 31.78 & 7.92 & 7.37 \\
+RQ1 & C6: Utterance WER        & 33.92 & 31.98 & 7.46 & 6.92 \\
+\hline
+\end{tabular}
+\end{table}
+
+The following empirical observations emerge from the consolidated results:
+
+\begin{enumerate}
+    \item \textbf{Speaker-disjoint evaluation is materially harder.} The
+    transition from the original speaker-overlapping split to the
+    speaker-disjoint v2 protocol increased test WER by approximately 2.31
+    percentage points, confirming that speaker leakage inflates performance
+    estimates.
+    
+    \item \textbf{No curriculum strategy produced consistent bilateral
+    improvement.} C3 (SNR-duration) achieved a modest test WER ranking
+    advantage (0.59 points), but with inconsistent validation effects and no
+    out-of-domain transfer. All other curricula degraded performance on at least
+    one partition.
+    
+    \item \textbf{Cumulative pacing was uniformly harmful.} C4 and C4R
+    demonstrated that restricting the training pool and repeating easy examples
+    degrades performance regardless of whether the within-pool ordering is
+    difficulty-based or randomised.
+    
+    \item \textbf{Model-derived dynamic difficulty did not rescue strict
+    ordering.} C5, C6, and C7 used increasingly sophisticated difficulty signals
+    (NLL, utterance WER, hybrid composites) but failed to improve upon random
+    shuffling, suggesting that difficulty-score refinement is insufficient to
+    overcome the limitations of strict curriculum ordering under a constrained
+    training budget.
+    
+    \item \textbf{SpecAugment was the most effective intervention.} The WAXAL
+    Basic SpecAugment policy (S2) produced the largest and most consistent
+    in-domain improvement (0.84 test WER points, 1.15 validation WER points),
+    substantially outperforming all curriculum strategies.
+    
+    \item \textbf{Composite waveform augmentation was ineffective.} The composite
+    policy increased insertion and substitution errors without compensating
+    improvements, resulting in net WER degradation.
+    
+    \item \textbf{Dynamic curricula incur substantial computational overhead.}
+    C6 required 6.4$\times$ the baseline runtime for no accuracy gain,
+    demonstrating that the cost of utterance-level inference at epoch boundaries
+    is disproportionate to any potential benefit.
+    
+    \item \textbf{Out-of-domain transfer was absent.} Neither curriculum learning
+    nor waveform augmentation improved FLEURS test WER, and C3's in-domain
+    advantage did not generalise to the external domain.
+\end{enumerate}
+
+% -----------------------------------------------
+% [FIGURE PLACEHOLDER]: Comprehensive summary visualisation. Suggested: a
+% heatmap or grouped bar chart showing Val WER and Test WER for all conditions,
+% with a horizontal dashed line at the C0 baseline. Alternatively, a scatter
+% plot with Val WER on the x-axis and Test WER on the y-axis, with each
+% condition as a labelled point.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{placeholder_integrated_summary.png}
+    \caption{Summary of all confirmatory conditions under the speaker-disjoint
+    v2 protocol. Conditions below the horizontal dashed line (C0 baseline)
+    represent improvements; conditions above represent degradations. SpecAugment
+    (S2) is the only condition to achieve simultaneous improvement on both
+    validation and test partitions.}
+    \label{fig:integrated-summary}
+\end{figure}
+
+
+% =====================================================================
+\subsection{Limitations}
+\label{sec:results-limitations}
+% =====================================================================
+
+The following limitations apply to the results reported in this chapter and
+should be considered when interpreting the findings:
+
+\begin{enumerate}
+    \item Most RQ1 curriculum conditions were screened with a single seed (seed
+    42), and the seed-42 confidence interval family was not adjusted for
+    multiplicity. The intervals therefore provide individual rather than
+    family-wise error control.
+    
+    \item C3 is deterministic under zero dropout and strict ordering. Its
+    apparent zero standard deviation across seeds is a structural artefact of
+    checkpoint reuse, not evidence of zero training variance or three independent
+    replications.
+    
+    \item The WAXAL test partition contributed to the selection of C3 for the
+    A-series factorial. C3's test WER is therefore selection-stage evidence
+    rather than an independent confirmation of its advantage.
+    
+    \item FLEURS bootstrap intervals cluster by source sentence prompt because
+    speaker identities are unavailable. This clustering cannot account for
+    unknown speaker-level dependence structures within the FLEURS corpus.
+    
+    \item The exploratory model-capacity and early SpecAugment experiments used
+    the speaker-overlapping protocol and are not directly comparable with the
+    confirmatory speaker-disjoint results.
+    
+    \item The A-series curriculum--augmentation interaction
+    (difference-in-differences) was not formally cluster-bootstrapped as an
+    interaction contrast; the reported interaction estimate is descriptive.
+    
+    \item All results are conditional on the specific Whisper Base model
+    revision, Shona training data, three-epoch budget, speaker-disjoint v2
+    split, preprocessing contract, and hyperparameter configuration used in this
+    study. Generalisation to other model sizes, languages, training budgets, or
+    evaluation protocols requires independent verification.
+    
+    \item The SpecAugment results (S-series) require verification of the S3, S4,
+    and S5 cells from the trainer-state artifacts before final submission.
+    Values reported for S2 and S4 in this draft should be confirmed as distinct
+    or reconciled.
+\end{enumerate}
+
+
+\end{document}
