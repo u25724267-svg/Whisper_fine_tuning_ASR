@@ -188,6 +188,20 @@ sequence runner will be used for these six-run/five-run lanes, with explicit
 GPU UUID assignments. Recheck disk and GPU admission immediately before launch;
 the full 27-run controller and its original reserve are unchanged.
 
+### Batch-two launch on 2026-10-13
+
+Batch two launched at 00:11:31 UTC after renewed W&B authentication,
+frozen-config parity, unused-destination, 352 GiB disk-reserve, and per-GPU
+memory checks. `medium-batch2-gpu0` runs the six GPU-0 entries above;
+`medium-batch2-gpu1` runs the five GPU-1 entries. Both are detached tmux
+controllers using the existing sequence runner. Initial jobs are S2 seeds 43
+and 44, with separate GPU UUID assignments verified in their Python processes.
+Generation length remains 225 and all matched Base scientific settings are
+unchanged. Successful runs automatically export predictions and mirror their
+lightweight artifacts before advancing. Local outputs are not automatically
+deleted or uploaded. Controller logs are under `medium/logs/` as
+`batch2-gpu0-20261013T001131Z.log` and `batch2-gpu1-20261013T001131Z.log`.
+
 ## Literature and interpretation
 
 This extension transfers established policies; its three-epoch schedule and
