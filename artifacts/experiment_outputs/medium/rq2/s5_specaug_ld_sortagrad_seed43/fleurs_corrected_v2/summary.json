@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "experiment_id": "medium-rq2-s5-specaug-ld-sortagrad-seed43",
+  "model_source": "/ext_data/casper/asr_experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed43",
+  "model_revision": null,
+  "model_dir": "/ext_data/casper/asr_experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed43",
+  "config": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/experiments/medium/rq2/s5_specaug_ld_sortagrad_seed43/config.json",
+  "config_sha256": "661fe19cda20f3682a7a2c9711b115aa9f01f4de045e4548f8c176d05b72c78d",
+  "splits": {
+    "fleurs_validation": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/validation.jsonl",
+      "manifest_sha256": "fb516a0cdf110ce4f1b8a1694eec5e999555e240012a975ea6be4f2bb271907f",
+      "rows": 393,
+      "wer": 37.980325853058716,
+      "cer": 12.135371097749399,
+      "substitutions": 1914,
+      "deletions": 197,
+      "insertions": 360,
+      "hits": 4395,
+      "reference_words": 6506,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed43/fleurs_corrected_v2/fleurs_validation.jsonl",
+      "predictions_sha256": "28468b2908126042eabcede12554dd2bcf59b2c5af7305553b4413d5a830fccc"
+    },
+    "fleurs_test": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/test.jsonl",
+      "manifest_sha256": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3",
+      "rows": 925,
+      "wer": 37.96834928379308,
+      "cer": 10.861522198731501,
+      "substitutions": 4796,
+      "deletions": 474,
+      "insertions": 800,
+      "hits": 10717,
+      "reference_words": 15987,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed43/fleurs_corrected_v2/fleurs_test.jsonl",
+      "predictions_sha256": "d732c9010b9be4b12edc5d0c53f517b9d092d0807b6b03aca1928c80b0ea182c"
+    }
+  }
+}

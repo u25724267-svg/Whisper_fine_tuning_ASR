@@ -202,6 +202,34 @@ lightweight artifacts before advancing. Local outputs are not automatically
 deleted or uploaded. Controller logs are under `medium/logs/` as
 `batch2-gpu0-20261013T001131Z.log` and `batch2-gpu1-20261013T001131Z.log`.
 
+### Local-only FLEURS evaluation on 2026-10-14
+
+At 22:52 UTC the completed GPU-1 lane was assigned a sequential external
+evaluation queue while GPU 0 continued S5 seed-44 training. The idle
+`medium-fleurs-after-batch2` waiter was stopped to prevent a competing automatic
+two-GPU launch. Its script now also supports `--local-preflight-only` and
+`--local-only`; the latter requires exactly one explicit GPU assignment.
+
+The detached session `medium-fleurs-local-gpu1` initially selects ten completed
+local root best models: S2 seeds 43/44, S3 and S4 seeds 42--44, and S5 seeds
+42/43. No archived models are restored, no partial training run is selected,
+and no additional GPU is acquired automatically. Local availability determines
+scheduling only, not which outcomes are favourable or which policy is selected.
+
+Inference uses the same corrected FLEURS v2 validation/test manifests as Base
+(393/925 recordings), verified hashes and audio paths, Shona transcription,
+greedy generation capped at 225, FP16, and batch size six. Forced decoder IDs
+and suppress tokens are cleared. No training, adaptation, checkpoint selection,
+or W&B run is performed. Existing completed FLEURS exports are skipped; partial
+outputs stop the queue rather than being overwritten. Each successful export
+is mirrored with hashes before advancing. The controller log is
+`medium/logs/medium-fleurs-local-gpu1-20261014T225200Z.log`.
+
+This pass is not the complete 27-model external evaluation. The unfinished S5
+seed 44 and archived controls/earlier models remain for a later scheduling
+decision. Prior FLEURS inspection still makes new external claims adaptive;
+these results must not tune the remaining frozen training or decoding settings.
+
 ## Literature and interpretation
 
 This extension transfers established policies; its three-epoch schedule and

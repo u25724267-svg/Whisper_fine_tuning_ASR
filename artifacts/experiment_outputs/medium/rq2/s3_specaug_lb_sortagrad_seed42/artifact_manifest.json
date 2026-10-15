@@ -3,8 +3,8 @@
   "selection": "non-model result and audit artifacts",
   "source_dir": "/ext_data/casper/asr_experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed42",
   "output_dir": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/artifacts/experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed42",
-  "files": 15,
-  "bytes": 9726785,
+  "files": 20,
+  "bytes": 10557274,
   "entries": [
     {
       "path": "all_results.json",
@@ -57,6 +57,21 @@
       "sha256": "d68c56967d51349134b60f0aa14b70a41505b0a55db163ec16cc71417dca2645"
     },
     {
+      "path": "fleurs_corrected_v2/fleurs_test.jsonl",
+      "bytes": 513278,
+      "sha256": "23cfc970a6a1a2dca6980273b134ef8b274cfff604a8d109c37a0bd3b80ec7db"
+    },
+    {
+      "path": "fleurs_corrected_v2/fleurs_validation.jsonl",
+      "bytes": 215371,
+      "sha256": "104e600c8043113cf77e0bc0b3a61284a629199e354d693e650101a46e3c7a8c"
+    },
+    {
+      "path": "fleurs_corrected_v2/summary.json",
+      "bytes": 1891,
+      "sha256": "c7eefa2a95c1e0c33b7d4164ef8fc5ffd2dd436f38a6857b5910b7b8a03cc172"
+    },
+    {
       "path": "item_predictions/summary.json",
       "bytes": 1877,
       "sha256": "76713f0764f371964be36cf3303cf7137d5f3b164035b5e8ec9ba2591424d244"
@@ -70,6 +85,16 @@
       "path": "item_predictions/validation.jsonl",
       "bytes": 1094834,
       "sha256": "da17e232262802856d87df0c5733a986dc58491fd7e0ef1d5318998a8c53ba62"
+    },
+    {
+      "path": "logs/fleurs_corrected_v2.log",
+      "bytes": 99949,
+      "sha256": "307d2d120a9f6fe0c429e2d76ec77478bf318372d08494f3ed55429be9b9a36e"
+    },
+    {
+      "path": "logs/fleurs_mirror.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "path": "logs/predictions.log",

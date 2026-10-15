@@ -311,23 +311,29 @@ The controlled run manifests identify an NVIDIA GeForce RTX 4090. Table~\ref{tab
 \begin{tabular}{lrrr}\toprule
 Condition & $n$ & Runtime (min) & Validation loss\\\midrule
 % BEGIN GENERATED resources
-C0: Random & 3 & $37.17 \pm 0.55$ & $0.3821 \pm 0.0006$ \\
-C1: SortaGrad & 3 & $38.27 \pm 1.10$ & $0.3831 \pm 0.0003$ \\
-C2: Strict SNR & 3 & $37.76 \pm 0.99$ & $0.3853$ \\
-C3: SNR--duration & 3 & $37.66 \pm 0.92$ & $0.3856$ \\
-C4: Acoustic pacing & 1 & $37.09$ & $0.4135$ \\
-C4R: Random pacing & 1 & $40.21$ & $0.4079$ \\
-C5: S2S loss & 3 & $47.84 \pm 16.84$ & $0.3902 \pm 0.0011$ \\
-C6: Utterance WER & 3 & $189.90 \pm 38.52$ & $0.3906 \pm 0.0002$ \\
-C7: Acoustic--S2S & 1 & $41.69$ & $0.3882$ \\
-A2: Waveform, random & 3 & $37.52 \pm 0.25$ & $0.3782 \pm 0.0008$ \\
-A3: Waveform, C3 & 3 & $37.09 \pm 0.69$ & $0.3814 \pm 0.0003$ \\
-S2: LB, random & 3 & $38.10 \pm 1.06$ & $0.3660 \pm 0.0003$ \\
-S3: LB, SortaGrad & 3 & $38.69 \pm 0.75$ & $0.3666 \pm 0.0002$ \\
-S4: LD, random & 3 & $37.49 \pm 0.40$ & $0.3683 \pm 0.0004$ \\
-S5: LD, SortaGrad & 3 & $38.04 \pm 0.80$ & $0.3693 \pm 0.0006$ \\
-M0: Medium, random & 3 & $151.70 \pm 0.54$ & $0.2759 \pm 0.0030$ \\
-M1: Medium, SortaGrad & 1 & $163.42$ & $0.2784$ \\
+C0: Random & RTX 4090 & 3/3 & $37.17 \pm 0.55$ & $0.3821 \pm 0.0006$ \\
+C1: SortaGrad & RTX 4090 & 3/3 & $38.27 \pm 1.10$ & $0.3831 \pm 0.0003$ \\
+C2: Strict SNR & RTX 4090 & 3/3 & $37.76 \pm 0.99$ & $0.3853 \pm 0.0000$ \\
+C3: SNR--duration & RTX 4090 & 3/3 & $37.66 \pm 0.92$ & $0.3856 \pm 0.0000$ \\
+C4: Acoustic pacing & RTX 4090 & 1/1 & $37.09$ & $0.4135$ \\
+C4R: Random pacing & RTX 4090 & 1/1 & $40.21$ & $0.4079$ \\
+C5: S2S loss & RTX 4090 & 3/3 & $47.84 \pm 16.84$ & $0.3902 \pm 0.0011$ \\
+C6: Utterance WER & RTX 4090 & 3/3 & $189.90 \pm 38.52$ & $0.3906 \pm 0.0002$ \\
+C7: Acoustic--S2S & RTX 4090 & 1/1 & $41.69$ & $0.3882$ \\
+A2: Waveform, random & RTX 4090 & 3/3 & $37.52 \pm 0.25$ & $0.3782 \pm 0.0008$ \\
+A3: Waveform, C3 & RTX 4090 & 3/3 & $37.09 \pm 0.69$ & $0.3814 \pm 0.0003$ \\
+S2: LB, random & RTX 4090 & 3/3 & $38.10 \pm 1.06$ & $0.3660 \pm 0.0003$ \\
+S3: LB, SortaGrad & RTX 4090 & 3/3 & $38.69 \pm 0.75$ & $0.3666 \pm 0.0002$ \\
+S4: LD, random & RTX 4090 & 3/3 & $37.49 \pm 0.40$ & $0.3683 \pm 0.0004$ \\
+S5: LD, SortaGrad & RTX 4090 & 3/3 & $38.04 \pm 0.80$ & $0.3693 \pm 0.0006$ \\
+M0: Medium, random & RTX 4090 & 3/3 & $151.70 \pm 0.54$ & $0.2759 \pm 0.0030$ \\
+M1: Medium, SortaGrad & A100 & 2/1 & $350.62$ & $0.2794 \pm 0.0005$ \\
+M1: Medium, SortaGrad & RTX 4090 & 1/1 & $163.42$ & $0.2784$ \\
+M2: Medium, SNR--duration & A100 & 3/3 & $314.02 \pm 0.83$ & $0.2853 \pm 0.0000$ \\
+M3: Medium, waveform random & A100 & 3/3 & $315.51 \pm 0.75$ & $0.2664 \pm 0.0015$ \\
+M4: Medium, waveform C3 & A100 & 3/3 & $316.50 \pm 1.48$ & $0.2708 \pm 0.0008$ \\
+M5: Medium, LB random & A100 & 3/3 & $316.33 \pm 0.64$ & $0.2527 \pm 0.0009$ \\
+M6: Medium, LB SortaGrad & A100 & 2/2 & $337.62 \pm 8.05$ & $0.2539 \pm 0.0002$ \\
 % END GENERATED resources
 \bottomrule\end{tabular}\end{table}
 
@@ -366,9 +372,15 @@ The matched capacity extension changes the pretrained variant while retaining th
 \begin{tabular}{lrrrr}\toprule
 Condition & Val. WER & Test WER & Val. CER & Test CER\\\midrule
 % BEGIN GENERATED medium
-C0: Random & $32.91 \pm 0.48$ & $31.04 \pm 0.29$ & $7.32 \pm 0.24$ & $6.82 \pm 0.17$ \\
-M0: Medium, random & $25.75 \pm 0.25$ & $23.93 \pm 0.32$ & $5.00 \pm 0.15$ & $4.53 \pm 0.09$ \\
-M1: Medium, SortaGrad & $26.26$ & $23.66$ & $5.16$ & $4.49$ \\
+M0: Medium, random (3/3) & $25.75 \pm 0.25$ & $23.93 \pm 0.32$ & $5.00 \pm 0.15$ & $4.53 \pm 0.09$ \\
+M1: Medium, SortaGrad (3/3) & $25.90 \pm 0.37$ & $23.70 \pm 0.10$ & $5.06 \pm 0.16$ & $4.46 \pm 0.13$ \\
+M2: Medium, SNR--duration (3/3) & $25.77$ & $23.82$ & $4.90$ & $4.36$ \\
+M3: Medium, waveform random (3/3) & $25.03 \pm 0.09$ & $23.30 \pm 0.10$ & $4.93 \pm 0.16$ & $4.40 \pm 0.03$ \\
+M4: Medium, waveform C3 (3/3) & $25.02 \pm 0.07$ & $23.64 \pm 0.14$ & $4.82 \pm 0.08$ & $4.40 \pm 0.07$ \\
+M5: Medium, LB random (3/3) & $24.54 \pm 0.14$ & $22.65 \pm 0.32$ & $4.68 \pm 0.08$ & $4.25 \pm 0.06$ \\
+M6: Medium, LB SortaGrad (2/3) & \textit{Pending} & \textit{Pending} & \textit{Pending} & \textit{Pending} \\
+M7: Medium, LD random (0/3) & \textit{Pending} & \textit{Pending} & \textit{Pending} & \textit{Pending} \\
+M8: Medium, LD SortaGrad (0/3) & \textit{Pending} & \textit{Pending} & \textit{Pending} & \textit{Pending} \\
 % END GENERATED medium
 \bottomrule\end{tabular}\end{table}
 
@@ -447,6 +459,22 @@ M0 & 42 & 26.03 & 24.24 & 5.04 & 4.62 \\
 M0 & 43 & 25.68 & 23.59 & 5.13 & 4.43 \\
 M0 & 44 & 25.55 & 23.95 & 4.84 & 4.55 \\
 M1 & 42 & 26.26 & 23.66 & 5.16 & 4.49 \\
+M1 & 43 & 25.92 & 23.81 & 5.13 & 4.56 \\
+M1 & 44 & 25.53 & 23.63 & 4.87 & 4.31 \\
+M2 & 42 & 25.77 & 23.82 & 4.90 & 4.36 \\
+M2 & 43 & 25.77 & 23.82 & 4.90 & 4.36 \\
+M2 & 44 & 25.77 & 23.82 & 4.90 & 4.36 \\
+M3 & 42 & 25.13 & 23.41 & 5.07 & 4.38 \\
+M3 & 43 & 25.01 & 23.27 & 4.76 & 4.39 \\
+M3 & 44 & 24.95 & 23.22 & 4.97 & 4.43 \\
+M4 & 42 & 25.08 & 23.72 & 4.72 & 4.40 \\
+M4 & 43 & 24.94 & 23.72 & 4.87 & 4.33 \\
+M4 & 44 & 25.04 & 23.47 & 4.87 & 4.47 \\
+M5 & 42 & 24.44 & 22.35 & 4.72 & 4.21 \\
+M5 & 43 & 24.70 & 22.62 & 4.74 & 4.23 \\
+M5 & 44 & 24.50 & 22.99 & 4.59 & 4.32 \\
+M6 & 42 & 24.72 & 22.48 & 4.59 & 4.12 \\
+M6 & 43 & 24.49 & 22.12 & 4.54 & 4.01 \\
 % END GENERATED perseed
 \end{longtable}
 \normalsize

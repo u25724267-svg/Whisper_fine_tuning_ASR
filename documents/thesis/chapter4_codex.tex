@@ -1,0 +1,908 @@
+% Standalone review copy. To integrate into the thesis, retain the chapter body
+% and merge the cited entries into the thesis bibliography. Required packages:
+% amsmath, booktabs, longtable, array, natbib, hyperref.
+% Independent Codex revision of chapter4_results_revised.tex.
+% Existing numeric blocks checked using the read-only portion of
+% build_chapter4_results.py; that builder does not update this copy.
+% Evidence cutoff: 2026-10-13 22:51 SAST (20:51 UTC).
+% Additional analyses and source hashes: chapter4_evidence_codex.json.
+% Figure boxes are author instructions, not claims that figures already exist.
+\documentclass[12pt,a4paper]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage{amsmath,booktabs,longtable,array}
+\usepackage[round,authoryear]{natbib}
+\usepackage[hidelinks]{hyperref}
+\setlength{\emergencystretch}{3em}
+\newcommand{\resultsfigure}[3]{%
+  \begin{figure}[htbp]\centering
+  \fbox{\begin{minipage}{0.91\linewidth}\small
+  \textit{Figure to be supplied.} #3
+  \end{minipage}}
+  \caption{#1}\label{#2}\end{figure}}
+\begin{document}
+\setcounter{chapter}{3}
+\chapter{Results}
+\label{chap:results}
+
+\section{Introduction}
+
+This chapter reports the observed recognition performance and computational cost of the Shona automatic speech recognition experiments. It addresses two research questions: how curriculum learning affects fine-tuning, and how combining curriculum learning with data augmentation affects in-domain and external-domain recognition. The principal comparisons use Whisper Base on the speaker-disjoint WAXAL v2 partitions described in the methodology. The chapter also reports the completed portion of the matched Whisper Medium extension. Whisper is the pretrained encoder--decoder recogniser adapted in these experiments \citep{Radford2023}.
+
+The presentation distinguishes differences in measured performance from explanations of those differences. It identifies which conditions have lower error, whether word- and character-level outcomes agree, how results vary across seeds and datasets, and what computation was recorded. Explanations involving regularisation, acoustic mismatch, representation learning, or the linguistic properties of Shona are reserved for the discussion chapter. In particular, a lower point estimate alone is not described as proof of a general improvement.
+
+Results reflect completed metric and prediction artifacts available at 22:51 SAST (20:51 UTC) on 13 October 2026. This is a fixed reporting cutoff during an active experiment queue, not a declaration that the Medium study has ended. The scope is the two research questions formalised in the methodology, including their pretrained-model-variant extension. Prepared follow-up experiments without completed evaluations are not assigned outcomes. Earlier experiments using different partitions are reported only where they clarify the evaluation baseline; they are not pooled with the controlled results.
+
+\section{Reading and interpreting the reported measurements}
+\label{sec:results-conventions}
+
+\subsection{Recognition error, loss, and computational cost}
+
+Word error rate (WER) measures the minimum word substitutions ($S$), deletions ($D$), and insertions ($I$) needed to align a generated transcription with its reference, divided by the number of reference words ($N$):
+\begin{equation}
+  \mathrm{WER}=100\frac{S+D+I}{N}.
+\end{equation}
+Character error rate (CER) applies the same edit-count calculation to characters. A substitution replaces a reference unit, a deletion omits one, and an insertion adds a unit absent from the reference. All WER and CER values in this chapter are percentages, and lower values indicate fewer transcription errors. Corpus-level scores pool edit counts and reference lengths across recordings; they are not unweighted averages of utterance-level percentages. Because insertions are included in the numerator, an error rate can exceed 100\%.
+
+WER and CER measure different aspects of the output. An incorrectly transcribed word counts as a word error even if only one character differs. CER can therefore be much lower than WER without either metric being incorrect. Neither metric directly establishes intelligibility, semantic adequacy, or the linguistic cause of an error.
+
+Validation loss is the mean cross-entropy recorded when the model predicts reference tokens using preceding reference tokens as context. This procedure is called \emph{teacher forcing}. A token is a unit in the model's text vocabulary and need not be a whole word. Lower loss indicates greater probability assigned to the reference sequence under that evaluation procedure. WER and CER instead score freely generated text. Consequently, lower loss does not necessarily mean lower recognition error. The loss values reported here are dimensionless optimisation diagnostics, not percentages.
+
+Training runtime is elapsed wall-clock time recorded by the training loop, including its scheduled validation evaluations. It is not integrated GPU compute time or a measure of electrical energy. GPU refers to the graphics processing unit used to accelerate training. Peak allocated memory is the largest observed volume of active tensor storage; peak reserved memory also includes capacity retained by the memory allocator. These quantities are distinguished from the GPU's advertised memory capacity and from whole-device memory consumption.
+
+\subsection{Aggregation, uncertainty, and metric provenance}
+
+For conditions with three varying seed outcomes, tables report the arithmetic mean and sample standard deviation (SD) over seeds 42, 43, and 44:
+\begin{equation}
+ \bar{x}=\frac{1}{3}\sum_{j=1}^{3}x_j,
+ \qquad s=\sqrt{\frac{\sum_{j=1}^{3}(x_j-\bar{x})^2}{2}}.
+\end{equation}
+SD describes the observed spread over these runs. It is not a confidence interval and does not incorporate uncertainty from choosing different speakers or reconstructing the dataset split. A seed changes the pseudorandom sequence used by stochastic operations; it does not provide a new evaluation population. Three seeds permit inspection of variability but give only a limited view of its distribution.
+
+The strict SNR and joint SNR--duration conditions, Base C2/C3 and Medium C3
+(M2), have identical validation/test prediction hashes across their three
+seed-labelled exports. Their accuracy is displayed as one point, not a
+reassuring zero SD. These executions establish repeatability rather than three
+independent recognition outcomes. The original waveform aggregate reused a
+clean C3 export; later Base seed-44 records reproduce those predictions. Only
+one corrected-FLEURS C3 export is available. C4, C4R, and C7 remain single-seed
+screens. Medium SortaGrad now has three completed seed records and is no longer
+a single-seed result. Incomplete Medium masking cells are reported per completed
+seed, with final means left pending.
+
+All runs start from pinned pretrained weights; seeds control stochastic
+presentation and masking, not independent random initialisation of Whisper.
+Completion requires final evaluation and canonical prediction artifacts, not
+merely a configuration, checkpoint, or successful training stage.
+
+Unless explicitly labelled otherwise, recognition tables use the saved item-level prediction summaries, which contain the generated hypotheses' word edit counts and CER. Loss and runtime come from training-result artifacts. Training-loop generation and the separately executed prediction export sometimes give slightly different WER values. For example, Base C0 seed 42 has a final training-loop test WER of 31.3400\%, whereas the item-level export gives 31.3560\%. These are distinct evaluation passes. They are not averaged together, and one measurement source is used consistently within each recognition comparison. Learning-curve values retain their training-loop source.
+
+An improvement is reported in \emph{percentage points} (pp), defined as control error minus treatment error. Thus a positive improvement denotes lower treatment error, and a change from 31.04\% to 30.20\% is approximately 0.84 pp. This is different from a relative percentage reduction. Calculations use unrounded source values; displayed table entries are rounded afterwards.
+
+Where available, paired bootstrap intervals compare two fixed checkpoints on the same evaluation population. The procedure repeatedly resamples groups of recordings and recalculates their difference in corpus WER. WAXAL intervals group recordings by speaker; corrected FLEURS intervals group them by sentence prompt because speaker identifiers are unavailable. The archived analyses use 10,000 replicates. Such intervals describe evaluation-sample uncertainty conditional on the compared checkpoints, rather than training-seed uncertainty. The initial multi-condition curriculum screen has unadjusted intervals: no claim of family-wise statistical significance is made. No new significance claim is inferred from SD overlap or from a three-seed average.
+
+\section{Baseline and evaluation-protocol results}
+
+\subsection{Earlier partitions and the controlled baseline}
+
+Speaker-disjoint partitions contain no speaker in more than one split. The final WAXAL v2 protocol contains 13,807 training, 1,715 validation, and 1,671 test recordings, with 113, 24, and 24 speakers, respectively. Validation is used for checkpoint selection; test evaluation describes the selected checkpoint. The baseline uses shuffled training order without augmentation. A checkpoint is a saved model state; selection uses the lowest recorded validation WER, which need not occur at the last training epoch.
+
+Table~\ref{tab:results-protocol} separates the earlier partition diagnostics from the controlled v2 baseline. The first speaker-disjoint partition, v1, had substantial concentration: one speaker contributed approximately 51.1\% of validation recordings and another approximately 35.1\% of test recordings. Version 2 increased held-out speaker coverage and restricted each held-out speaker's share to at most 20\% of both recordings and duration. These protocols therefore assess different populations and are not interchangeable baseline runs.
+
+\begin{table}[htbp]\centering\small
+\caption{Partition diagnostics for Base, seed 42. All four error columns use item-level prediction summaries.}\label{tab:results-protocol}
+\begin{tabular}{lrrrr}\toprule
+Partition & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+Original, speaker overlap & 29.30 & 28.72 & 6.69 & 6.23\\
+Speaker-disjoint v1 & 30.19 & 28.26 & 6.06 & 6.00\\
+Speaker-disjoint v2 & 32.52 & 31.36 & 7.08 & 7.01\\\bottomrule
+\end{tabular}\end{table}
+
+The v2 seed-42 baseline has higher validation and test error than either earlier diagnostic. However, disjointness, speaker composition, partition membership, and some evaluation scheduling differ across these records. The observed differences therefore do not isolate a numerical effect attributable solely to speaker overlap. The earlier v1 test result of 28.26\% is not used as the control for subsequent v2 curricula.
+
+Across the three v2 random-order runs, validation WER is $32.91\pm0.48$\% and test WER is $31.04\pm0.29$\%. Validation and test CER are $7.32\pm0.24$\% and $6.82\pm0.17$\%, respectively. These values are the clean Base reference throughout the chapter.
+
+\subsection{Pretrained Base without study-specific fine-tuning}
+
+The retrospective zero-shot evaluation measures the pretrained Base checkpoint before any Shona updates by this study. It does not establish that Shona was absent from the model's upstream pretraining. Table~\ref{tab:results-zero} compares this reference with the clean fine-tuned baseline under the same saved evaluation manifests. FLEURS, the Few-shot Learning Evaluation of Universal Representations of Speech benchmark, supplies the external Shona speech corpus \citep{Conneau2022}. Its corrected local version preserves the evaluation recordings while correcting the text and identifier preparation described in the methodology.
+
+\begin{table}[htbp]\centering\small
+\caption{Zero-shot Base and clean fine-tuned Base. Fine-tuned entries are three-seed means; the zero-shot model is evaluated once.}\label{tab:results-zero}
+\begin{tabular}{llrrrr}\toprule
+Corpus & Model & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+WAXAL v2 & Zero-shot & 134.71 & 132.17 & 56.92 & 57.21\\
+WAXAL v2 & Fine-tuned C0 & 32.91 & 31.04 & 7.32 & 6.82\\
+FLEURS & Zero-shot & 163.43 & 155.37 & 76.84 & 71.81\\
+FLEURS & Fine-tuned C0 & 56.94 & 58.31 & 20.19 & 18.93\\\bottomrule
+\end{tabular}\end{table}
+
+Fine-tuning is associated with a WAXAL test WER reduction of 101.12 pp and a CER reduction of 50.39 pp relative to the evaluated pretrained checkpoint. The corresponding FLEURS reductions are 97.06 and 52.88 pp. These large differences establish the scale of adaptation under this protocol; the curriculum and augmentation comparisons concern much smaller differences among fine-tuned models. Values above 100\% in the zero-shot rows are valid edit rates, reflecting the inclusion of inserted words as well as substitutions and deletions.
+
+\section{RQ1: Curriculum learning with Whisper Base}
+\label{sec:results-rq1}
+
+\subsection{Conditions and aggregate recognition outcomes}
+
+Curriculum learning changes the sequence or eligibility of training examples using a difficulty proxy. A static proxy is fixed before training; a dynamic proxy is updated using model behaviour. The conditions are identified consistently as follows. C0 shuffles the data. C1 applies a duration-based SortaGrad schedule, presenting shorter recordings first in the first epoch and shuffling thereafter, following the duration-ordering idea of \citet{Amodei2016}. An epoch is one scheduled pass through the training exposure budget. C2 presents recordings in descending estimated signal-to-noise ratio (SNR), a measure of speech energy relative to estimated background energy. C3 combines duration and inverse-SNR percentile ranks, with easier-ranked items first in each epoch. These acoustic quantities are proxies, not measured linguistic difficulty.
+
+C4 progressively expands eligibility through acoustic tiers; C4R applies a matched random-pacing control. Pacing changes which recordings are eligible at a given stage, and may repeat eligible recordings to maintain the exposure budget. C5 uses sequence-to-sequence (S2S) negative log-likelihood normalised by audio duration to order later epochs. Negative log-likelihood measures how improbable the reference tokens are under the current model. C6 uses generated utterance-level WER as its updated difficulty score. C7 combines the fixed acoustic ranking with a model-derived S2S ranking. The historical configuration names containing ``margin'' are not interpreted as a separate measured classification margin.
+
+\begin{table}[htbp]\centering\scriptsize
+\caption{Base curriculum results on WAXAL v2. Varying three-seed outcomes are mean $\pm$ sample SD. C2/C3 have prediction-identical seed-labelled exports; C4/C4R/C7 have one seed.}\label{tab:results-rq1}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}\toprule
+Condition & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+% BEGIN GENERATED rq1
+C0: Random & $32.91 \pm 0.48$ & $31.04 \pm 0.29$ & $7.32 \pm 0.24$ & $6.82 \pm 0.17$ \\
+C1: SortaGrad & $32.60 \pm 0.11$ & $30.96 \pm 0.06$ & $7.26 \pm 0.06$ & $6.89 \pm 0.12$ \\
+C2: Strict SNR & $33.12$ & $31.53$ & $7.36$ & $7.46$ \\
+C3: SNR--duration & $32.84$ & $30.46$ & $7.13$ & $6.47$ \\
+C4: Acoustic pacing & $34.47$ & $32.59$ & $7.81$ & $7.47$ \\
+C4R: Random pacing & $34.39$ & $32.46$ & $7.83$ & $7.45$ \\
+C5: S2S loss & $33.91 \pm 0.26$ & $31.78 \pm 0.73$ & $7.92 \pm 0.01$ & $7.37 \pm 0.68$ \\
+C6: Utterance WER & $33.92 \pm 0.33$ & $31.98 \pm 0.28$ & $7.47 \pm 0.22$ & $6.93 \pm 0.10$ \\
+C7: Acoustic--S2S & $34.52$ & $32.19$ & $8.41$ & $7.57$ \\
+% END GENERATED rq1
+\bottomrule\end{tabular}\end{table}
+
+Among the curricula with varying three-seed outcomes, SortaGrad has the lowest mean validation and test WER: 32.60\% and 30.96\%. Relative to C0, these correspond to reductions of 0.30 and 0.09 pp. Validation CER is also lower by 0.05 pp, but test CER is higher by 0.07 pp. Thus its small WER advantage is not accompanied by improvement in every metric. Its test WER values range from 30.90\% to 31.02\%, compared with 30.79\% to 31.36\% for C0. This describes the observed runs, not a general estimate of robustness to arbitrary seeds.
+
+Strict SNR ordering, C2, gives validation/test WER of 33.12/31.53\% and CER of 7.36/7.46\%. All four errors exceed the corresponding C0 means. Joint SNR--duration ordering, C3, has the lowest clean-curriculum test WER and CER, 30.46\% and 6.47\%, reducing the C0 means by 0.59 and 0.35 pp. Its validation WER, 32.84\%, is only 0.07 pp below the C0 mean and remains above SortaGrad's 32.60\%. The validation and test rankings therefore differ. Furthermore, the identical C3 predictions do not supply three independent confirmations of that ranking.
+
+The S2S and utterance-WER curricula have mean test WER of 31.78\% and 31.98\%, respectively, compared with 31.04\% for random ordering. Their validation WER and both CER means also exceed C0. C5 has the largest test-WER SD among these repeated curriculum conditions, 0.73 pp. Its seed-42 test WER is slightly below the matched C0 value, but the direction does not persist at seeds 43 and 44. A favourable result from that one seed would therefore misrepresent the aggregated outcome.
+
+The single-seed pacing conditions produce test WER of 32.59\% for C4 and 32.46\% for C4R, both above the matched C0 seed-42 value of 31.36\%. Their difference is only 0.13 pp. C7 gives test WER of 32.19\% and the highest validation CER in the curriculum table, 8.41\%. These are observations from the initial screen; absent additional seeds, they are not assigned a run-to-run SD.
+
+\subsection{Paired evidence from the initial screen}
+
+Table~\ref{tab:results-bootstrap} provides the archived seed-42 paired comparisons. Positive values favour the curriculum. The validation intervals for C2 and C4--C7 lie below zero, whereas the SortaGrad interval spans zero. C3 has opposite validation and test directions: its validation estimate favours C0, while its test estimate favours C3. C4 and C4R have wholly negative test intervals. The remaining test intervals, other than C3, span zero. An interval spanning zero leaves the direction unresolved at this interval level; it is not evidence of equivalence.
+
+\begin{table}[htbp]\centering\small
+\caption{Seed-42 WER improvement against C0 in pp, with unadjusted 95\% speaker-clustered bootstrap intervals. These fixed-checkpoint intervals are distinct from across-seed SD.}\label{tab:results-bootstrap}
+\begin{tabular}{lrr}\toprule
+Condition & Validation improvement [CI] & Test improvement [CI]\\\midrule
+% BEGIN GENERATED screen
+C1: SortaGrad & $-0.07\;[-0.64, +0.27]$ & $+0.34\;[-0.55, +1.00]$ \\
+C2: Strict SNR & $-0.60\;[-1.07, -0.19]$ & $-0.18\;[-1.58, +1.01]$ \\
+C3: SNR--duration & $-0.32\;[-0.75, -0.02]$ & $+0.90\;[+0.31, +1.39]$ \\
+C4: Acoustic pacing & $-1.95\;[-2.76, -1.27]$ & $-1.23\;[-1.77, -0.74]$ \\
+C4R: Random pacing & $-1.87\;[-2.78, -1.17]$ & $-1.10\;[-1.61, -0.67]$ \\
+C5: S2S loss & $-1.32\;[-2.15, -0.59]$ & $+0.04\;[-0.94, +0.92]$ \\
+C6: Utterance WER & $-1.51\;[-2.18, -0.95]$ & $-0.42\;[-1.41, +0.52]$ \\
+C7: Acoustic--S2S & $-2.00\;[-3.29, -1.08]$ & $-0.84\;[-2.81, +0.71]$ \\
+% END GENERATED screen
+\bottomrule\end{tabular}\end{table}
+
+The curriculum with the strongest seed-42 WAXAL test estimate, C3, was subsequently carried into the waveform experiment. Since WAXAL test performance contributed to that historical selection, its favourable test result is selection-stage evidence. It is not presented as a previously untouched confirmation of a validation-only choice. The external-domain results below provide a separate cross-corpus observation.
+
+\resultsfigure{Curriculum error differences on WAXAL v2.}{fig:results-curricula}{Create two aligned dot plots, one for validation WER and one for test WER. Plot C0--C7 including C4R, show individual seed points and the mean for varying runs, and distinguish deterministic C2/C3 values and single-seed conditions by symbol. If bootstrap intervals are included, place them in a separate seed-42 panel labelled ``control minus treatment, pp''; do not mix them with seed SD. Use Table~\ref{tab:results-rq1} and Table~\ref{tab:results-bootstrap}.}
+
+\section{RQ2: Data augmentation and curriculum combinations with Base}
+\label{sec:results-rq2}
+
+Data augmentation modifies the training inputs while retaining the reference transcription. Evaluation in this section uses unaugmented WAXAL v2 speech. Two separate experiment families were completed: composite waveform augmentation with random or C3 ordering, and spectrogram masking with random or SortaGrad ordering. The curriculum differs between families, so an augmentation effect is measured against the clean control with the same ordering.
+
+\subsection{Composite waveform augmentation}
+
+The waveform policy applies tempo perturbation, simulated reverberation, and additive noise according to the fixed probabilities and severity settings in the methodology. A materialised view is an audio variant generated in advance and reused during training. A0 denotes the clean random control C0; A1 denotes the clean C3 control; A2 and A3 apply the waveform policy to random and C3 ordering, respectively. Table~\ref{tab:results-wave} reports the four cells of this factorial design, meaning that both ordering conditions are observed with and without augmentation.
+
+\begin{table}[htbp]\centering\scriptsize
+\caption{Waveform factorial on WAXAL v2. C0 and C3 are the reused clean A0 and A1 controls; their inclusion does not add new training runs.}\label{tab:results-wave}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}\toprule
+Condition & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+% BEGIN GENERATED waveform
+C0: Random & $32.91 \pm 0.48$ & $31.04 \pm 0.29$ & $7.32 \pm 0.24$ & $6.82 \pm 0.17$ \\
+C3: SNR--duration & $32.84$ & $30.46$ & $7.13$ & $6.47$ \\
+A2: Waveform, random & $33.06 \pm 0.24$ & $31.30 \pm 0.28$ & $8.01 \pm 0.47$ & $7.12 \pm 0.22$ \\
+A3: Waveform, C3 & $33.04 \pm 0.34$ & $31.37 \pm 0.27$ & $7.72 \pm 0.13$ & $7.10 \pm 0.15$ \\
+% END GENERATED waveform
+\bottomrule\end{tabular}\end{table}
+
+With random ordering, waveform augmentation increases mean validation WER from 32.91\% to 33.06\% and test WER from 31.04\% to 31.30\%. Validation and test CER increase by 0.69 and 0.30 pp, respectively. Accordingly, all four aggregate errors are higher than the clean random control.
+
+With C3 ordering, waveform augmentation increases validation WER from 32.84\% to 33.04\% and test WER from 30.46\% to 31.37\%. The corresponding CER changes are increases of 0.59 and 0.64 pp. Within the augmented conditions, C3 has a validation-WER advantage of only 0.03 pp over random ordering, while its test WER is 0.07 pp higher. The clean C3 test-ranking advantage is therefore absent in the augmented pair.
+
+The descriptive interaction asks whether the ordering advantage changes when augmentation is applied. Defining it as $(\mathrm{A2}-\mathrm{A3})-(\mathrm{A0}-\mathrm{A1})$ on WER, with positive values denoting an increased curriculum advantage, gives $-0.04$ pp on validation and $-0.66$ pp on test. These are differences of observed cell values, not formal interaction-test results. In particular, the A1 cell shares deterministic predictions across its aggregate positions.
+
+The recorded test error decomposition provides a more specific description of A2. Relative to the number of reference words, mean insertions increase from 4.543\% to 4.829\% and substitutions from 22.694\% to 22.771\%, while deletions decrease from 3.807\% to 3.697\%. Thus a reduction in one error component coexists with a higher total WER; no causal explanation for that redistribution is inferred here.
+
+\subsection{SpecAugment policy definitions}
+
+SpecAugment masks parts of the input time--frequency representation \citep{Park2019}. A frequency mask obscures consecutive frequency bands, and a time mask obscures consecutive frames. The completed experiments use the LibriSpeech Basic (LB) and LibriSpeech Double (LD) masking parameters without time warping. The local adaptations may also be termed WAXAL Basic (WB) and WAXAL Double (WD), respectively. The labels LB and LD are used here to maintain a consistent correspondence with the recorded experiment configurations.
+
+\begin{table}[htbp]\centering\small
+\caption{Implemented SpecAugment masks. Widths are maxima, not fixed numbers of masked positions; overlaps and zero-width draws are possible.}\label{tab:results-masks}
+\begin{tabular}{lrrrrr}\toprule
+Policy & Freq. width & Freq. masks & Time width & Time masks & Time ratio\\\midrule
+LB, no warp & 27 & 1 & 100 & 1 & 1.0\\
+LD, no warp & 27 & 2 & 100 & 2 & 1.0\\\bottomrule
+\end{tabular}\end{table}
+
+Frequency width is measured in input bands and time width in feature frames. The time ratio limits the width of each time-mask attempt relative to the valid recording frames; it is not the number of masks. LD doubles the mask counts while preserving the individual width limits. It does not set the time ratio to 2.0. Masks are applied during training, with waveform augmentation disabled, and are absent during evaluation.
+
+\subsection{SpecAugment recognition outcomes}
+
+\begin{table}[htbp]\centering\scriptsize
+\caption{SpecAugment on WAXAL v2, mean $\pm$ sample SD over three seeds. C0 and C1 supply the clean random and clean SortaGrad controls.}\label{tab:results-specaug}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}\toprule
+Condition & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+% BEGIN GENERATED specaugment
+C0: Random & $32.91 \pm 0.48$ & $31.04 \pm 0.29$ & $7.32 \pm 0.24$ & $6.82 \pm 0.17$ \\
+C1: SortaGrad & $32.60 \pm 0.11$ & $30.96 \pm 0.06$ & $7.26 \pm 0.06$ & $6.89 \pm 0.12$ \\
+S2: LB, random & $31.76 \pm 0.16$ & $30.20 \pm 0.35$ & $6.87 \pm 0.11$ & $6.71 \pm 0.45$ \\
+S3: LB, SortaGrad & $32.20 \pm 0.26$ & $30.43 \pm 0.22$ & $7.22 \pm 0.26$ & $6.89 \pm 0.26$ \\
+S4: LD, random & $32.46 \pm 0.28$ & $30.38 \pm 0.19$ & $7.54 \pm 0.33$ & $6.93 \pm 0.28$ \\
+S5: LD, SortaGrad & $32.41 \pm 0.08$ & $30.69 \pm 0.41$ & $7.30 \pm 0.07$ & $7.09 \pm 0.30$ \\
+% END GENERATED specaugment
+\bottomrule\end{tabular}\end{table}
+
+LB masking with random ordering, S2, gives the lowest mean WAXAL validation and test WER among the completed Base conditions: $31.76\pm0.16$\% and $30.20\pm0.35$\%. Relative to C0, the improvements are 1.14 and 0.84 pp. Mean validation CER decreases by 0.45 pp and test CER by 0.11 pp. All three S2 seeds have lower validation and test WER than their seed-matched C0 controls. Nevertheless, seed-42 test CER rises from 7.01\% to 7.22\%, so the mean CER improvement is not uniform across seeds. C3 retains a lower test CER of 6.47\% than S2's mean of 6.71\%; the condition with the lowest mean test WER is therefore not best on every endpoint.
+
+LB masking with SortaGrad, S3, improves mean validation and test WER over clean SortaGrad by 0.41 and 0.53 pp, respectively. Its mean test CER is almost unchanged, 6.8853\% compared with 6.8895\%. Relative to LB with random ordering, however, LB with SortaGrad has higher validation WER by 0.44 pp and higher test WER by 0.23 pp. Adding SortaGrad does not improve the observed LB cell means.
+
+LD with random ordering, S4, reduces mean test WER by 0.66 pp relative to C0, but it is 0.18 pp worse than LB with random ordering. Its mean validation and test CER, 7.54\% and 6.93\%, both exceed the clean random means. LD with SortaGrad, S5, reduces test WER by 0.26 pp relative to clean SortaGrad, while increasing test CER by 0.20 pp. It also has higher validation and test WER than the corresponding LB--SortaGrad condition. Doubling mask counts therefore does not improve the mean WAXAL WER within either ordering in these runs.
+
+These comparisons establish an observed in-domain ranking. The means and SDs alone do not establish a population-level treatment effect, and no unreported multiple-comparison adjustment is assumed. In particular, improvements reported for SpecAugment in its original study do not determine whether the present models improve on the external Shona corpus; that question is addressed by their measured FLEURS outcomes.
+
+\resultsfigure{Curriculum and augmentation combinations on WAXAL v2.}{fig:results-factorial}{Create separate panels for waveform and spectrogram augmentation. In the waveform panel, plot clean versus waveform WER for random and C3 ordering. In the spectrogram panel, plot clean, LB, and LD WER for random and SortaGrad ordering. Use validation and test subpanels, individual seed points, and labelled mean lines. Mark the deterministic clean C3 point once. Do not join C3 and SortaGrad as though they were the same curriculum.}
+
+\section{Whisper Base external-domain evaluation on corrected FLEURS}
+\label{sec:results-fleurs}
+
+The external evaluation uses 393 validation and 925 test recordings from the corrected Shona FLEURS preparation. These recordings were not used in controlled WAXAL fine-tuning. Out-of-domain here means a different corpus and collection process; it does not assert that every recording was absent from Whisper's upstream pretraining. All conditions in Table~\ref{tab:results-fleurs} are scored against the same corrected references. Conditions without a saved external evaluation are omitted rather than assigned an estimated outcome.
+
+\begin{table}[htbp]\centering\scriptsize
+\caption{Corrected FLEURS recognition results. Three-seed conditions use mean $\pm$ sample SD; C3 uses its one available external prediction export.}\label{tab:results-fleurs}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}\toprule
+Condition & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+% BEGIN GENERATED fleurs
+C0: Random & $56.94 \pm 1.25$ & $58.31 \pm 0.59$ & $20.19 \pm 1.66$ & $18.93 \pm 0.26$ \\
+C1: SortaGrad & $55.74 \pm 0.31$ & $57.76 \pm 0.05$ & $19.13 \pm 0.88$ & $19.17 \pm 0.32$ \\
+C3: SNR--duration & $59.62$ & $59.23$ & $21.39$ & $20.08$ \\
+A2: Waveform, random & $56.95 \pm 0.72$ & $59.49 \pm 1.47$ & $19.34 \pm 1.33$ & $20.03 \pm 0.42$ \\
+A3: Waveform, C3 & $57.04 \pm 0.94$ & $60.10 \pm 2.04$ & $19.53 \pm 0.96$ & $20.56 \pm 1.60$ \\
+S2: LB, random & $57.12 \pm 1.13$ & $59.67 \pm 0.51$ & $19.89 \pm 0.42$ & $20.47 \pm 0.34$ \\
+S3: LB, SortaGrad & $57.17 \pm 0.94$ & $59.17 \pm 1.03$ & $19.80 \pm 0.82$ & $20.16 \pm 0.88$ \\
+S4: LD, random & $62.10 \pm 0.99$ & $62.83 \pm 1.10$ & $24.48 \pm 0.82$ & $22.21 \pm 0.93$ \\
+S5: LD, SortaGrad & $59.80 \pm 1.42$ & $63.03 \pm 1.24$ & $21.54 \pm 0.41$ & $22.55 \pm 1.29$ \\
+% END GENERATED fleurs
+\bottomrule\end{tabular}\end{table}
+
+All evaluated fine-tuned Base conditions have substantially higher error on FLEURS than on WAXAL. The C0 mean test WER increases from 31.04\% on WAXAL to 58.31\% on FLEURS, a 27.27 pp cross-corpus difference; test CER increases from 6.82\% to 18.93\%. This difference describes the two evaluation populations and reference protocols, rather than isolating a particular source of domain difficulty.
+
+Clean SortaGrad, C1, has the lowest mean FLEURS validation and test WER among the evaluated conditions: 55.74\% and 57.76\%. Its mean test WER is 0.55 pp below C0, but its test CER is 0.24 pp higher. Thus the cross-corpus WER ranking does not yield a corresponding best CER ranking. C3 records test WER of 59.23\%, 0.92 pp above the C0 mean despite its lower WAXAL test WER. The archived prompt-clustered C3-versus-C0 intervals span zero for each matched baseline seed. The observed external ranking therefore supplies no confirmed C3 improvement.
+
+Waveform augmentation gives mean FLEURS test WER of 59.49\% with random ordering and 60.10\% with C3. These exceed the clean random mean by 1.18 and 1.79 pp, respectively; A3 is also 0.87 pp above clean C3. The A2 seed effects against C0 vary in direction: the control-minus-treatment WER differences are $-3.47$, $+0.12$, and $-0.18$ pp. In the saved paired analysis, only the seed-42 interval excludes zero, with $[-7.11,-0.22]$ pp favouring the clean control. This is a fixed-checkpoint comparison, not a three-seed significance test.
+
+The in-domain advantage of LB masking does not carry over to a lower mean FLEURS test WER. S2 gives 59.67\%, 1.36 pp above clean random ordering. S3 gives 59.17\%, 1.41 pp above clean SortaGrad. Both also have higher mean test CER than their corresponding clean controls. LD increases external error further: S4 and S5 reach mean test WER of 62.83\% and 63.03\%, respectively, with test CER of 22.21\% and 22.55\%. The S2 condition that leads the mean WAXAL WER ranking therefore does not lead the FLEURS ranking, and stronger masking does not improve the observed external-domain averages.
+
+The prompt-clustered analyses use 348 distinct test sentence prompts, grouping repeated readings of the same prompt together. This recognises dependence due to shared text but cannot account for unknown speaker dependence. No complete paired significance analysis of the SpecAugment external comparisons is supplied in the evidence used here; their differences are reported descriptively. More generally, the observed cross-corpus differences do not identify whether acoustics, textual content, transcription conventions, or another property accounts for the ranking change.
+
+\resultsfigure{WAXAL and corrected FLEURS test-error rankings.}{fig:results-domain}{Create paired panels for test WER and test CER, with one point per condition for each corpus. Show C0, C1, C3, A2, A3, and S2--S5. Display individual seed points lightly behind the means; show C3 once. Either use clearly labelled separate corpus axes or a connected-dot layout with sufficient range. The figure should make the S2 in-domain WER advantage and its absence on FLEURS visible without implying that a cross-corpus difference is a paired treatment effect.}
+
+\section{Learning curves and checkpoint selection}
+\label{sec:results-curves}
+
+Table~\ref{tab:results-curves} reports representative logged validation WER and loss at the three epoch boundaries. For these v2 runs, the boundaries are steps 2,302, 4,604, and 6,906. A step is a recorded training update position. The available Base C1 seed-43 history is used because its seed-42 training history is not present in the local mirror. These examples document the trajectories without assuming that an absent history can be reconstructed from a final score.
+
+\begin{table}[htbp]\centering\small
+\caption{Logged validation WER (\%) / validation loss at epoch boundaries. These are training-loop measurements, not the separately exported recognition scores.}\label{tab:results-curves}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrr}\toprule
+Condition & Epoch 1 & Epoch 2 & Epoch 3\\\midrule
+% BEGIN GENERATED curves
+C0, seed 42 & $37.08/0.4409$ & $33.18/0.3887$ & $32.53/0.3815$ \\
+C1, seed 43 & $43.55/0.4471$ & $32.95/0.3916$ & $32.46/0.3835$ \\
+C5, seed 42 & $37.08/0.4409$ & $33.82/0.3896$ & $34.48/0.3864$ \\
+C6, seed 42 & $37.08/0.4409$ & $34.04/0.3907$ & $35.11/0.3867$ \\
+A2, seed 42 & $36.78/0.4386$ & $34.50/0.3869$ & $33.17/0.3774$ \\
+S2, seed 42 & $37.36/0.4345$ & $33.33/0.3787$ & $31.69/0.3657$ \\
+S4, seed 42 & $37.35/0.4419$ & $34.47/0.3826$ & $32.61/0.3680$ \\
+M0, seed 42 & $28.17/0.3016$ & $26.02/0.2726$ & $26.50/0.2774$ \\
+M1, seed 42 & $63.08/0.3129$ & $26.42/0.2739$ & $26.27/0.2784$ \\
+% END GENERATED curves
+\bottomrule\end{tabular}\end{table}
+
+For Base random ordering, validation WER and loss decrease across all three logged epochs for all seeds. In seed 42, WER falls from 37.08\% to 33.18\%, then to 32.53\%. The second improvement is smaller, but the direction remains favourable. It would therefore be inaccurate to describe the epoch-two boundary as a universal onset of deteriorating WER. The available clean SortaGrad histories also show decreasing WER and loss after epoch two, despite higher first-epoch WER than the random baseline.
+
+The dynamic C5 and C6 conditions behave differently. In C5 seed 42, WER rises from 33.82\% at epoch two to 34.48\% at epoch three, while loss falls from 0.3896 to 0.3864. C6 seed 42 similarly rises from 34.04\% to 35.11\% WER while loss falls from 0.3907 to 0.3867. The same divergence in direction occurs in their seed-43 and seed-44 histories. Their selected checkpoints are therefore from epoch two, even though optimisation continues through epoch three. The final recognition tables evaluate those selected checkpoints, not the last epoch merely because it was trained most recently.
+
+All completed Base waveform and SpecAugment runs retain the epoch-three checkpoint, with validation WER decreasing across the three logged boundaries. LB random seed 42 falls from 37.36\% to 33.33\% to 31.69\%, while loss falls from 0.4345 to 0.3787 to 0.3657. Across seeds, the selected LB-random validation loss averages 0.3660 compared with 0.3821 for C0. In this comparison lower loss accompanies lower WAXAL error. By contrast, waveform-random mean loss is also lower than C0, at 0.3782, but its WER and CER means are higher. The relationship between loss and recognition error therefore differs across conditions.
+
+These histories establish the direction of change at recorded evaluation boundaries. Three evaluation points are insufficient to locate an exact within-epoch change point or to establish a smooth curve's curvature. Training-loss logs sampled more frequently also measure a different quantity from validation loss. Any W\&B visualisation should preserve these distinctions, indicate smoothing explicitly, and mark the checkpoint selected by validation WER.
+
+\resultsfigure{Validation WER and loss across training.}{fig:results-curves}{Export unsmoothed epoch-evaluation histories from W\&B or recreate them from the saved trainer states. Use aligned WER and loss panels for clean C0/C1, dynamic C5/C6, and augmentation A2/S2/S4. Show separate seed traces, epoch boundaries, and selected checkpoints. Label WER as a percentage and loss as cross-entropy. If first-epoch values require a large vertical range, provide a labelled inset for epochs two and three instead of silently clipping values. Do not invent a seed-42 C1 trace when its history is unavailable.}
+
+\section{Computational cost and memory observations}
+\label{sec:results-resources}
+
+\subsection{Recorded training runtime}
+
+Base runs and initial Medium controls used an RTX 4090. Later Medium executions
+used A100-SXM4-40GB GPUs on GCP, one independent run per GPU; two simultaneous
+jobs do not double an individual run's effective batch size. Table~\ref{tab:results-resources}
+stratifies the recorded devices. Training-loop wall time includes epoch
+validation, but excludes preprocessing, separate final evaluations, prediction
+export, mirroring, and later external evaluation. It is not GPU compute time,
+energy, monetary cost, or a controlled hardware-speed benchmark.
+
+\begin{table}[htbp]\centering\small
+\caption{Training-loop minutes by recorded GPU and selected-checkpoint loss.
+Counts are completed records/timed records, not necessarily independent
+accuracy outcomes. Recovery-only timing is excluded; incomplete conditions
+describe only observed executions.}\label{tab:results-resources}
+\begin{tabular}{llrrr}\toprule
+Condition & GPU & Records/timed & Runtime (min) & Validation loss\\\midrule
+% BEGIN GENERATED resources
+C0: Random & RTX 4090 & 3/3 & $37.17 \pm 0.55$ & $0.3821 \pm 0.0006$ \\
+C1: SortaGrad & RTX 4090 & 3/3 & $38.27 \pm 1.10$ & $0.3831 \pm 0.0003$ \\
+C2: Strict SNR & RTX 4090 & 3/3 & $37.76 \pm 0.99$ & $0.3853 \pm 0.0000$ \\
+C3: SNR--duration & RTX 4090 & 3/3 & $37.66 \pm 0.92$ & $0.3856 \pm 0.0000$ \\
+C4: Acoustic pacing & RTX 4090 & 1/1 & $37.09$ & $0.4135$ \\
+C4R: Random pacing & RTX 4090 & 1/1 & $40.21$ & $0.4079$ \\
+C5: S2S loss & RTX 4090 & 3/3 & $47.84 \pm 16.84$ & $0.3902 \pm 0.0011$ \\
+C6: Utterance WER & RTX 4090 & 3/3 & $189.90 \pm 38.52$ & $0.3906 \pm 0.0002$ \\
+C7: Acoustic--S2S & RTX 4090 & 1/1 & $41.69$ & $0.3882$ \\
+A2: Waveform, random & RTX 4090 & 3/3 & $37.52 \pm 0.25$ & $0.3782 \pm 0.0008$ \\
+A3: Waveform, C3 & RTX 4090 & 3/3 & $37.09 \pm 0.69$ & $0.3814 \pm 0.0003$ \\
+S2: LB, random & RTX 4090 & 3/3 & $38.10 \pm 1.06$ & $0.3660 \pm 0.0003$ \\
+S3: LB, SortaGrad & RTX 4090 & 3/3 & $38.69 \pm 0.75$ & $0.3666 \pm 0.0002$ \\
+S4: LD, random & RTX 4090 & 3/3 & $37.49 \pm 0.40$ & $0.3683 \pm 0.0004$ \\
+S5: LD, SortaGrad & RTX 4090 & 3/3 & $38.04 \pm 0.80$ & $0.3693 \pm 0.0006$ \\
+M0: Medium, random & RTX 4090 & 3/3 & $151.70 \pm 0.54$ & $0.2759 \pm 0.0030$ \\
+M1: Medium, SortaGrad & A100 & 2/1 & $350.62$ & $0.2794 \pm 0.0005$ \\
+M1: Medium, SortaGrad & RTX 4090 & 1/1 & $163.42$ & $0.2784$ \\
+M2: Medium, SNR--duration & A100 & 3/3 & $314.02 \pm 0.83$ & $0.2853 \pm 0.0000$ \\
+M3: Medium, waveform random & A100 & 3/3 & $315.51 \pm 0.75$ & $0.2664 \pm 0.0015$ \\
+M4: Medium, waveform C3 & A100 & 3/3 & $316.50 \pm 1.48$ & $0.2708 \pm 0.0008$ \\
+M5: Medium, LB random & A100 & 3/3 & $316.33 \pm 0.64$ & $0.2527 \pm 0.0009$ \\
+M6: Medium, LB SortaGrad & A100 & 2/2 & $337.62 \pm 8.05$ & $0.2539 \pm 0.0002$ \\
+% END GENERATED resources
+\bottomrule\end{tabular}\end{table}
+
+Base random ordering averages 37.17 minutes. Most static, waveform, and masking conditions average approximately 37--39 minutes. LB random averages 38.10 minutes, 0.93 minutes above C0, while giving the lower mean WAXAL WER reported earlier. These elapsed-time observations do not by themselves quantify GPU utilisation, energy demand, or the incremental cost of preparing augmentation assets.
+
+C6, which uses generated utterance WER for difficulty scoring, averages 189.90 minutes, approximately 5.11 times the C0 mean. Its individual runtimes are 234.38, 167.19, and 168.13 minutes for seeds 42--44. The seed-42-only comparison is approximately 6.39 times its matched control, explaining why an earlier report gave a larger ratio. Both comparisons show substantially longer recorded training, while the aggregate recognition errors remain above C0.
+
+C5 illustrates why elapsed-time variability requires care. The original seed-42 execution records 67.29 minutes, compared with 38.00 and 38.24 minutes at seeds 43 and 44. Its exact seed-42 repeat records 38.06 minutes while reproducing the original metric trajectory. The original three seed records are retained in the main runtime average of 47.84 minutes; the repeat is not substituted silently or counted as a fourth accuracy observation. This contrast documents variability in execution time, but the available records do not isolate its cause.
+
+\subsection{Peak-memory evidence and its limits}
+
+Medium C1 seed 43 completed its original 6,906 updates on the previous machine
+and was recovered from checkpoint 6,906 for A100 final evaluation. Its saved
+1.7384-second resumed training call and zero resumed training loss are bookkeeping,
+not a full training runtime or evidence of zero original training loss. The
+completed accuracy results are retained, but that timing is excluded. The
+recorded A100 device for this row therefore describes recovery evaluation,
+not an assertion that its original weights were trained on an A100.
+
+No comparable full-training peak-memory series for the controlled Base and Medium conditions was found in the saved result summaries. Those quantities are therefore unreported rather than inferred from a 24 GB device specification or a configured free-memory requirement. The available direct memory measurements come from bounded Medium feasibility probes, summarised in Table~\ref{tab:results-memory}.
+
+\begin{table}[htbp]\centering\small
+\caption{Medium memory diagnostics, not full-training peaks. GiB denotes $2^{30}$ bytes. The corrected probes use batch size six and each complete two non-skipped optimiser updates.}\label{tab:results-memory}
+\begin{tabular}{lrrr}\toprule
+Probe & Training allocated & Training reserved & Evaluation reserved\\\midrule
+Clean, corrected & 14.235 GiB & 14.941 GiB & 14.994 GiB\\
+LD masking & 14.235 GiB & 14.934 GiB & 14.986 GiB\\\bottomrule
+\end{tabular}\end{table}
+
+Allocated training peaks are nearly identical in these two probes. The clean probe's highest reported reserved capacity across the displayed phases is 14.994 GiB. An earlier clean probe is excluded because no optimiser update completed and its optimiser state was uninitialised. Its smaller memory reading is consequently not comparable with the corrected probes.
+
+The diagnostics establish that the tested batches and operations completed under the specified memory conditions. They do not measure the largest allocation over a complete training run, memory fragmentation across many hours, or other processes' device use. A full-run memory ranking among curricula or augmentation policies cannot be supplied from these probes. Similarly, neither energy efficiency nor total storage cost is inferred from runtime and diagnostic memory alone.
+
+\resultsfigure{Recognition error and recorded training cost.}{fig:results-cost}{Plot WAXAL test WER against training-loop runtime in minutes, identifying individual seeds and model sizes. Include C0--C7, waveform, masking, and completed Medium conditions; use a logarithmic time axis if needed. Mark the C5 seed-42 rerun separately as a repeatability diagnostic rather than an additional accuracy replicate. A memory panel should be added only after comparable full-run measurements are exported; otherwise retain Table~\ref{tab:results-memory} as a clearly labelled diagnostic table.}
+
+\section{Whisper Medium extension: completed evidence and ongoing runs}
+\label{sec:results-medium}
+
+The matched extension uses the same v2 manifests, seed-specific curricula and
+augmentation policies, three epochs, train/evaluation batch six, accumulation
+one, AdamW learning rate $10^{-5}$, 500 warm-up steps, FP16, non-reentrant
+gradient checkpointing, validation-WER checkpoint selection, and greedy Shona
+transcription with a 225-token generation limit. The builder checks all 27
+actual Medium configs against their Base source hashes and archived Base
+scientific blocks. Only pretrained model ID/revision differs in these blocks.
+Operational identifiers, resource thresholds, and hardware differ.
+
+As of the 13 October 2026 snapshot:
+% BEGIN GENERATED medium_status
+20 of 27 Medium runs have completed final prediction exports and mirrors; 7 remain pending.
+% END GENERATED medium_status
+C0, C1, C3, A2, A3, and S2 have all three final seed records. S3 has two
+completed seeds; its third seed and the LD cells remain pending. The second
+batch has advancing training logs at the cutoff. Table~\ref{tab:results-medium-pending}
+distinguishes runs in progress from runs awaiting their turn. Pending entries
+are not zero-valued results, demonstrated failures, or score-dependent exclusions. Completed heavy outputs are verified in GCS before
+authorised local cleanup; repository mirrors retain the chapter's evidence.
+
+
+\begin{table}[htbp]\centering\small
+\caption{Unfinished Medium runs at the fixed cutoff. Update counts are progress
+positions from training logs, not final accuracy results. A final result requires
+selected-checkpoint validation/test evaluation, prediction export, and mirroring.}
+\label{tab:results-medium-pending}
+\begin{tabular}{llp{0.49\linewidth}}\toprule
+Cell & Seed(s) & Evidence and outstanding result\\\midrule
+S3: LB SortaGrad & 44 & Training log at step 4,702/6,906; final WER/CER pending.\\
+S4: LD random & 42 & Training log at step 6,323/6,906; final WER/CER pending.\\
+S4: LD random & 43, 44 & Queued; final WER/CER pending for each seed.\\
+S5: LD SortaGrad & 42, 43, 44 & Queued; final WER/CER pending for each seed.\\
+\bottomrule\end{tabular}\end{table}
+
+The queue comprises 27 distinct runs: three seeds for each of nine conditions.
+The clean controls are reused as factorial cells, not retrained and counted
+again under A0/A1 or S0/S1. Six conditions have all three final records and
+S3 has two. Thus 20/27 describes artifact completion, while the C3 hash
+identity still limits the number of distinct accuracy outcomes. No interim
+checkpoint is substituted for a missing final result.
+
+\begin{table}[htbp]\centering\scriptsize
+\caption{Medium WAXAL v2 WER/CER (\%). M0--M8 correspond to C0, C1, C3,
+A2, A3, S2, S3, S4, and S5. Parentheses show completed/planned seeds. Final
+means require all three prescribed seeds; M2 has identical predictions.}\label{tab:results-medium}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}\toprule
+Condition & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+% BEGIN GENERATED medium
+M0: Medium, random (3/3) & $25.75 \pm 0.25$ & $23.93 \pm 0.32$ & $5.00 \pm 0.15$ & $4.53 \pm 0.09$ \\
+M1: Medium, SortaGrad (3/3) & $25.90 \pm 0.37$ & $23.70 \pm 0.10$ & $5.06 \pm 0.16$ & $4.46 \pm 0.13$ \\
+M2: Medium, SNR--duration (3/3) & $25.77$ & $23.82$ & $4.90$ & $4.36$ \\
+M3: Medium, waveform random (3/3) & $25.03 \pm 0.09$ & $23.30 \pm 0.10$ & $4.93 \pm 0.16$ & $4.40 \pm 0.03$ \\
+M4: Medium, waveform C3 (3/3) & $25.02 \pm 0.07$ & $23.64 \pm 0.14$ & $4.82 \pm 0.08$ & $4.40 \pm 0.07$ \\
+M5: Medium, LB random (3/3) & $24.54 \pm 0.14$ & $22.65 \pm 0.32$ & $4.68 \pm 0.08$ & $4.25 \pm 0.06$ \\
+M6: Medium, LB SortaGrad (2/3) & \textit{Pending} & \textit{Pending} & \textit{Pending} & \textit{Pending} \\
+M7: Medium, LD random (0/3) & \textit{Pending} & \textit{Pending} & \textit{Pending} & \textit{Pending} \\
+M8: Medium, LD SortaGrad (0/3) & \textit{Pending} & \textit{Pending} & \textit{Pending} & \textit{Pending} \\
+% END GENERATED medium
+\bottomrule\end{tabular}\end{table}
+
+Medium random ordering reduces mean validation WER from 32.91\% to 25.75\% and test WER from 31.04\% to 23.93\%, improvements of 7.15 and 7.12 pp relative to Base. Mean validation and test CER decrease by 2.31 and 2.29 pp. Every completed Medium random seed has lower WAXAL WER and CER than its matched Base seed. The mean training-loop runtime rises from 37.17 to 151.70 minutes, approximately 4.08 times the Base duration.
+
+\begin{table}[htbp]\centering\scriptsize
+\caption{Matched Base/Medium WER. Counts are completed Medium seeds out of
+three; improvement is Base minus Medium test WER in pp. C3 repeatability is
+not three independent outcomes. No new significance claim is made.}
+\label{tab:results-medium-matched}
+\begin{tabular}{lrrrrrr}\toprule
+Cell & Complete & Base val. & Medium val. & Base test & Medium test & Improvement\\\midrule
+% BEGIN GENERATED medium_matched
+C0 & 3/3 & $32.91 \pm 0.48$ & $25.75 \pm 0.25$ & $31.04 \pm 0.29$ & $23.93 \pm 0.32$ & $+7.12$ \\
+C1 & 3/3 & $32.60 \pm 0.11$ & $25.90 \pm 0.37$ & $30.96 \pm 0.06$ & $23.70 \pm 0.10$ & $+7.26$ \\
+C3 & 3/3 & $32.84$ & $25.77$ & $30.46$ & $23.82$ & $+6.64$ \\
+A2 & 3/3 & $33.06 \pm 0.24$ & $25.03 \pm 0.09$ & $31.30 \pm 0.28$ & $23.30 \pm 0.10$ & $+8.00$ \\
+A3 & 3/3 & $33.04 \pm 0.34$ & $25.02 \pm 0.07$ & $31.37 \pm 0.27$ & $23.64 \pm 0.14$ & $+7.73$ \\
+S2 & 3/3 & $31.76 \pm 0.16$ & $24.54 \pm 0.14$ & $30.20 \pm 0.35$ & $22.65 \pm 0.32$ & $+7.55$ \\
+S3 & 2/3 & $32.20 \pm 0.26$ & \textit{Pending} & $30.43 \pm 0.22$ & \textit{Pending} & \textit{Pending} \\
+S4 & 0/3 & $32.46 \pm 0.28$ & \textit{Pending} & $30.38 \pm 0.19$ & \textit{Pending} & \textit{Pending} \\
+S5 & 0/3 & $32.41 \pm 0.08$ & \textit{Pending} & $30.69 \pm 0.41$ & \textit{Pending} & \textit{Pending} \\
+% END GENERATED medium_matched
+\bottomrule\end{tabular}\end{table}
+
+The three-seed Medium C1 mean is validation/test WER 25.90/23.70\%, with
+CER 5.06/4.46\%. Against Medium C0, validation WER worsens by 0.15 pp while
+test WER improves by 0.23 pp. The seed-42 test gain of 0.58 pp therefore
+overstates the three-seed mean if reported alone. Medium C3 gives
+25.77/23.82\% WER and 4.90/4.36\% CER; its mean-control test WER gain is
+0.11 pp and validation WER is slightly worse. Neither small test gain establishes a practically reliable advantage without paired
+uncertainty. The 0.5-pp rule described for prospective follow-up protocols concerns
+validation WER and additional promotion criteria; it is not a prespecified
+test-WER significance threshold for this Medium matrix. All Medium C3 prediction hashes match, qualifying the seed count.
+
+\begin{table}[htbp]\centering\small
+\caption{Within-model treatment improvements in WER (pp): control minus
+treatment. These are descriptive matched-seed mean contrasts; pending cells
+do not receive extrapolated effects or confidence intervals.}
+\label{tab:results-medium-effects}
+\begin{tabular}{lrrrr}\toprule
+Contrast & Base val. & Base test & Medium val. & Medium test\\\midrule
+% BEGIN GENERATED medium_effects
+C1 versus C0 & $+0.30$ & $+0.09$ & $-0.15$ & $+0.23$ \\
+C3 versus C0 & $+0.07$ & $+0.59$ & $-0.02$ & $+0.11$ \\
+A2 versus C0 & $-0.15$ & $-0.25$ & $+0.73$ & $+0.63$ \\
+A3 versus C3 & $-0.20$ & $-0.91$ & $+0.75$ & $+0.18$ \\
+S2 versus C0 & $+1.14$ & $+0.84$ & $+1.21$ & $+1.27$ \\
+S3 versus C1 & $+0.41$ & $+0.53$ & \textit{Pending} & \textit{Pending} \\
+S4 versus C0 & $+0.45$ & $+0.66$ & \textit{Pending} & \textit{Pending} \\
+S5 versus C1 & $+0.19$ & $+0.26$ & \textit{Pending} & \textit{Pending} \\
+% END GENERATED medium_effects
+\bottomrule\end{tabular}\end{table}
+
+\subsection{Matched treatment effects and the joint-intervention question}
+
+The waveform response is not universal across model sizes. Medium A2 improves
+validation/test WER by 0.73/0.63 pp against random ordering, reversing the
+Base changes of $-0.15/-0.25$ pp. The descriptive difference between test
+improvements is 0.88 pp. Medium A3 improves validation WER by 0.75 pp against
+clean Medium C3, but improves test WER by only 0.18 pp and slightly worsens
+test CER. These observations qualify the earlier Base-only negative waveform
+answer; they do not isolate noise, room response, or tempo mechanisms and are
+not a formal model--augmentation interaction test. Moreover, Medium random
+controls were trained on the RTX 4090 whereas these new augmentation runs used
+A100s. The contrast therefore cannot isolate model-dependent augmentation from
+execution-hardware effects; hardware-matched controls would strengthen that claim.
+
+Medium S2 has validation/test WER 24.54/22.65\% and CER 4.68/4.25\%, with
+WER improvements of 1.21/1.27 pp over Medium C0. It is the lowest test WER
+among fully completed three-seed Medium cells at this cutoff. The two completed
+S3 seeds are retained in the per-seed record, but their final condition mean,
+the LD cells, and ranking of the entire matrix remain pending.
+
+
+The augmentation main effect and the benefit of combining augmentation with a
+curriculum answer different questions. Medium A3 has lower test WER than clean
+C3, but its 23.64\% mean is higher than waveform-random A2's 23.30\%.
+Adding C3 to waveform augmentation therefore worsens test WER by 0.34 pp;
+all three matched seed contrasts have this direction. Mean validation WER
+differs by only 0.01 pp in favour of A3. The completed Medium waveform cells
+support a benefit of the tested augmentation under random ordering, but do not
+support an additional test-WER benefit from combining it with C3.
+
+Using the same interaction definition as the Base waveform analysis,
+$(\mathrm{A2}-\mathrm{A3})-(\mathrm{C0}-\mathrm{C3})$, the Medium contrast is
+$+0.02$ pp on validation and $-0.45$ pp on test, compared with Base's
+$-0.04/-0.66$ pp. The negative test value means that the curriculum advantage
+is smaller under augmentation. These are descriptive factorial contrasts,
+not evidence of a statistically established interaction or mechanism.
+Unlike the Medium A2--C0 comparison, Medium A3--A2 and A3--C3 use A100
+training for both arms. Their hardware matching makes those particular
+within-Medium contrasts easier to interpret, although it does not remove
+shared-data selection or limited-seed uncertainty.
+
+\begin{table}[htbp]\centering\small
+\caption{Medium test-WER improvement (control minus treatment, pp) for each
+matched seed. These values show direction consistency, not confidence intervals.
+The A3--C3 rows reuse prediction-identical C3 controls.}
+\label{tab:results-medium-seed-effects}
+\begin{tabular}{lrrr}\toprule
+Treatment versus control & Seed 42 & Seed 43 & Seed 44\\\midrule
+C1 versus C0 & $+0.58$ & $-0.22$ & $+0.32$ \\
+C3 versus C0 & $+0.42$ & $-0.23$ & $+0.14$ \\
+A2 versus C0 & $+0.83$ & $+0.32$ & $+0.73$ \\
+A3 versus C3 & $+0.10$ & $+0.09$ & $+0.34$ \\
+A3 versus A2 & $-0.31$ & $-0.46$ & $-0.26$ \\
+S2 versus C0 & $+1.89$ & $+0.97$ & $+0.97$ \\
+\bottomrule\end{tabular}\end{table}
+
+The clean curriculum gains change sign across seeds. In contrast, A2--C0 and
+S2--C0 improve validation and test WER at every completed seed; A3--C3 also
+improves WER at every seed, but has only small test gains. This agreement in
+direction is useful descriptive evidence, not a substitute for uncertainty
+estimation. For the partial LB--SortaGrad cell, seed 42 is worse than matched
+LB random by 0.13 pp test WER whereas seed 43 is better by 0.50 pp. Reporting
+only seed 43 or treating the two-seed mean as the final answer would obscure
+that variation. The third seed is needed before reporting the prescribed
+condition mean; even then a synergy claim requires the full clean/LB
+interaction contrast and its uncertainty.
+
+\subsection{Error composition and the limits of an aggregate improvement}
+
+\begin{table}[htbp]\centering\small
+\caption{Medium WAXAL test edit components, as percentages of reference words.
+Values are arithmetic means over the three prescribed records; C3 records
+are prediction-identical. The components sum to WER before rounding.}
+\label{tab:results-medium-components}
+\begin{tabular}{lrrr}\toprule
+Condition & Substitutions & Deletions & Insertions\\\midrule
+C0: Random & 17.18 & 2.72 & 4.03 \\
+C3: SNR--duration & 17.16 & 2.94 & 3.72 \\
+A2: Waveform random & 16.55 & 2.90 & 3.85 \\
+A3: Waveform C3 & 16.90 & 2.80 & 3.94 \\
+S2: LB random & 16.22 & 2.68 & 3.75 \\
+\bottomrule\end{tabular}\end{table}
+
+Relative to clean random ordering, Medium waveform-random reduces substitution
+and insertion rates but increases deletions from 2.72\% to 2.90\% of reference
+words. Its WER gain therefore does not mean that all error types improve.
+LB random lowers all three mean edit components, including deletions to
+2.68\%. These are pooled word-count descriptions, not evidence that a
+particular acoustic perturbation causes an error type or that every speaker
+benefits. Duration, SNR, speaker, and linguistic error analyses remain needed
+before attributing gains to particular recording conditions or Shona phenomena.
+
+\subsection{Medium learning trajectories and unresolved external transfer}
+
+Medium random seed 42 selects epoch two, whereas seeds 43 and 44 select epoch three. Medium SortaGrad seed 42 selects epoch three; its first-epoch validation WER is 63.08\%, then falls to 26.42\% and 26.27\%. This trajectory differs markedly from the first-epoch random-order result, while its selected-checkpoint test WER is lower. An early-epoch ranking consequently does not determine the final checkpoint ranking in this example.
+
+The later Medium trajectories also qualify any universal overfitting claim.
+All completed A2/A3 runs select epoch three: validation WER decreases after
+epoch two although validation loss increases. Medium S2 instead improves both
+WER and loss over that interval at all three seeds. The two completed S3
+runs have first-epoch validation WER of 47.57\% and 42.01\%, falling to
+24.69\% and 24.50\% by epoch three. These are training-loop values, which
+must not be substituted for separately exported table scores. Under this
+three-epoch budget, SortaGrad does not demonstrate uniformly faster convergence;
+the sparse evaluation schedule cannot determine time to a common target WER.
+
+No Medium FLEURS outcomes or new Medium speaker-clustered comparison intervals
+are supplied. Lower WAXAL means are not evidence of external transfer or
+statistical significance. The extension compares pretrained variants as a whole:
+architecture and weights change together, and later executions also changed
+hardware. It does not causally isolate parameter count or a GPU-speed effect.
+
+\section{Findings in relation to the research questions}
+
+For RQ1, the Base results show that the observed effect depends on the curriculum, metric, and evaluation population. Clean SortaGrad gives small mean WAXAL WER reductions, with a slight increase in test CER. Deterministic SNR--duration ordering gives the lowest clean-curriculum WAXAL test WER and CER, but its validation ranking is less favourable and its external test WER exceeds the random baseline. Strict SNR ordering, the dynamic curricula, and the single-seed pacing and hybrid conditions do not improve the complete set of reported WAXAL endpoints over their controls. No evaluated clean curriculum leads across all reported validation, test, word, character, and external-domain measures.
+
+For RQ2 with Base, the composite waveform policy increases mean WAXAL WER and CER under both studied orderings. LB masking with random ordering yields the lowest mean WAXAL WER among the completed Base conditions, with a test reduction of 0.84 pp relative to clean random ordering. Adding SortaGrad or doubling mask counts does not improve that mean WAXAL WER result. The masking conditions nevertheless have higher mean FLEURS test WER and CER than their corresponding clean controls. The observed in-domain masking advantage is therefore not an observed external-domain advantage under the evaluated protocol.
+
+The Base conclusions are not automatically conclusions about Medium. Completed
+Medium random ordering reduces test WER by 7.12 pp against Base, and the
+three-seed Medium waveform-random and LB-random results add descriptive
+in-domain evidence. However, combining waveform augmentation with C3 does
+not improve on Medium waveform augmentation alone, and the Medium masking
+interaction remains unfinished. Medium clean curricula retain small, split-dependent
+effects. The earlier Base-only capacity and single-seed Medium SortaGrad gaps
+are therefore partly resolved, but the pending matrix, external evaluation,
+and formal uncertainty still constrain the final RQ answers.
+
+Loss, runtime, and memory remain distinct measurements. Lower teacher-forced
+loss need not mean lower generated-text error; dynamic WER ordering costs more
+without a lower Base mean error; and full-run memory comparisons remain absent.
+The same-device RTX 4090 C0 comparison is approximately fourfold in recorded
+runtime, but mixed A100/4090 execution is not a controlled hardware benchmark.
+No causal explanation of the new augmentation response is assigned here.
+
+\section{Limitations and what the extension resolves}
+\label{sec:results-limitations}
+
+\begin{table}[htbp]\centering\small
+\caption{Status of earlier evidence gaps at the current cutoff. Resolution
+within the fixed protocol is not generalisation beyond it.}
+\label{tab:results-limitations-status}
+\begin{tabular}{p{0.27\linewidth}p{0.65\linewidth}}\toprule
+Earlier gap & Current evidence and remaining boundary\\\midrule
+Base-only capacity evidence & Partly addressed by replicated, matched Medium
+C0/C1/C3/A2/A3/S2 under WAXAL v2; Large, other languages, splits, and budgets
+are not covered.\\
+Single-seed Medium SortaGrad & Addressed by three completed C1 seeds, including
+checkpoint recovery; its 0.23-pp mean test gain changes direction across seeds and lacks paired uncertainty.\\
+Missing Base masking cells & Resolved by complete, distinct S2--S5 artifacts;
+Medium S3/LD final means still await all seeds.\\
+Universal waveform-negative interpretation & Not supported: Medium A2 changes
+the direction of the matched WER effect; component mechanisms are unisolated.\\
+One-device cost description & Corrected by device-stratified timings and
+recovery exclusion; full-run memory, energy, and an isolated GPU benchmark remain absent.\\
+\bottomrule\end{tabular}\end{table}
+
+\begin{enumerate}
+\item Three seeds give limited training-variability coverage; they are not new
+speaker populations. Deterministic Base C2/C3 and Medium C3 predictions do not
+constitute independent accuracy replications. C4/C4R/C7 remain single-seed,
+and dynamic curricula were not included in the Medium matrix. Later Base
+C1/C2/C3/C6 repetitions add post hoc evidence without reopening the original
+frozen curriculum selection.
+\item Base C3 test results contributed to its choice for the waveform factorial.
+The same WAXAL test population has been inspected across stages. Keeping Medium
+hyperparameters frozen does not retroactively create an untouched test set or
+erase selection uncertainty. Unadjusted screening intervals do not give
+family-wise error control, and no new Medium paired/interaction intervals have
+been computed. Small effects are not declared significant from SD overlap.
+\item Completed Base masking improves WAXAL WER but not corrected FLEURS test
+error. Medium FLEURS is unmeasured. Prior FLEURS inspection makes future claims
+adaptive; prompt clustering cannot recover unknown speaker dependence.
+\item The composite waveform intervention does not identify noise, RIR, or
+tempo contributions. Mechanism-isolating B-series training remains prospective.
+The new model-dependent direction does not resolve this attribution limitation.
+\item All outcomes remain conditional on Shona, one speaker-disjoint split,
+pinned pretrained variants, three epochs, and the matched optimisation contract.
+The new Medium evidence narrows the Base-only limitation, but not these wider
+generalisability bounds or the combined architecture/pretrained-weight change.
+\item Hardware and prediction passes differ across stages. C1 seed 43 uses
+recovered earlier weights and A100 final evaluation. Canonical item-level metrics
+are used consistently, but matching configs cannot guarantee identical floating
+point trajectories. Wall time is not evidence of energy or economic efficiency.
+Config parity also does not establish byte-identical historical trainer code.
+In particular, RTX-trained Medium random controls versus A100-trained
+augmentation treatments leave an execution-hardware confound beyond the
+pretrained-variant comparison. This is a limitation of attribution, not evidence
+that hardware explains the measured accuracy difference.
+\item Completed Medium training resolves the narrow concern that the matched
+batch-six protocol has only been dry-run or tested for two optimiser steps:
+20 runs have final artifacts, and the later completed augmentation executions
+demonstrate feasibility on the recorded A100 setup. It does not supply a
+comparable full-run peak-memory measurement, certify the pending LD cells,
+or establish feasibility on all devices. The original short RTX probes and
+later A100 executions must not be presented as one hardware experiment.
+\item Medium has no matched zero-shot reference in the inspected evidence.
+Its lower fine-tuned WER relative to Base therefore describes selected
+fine-tuned variants, not how much more benefit Medium obtained from the same
+Shona adaptation relative to its own pretrained starting accuracy. Increasing
+model size has not resolved this baseline-attribution gap.
+\item Generation remains bounded at 225 tokens. The canonical exporter does
+not record raw length or EOS termination, so decoded text alone cannot exclude
+cap-limited hypotheses. A higher-limit sensitivity analysis must apply matched
+Base/Medium decoding and be labelled separately, not silently change batch two.
+WER/CER and three epoch evaluations do not establish semantic quality or prove
+an overfitting/regularisation mechanism.
+\end{enumerate}
+
+
+\subsection{Audio truncation remains unresolved by the larger model}
+
+The shared preprocessing invokes Whisper's fixed 30-second feature window
+while tokenising the full reference text; it does not align a shortened
+reference to any discarded audio. The manifest audit finds 520/13,807 clean
+training recordings (3.77\%), 21/1,715 validation recordings (1.22\%), and
+40/1,671 test recordings (2.39\%) longer than 30 seconds. These are counts
+from manifest durations, not newly measured waveform lengths. Their maximum
+durations are 35.91, 34.90, and 35.55 seconds, respectively. The same validation
+and test manifests are used by Base and Medium.
+
+This identifies exposure to an audio/reference mismatch, but does not prove
+that all excess duration contains transcribed speech or quantify the induced
+WER. Shared truncation also does not guarantee equal effects on model rankings,
+especially when duration itself defines a curriculum. The Medium extension
+retains this pipeline and therefore does not resolve the limitation. A
+prespecified duration-stratified analysis and evaluation with correctly aligned
+segments or suitable long-form inference would be needed; any changed protocol
+must be reported separately from the matched results above. The 30-second
+input window and the 225-token output cap are distinct restrictions, and fixing
+one would not automatically fix the other.
+
+\subsection{Outstanding results and the claims they would permit}
+
+Table~\ref{tab:results-outstanding} reserves the missing evidence explicitly.
+Finishing training alone will close only the incomplete-matrix gap. It will
+not by itself establish external-domain transfer, statistical significance,
+or a causal explanation for a treatment effect.
+
+\begin{table}[htbp]\centering\small
+\caption{Reserved results and analyses. ``Pending'' denotes absent evidence,
+not an expectation that the missing result will be favourable.}
+\label{tab:results-outstanding}
+\begin{tabular}{p{0.30\linewidth}p{0.60\linewidth}}\toprule
+Missing evidence & Reserved result and completion requirement\\\midrule
+Medium S3/S4/S5 & \textit{Pending:} all prescribed seed WER/CER, final
+means/SDs, and matched controls in Tables~\ref{tab:results-medium}
+and~\ref{tab:results-medium-effects}.\\
+Medium masking interactions & \textit{Pending:} clean/LB/LD by
+random/SortaGrad contrasts; compare S3--S2, S5--S4, S4--S2, and S5--S3
+and the corresponding clean-control differences.\\
+Medium corrected FLEURS & \textit{Pending:} validation/test WER/CER for
+C0/C1/C3/A2/A3/S2--S5 under the Base reference and decoding protocol;
+retain per-seed coverage and prompt dependence.\\
+Medium paired uncertainty & \textit{Pending:} speaker-clustered WAXAL
+intervals for stated within-model and Base--Medium contrasts. Report
+training-seed variation separately and disclose comparison multiplicity.\\
+Input/output length sensitivity & \textit{Pending:} duration strata,
+raw generated lengths/EOS status, and a separately labelled matched
+decoding/segmentation sensitivity evaluation.\\
+Generalisation and attribution & \textit{Not resolved by this queue:}
+new held-out populations, hardware-matched controls where needed,
+waveform-component ablations, and a Medium zero-shot baseline.\\
+\bottomrule\end{tabular}\end{table}
+
+\subsection{Evidence provenance and integration with the thesis}
+
+This revision was checked against 59 completed WAXAL run records (39 Base,
+20 Medium), with 367 configuration, metric, manifest, diagnostic, and comparison
+inputs in the numeric audit. WER was reconstructed from edit counts; sample
+SDs and matched contrasts were recomputed from unrounded scores. All 20 Medium
+summary files and 32 locally available validation/test prediction files were
+checked against their archived hashes. Eight individual prediction files for
+the initial C0 seeds 42--44 and C1 seed 42 are absent from the current mirror;
+their summaries and archival export manifests support the reported aggregate
+scores, but their per-utterance results could not be rechecked here. Recovering
+those files is necessary for a reproducible paired analysis involving those
+controls. Completion here refers to recorded final exports, not a claim that
+all historical prediction files remain locally available.
+This validates the inspected artifacts, not a new execution
+of training or independent certification of unavailable checkpoint weights.
+
+The primary sources are the per-run
+\path{artifacts/experiment_outputs/medium/} mirrors, the frozen protocol
+\path{documents/data/whisper_medium_rq1_rq2_protocol.md}, and
+\path{experiments/medium/queue.json}. Run progress comes from the two batch-two
+controller logs and the active run logs under
+\path{/ext_data/casper/asr_experiment_outputs/medium/rq2/}.
+The duration counts use the three manifests under
+\path{/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/}; the input
+handling is implemented in \path{asr_experiments/training/whisper.py} and
+\path{asr_experiments/commands/evaluation/evaluate_predictions.py}.
+
+The existing author notes and earlier methodology completion paragraph still
+describe four completed Medium runs and an interrupted C1 seed 43. Those
+statements are superseded by the recovery and subsequent final exports reported
+here; the date alone does not distinguish these different same-day snapshots.
+They require reconciliation when integrating chapters. This revision preserves
+the historical interruption as provenance without presenting it as a current
+unresolved absence of C1 accuracy results.
+
+\clearpage
+\section{Per-seed WAXAL recognition record}
+\label{sec:results-perseed}
+
+Table~\ref{tab:results-perseed} retains all completed per-seed values, including
+the partial Medium S3 records, without extrapolating their final mean. It
+excludes the C5 exact rerun and does not duplicate shared factorial controls.
+C2/C3/M2 repeats are prediction-identical as qualified above. Medium C1 now
+contains all three seeds; pending Medium seeds are not assigned outcomes.
+
+\small
+\begin{longtable}{lrrrrr}
+\caption{Individual WAXAL v2 results (\%). Condition codes are defined in the preceding sections.}\label{tab:results-perseed}\\
+\toprule Condition & Seed & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+\endfirsthead
+\toprule Condition & Seed & Val. WER & Test WER & Val. CER & Test CER\\\midrule
+\endhead
+\midrule\multicolumn{6}{r}{Continued on next page}\\\endfoot
+\bottomrule\endlastfoot
+% BEGIN GENERATED perseed
+C0 & 42 & 32.52 & 31.36 & 7.08 & 7.01 \\
+C0 & 43 & 33.44 & 30.79 & 7.56 & 6.68 \\
+C0 & 44 & 32.76 & 30.99 & 7.30 & 6.77 \\
+C1 & 42 & 32.59 & 31.02 & 7.21 & 6.79 \\
+C1 & 43 & 32.50 & 30.95 & 7.26 & 7.02 \\
+C1 & 44 & 32.73 & 30.90 & 7.32 & 6.85 \\
+C2 & 42 & 33.12 & 31.53 & 7.36 & 7.46 \\
+C2 & 43 & 33.12 & 31.53 & 7.36 & 7.46 \\
+C2 & 44 & 33.12 & 31.53 & 7.36 & 7.46 \\
+C3 & 42 & 32.84 & 30.46 & 7.13 & 6.47 \\
+C3 & 43 & 32.84 & 30.46 & 7.13 & 6.47 \\
+C3 & 44 & 32.84 & 30.46 & 7.13 & 6.47 \\
+C4 & 42 & 34.47 & 32.59 & 7.81 & 7.47 \\
+C4R & 42 & 34.39 & 32.46 & 7.83 & 7.45 \\
+C5 & 42 & 33.84 & 31.32 & 7.92 & 6.96 \\
+C5 & 43 & 33.69 & 32.62 & 7.91 & 8.15 \\
+C5 & 44 & 34.20 & 31.41 & 7.93 & 6.99 \\
+C6 & 42 & 34.03 & 31.77 & 7.68 & 6.81 \\
+C6 & 43 & 33.55 & 32.30 & 7.23 & 6.99 \\
+C6 & 44 & 34.19 & 31.87 & 7.48 & 6.97 \\
+C7 & 42 & 34.52 & 32.19 & 8.41 & 7.57 \\
+A2 & 42 & 33.12 & 31.62 & 8.54 & 7.36 \\
+A2 & 43 & 33.27 & 31.12 & 7.81 & 7.06 \\
+A2 & 44 & 32.79 & 31.15 & 7.68 & 6.94 \\
+A3 & 42 & 33.07 & 31.36 & 7.73 & 7.21 \\
+A3 & 43 & 33.35 & 31.10 & 7.84 & 6.93 \\
+A3 & 44 & 32.68 & 31.65 & 7.58 & 7.16 \\
+S2 & 42 & 31.71 & 30.57 & 6.79 & 7.22 \\
+S2 & 43 & 31.94 & 30.16 & 7.00 & 6.53 \\
+S2 & 44 & 31.64 & 29.87 & 6.82 & 6.38 \\
+S3 & 42 & 32.00 & 30.61 & 7.04 & 7.18 \\
+S3 & 43 & 32.10 & 30.18 & 7.10 & 6.67 \\
+S3 & 44 & 32.49 & 30.49 & 7.51 & 6.81 \\
+S4 & 42 & 32.76 & 30.51 & 7.92 & 7.16 \\
+S4 & 43 & 32.20 & 30.17 & 7.38 & 6.62 \\
+S4 & 44 & 32.41 & 30.48 & 7.32 & 7.00 \\
+S5 & 42 & 32.44 & 30.86 & 7.29 & 7.32 \\
+S5 & 43 & 32.47 & 30.23 & 7.38 & 6.75 \\
+S5 & 44 & 32.33 & 30.99 & 7.23 & 7.18 \\
+M0 & 42 & 26.03 & 24.24 & 5.04 & 4.62 \\
+M0 & 43 & 25.68 & 23.59 & 5.13 & 4.43 \\
+M0 & 44 & 25.55 & 23.95 & 4.84 & 4.55 \\
+M1 & 42 & 26.26 & 23.66 & 5.16 & 4.49 \\
+M1 & 43 & 25.92 & 23.81 & 5.13 & 4.56 \\
+M1 & 44 & 25.53 & 23.63 & 4.87 & 4.31 \\
+M2 & 42 & 25.77 & 23.82 & 4.90 & 4.36 \\
+M2 & 43 & 25.77 & 23.82 & 4.90 & 4.36 \\
+M2 & 44 & 25.77 & 23.82 & 4.90 & 4.36 \\
+M3 & 42 & 25.13 & 23.41 & 5.07 & 4.38 \\
+M3 & 43 & 25.01 & 23.27 & 4.76 & 4.39 \\
+M3 & 44 & 24.95 & 23.22 & 4.97 & 4.43 \\
+M4 & 42 & 25.08 & 23.72 & 4.72 & 4.40 \\
+M4 & 43 & 24.94 & 23.72 & 4.87 & 4.33 \\
+M4 & 44 & 25.04 & 23.47 & 4.87 & 4.47 \\
+M5 & 42 & 24.44 & 22.35 & 4.72 & 4.21 \\
+M5 & 43 & 24.70 & 22.62 & 4.74 & 4.23 \\
+M5 & 44 & 24.50 & 22.99 & 4.59 & 4.32 \\
+M6 & 42 & 24.72 & 22.48 & 4.59 & 4.12 \\
+M6 & 43 & 24.49 & 22.12 & 4.54 & 4.01 \\
+% END GENERATED perseed
+\end{longtable}
+\normalsize
+
+\begin{thebibliography}{9}
+\bibitem[Amodei et~al.(2016)]{Amodei2016}
+Amodei, D., et~al. (2016). Deep Speech 2: End-to-End Speech Recognition in English and Mandarin. \emph{Proceedings of ICML}, 48, 173--182. \url{https://proceedings.mlr.press/v48/amodei16.html}.
+\bibitem[Conneau et~al.(2022)]{Conneau2022}
+Conneau, A., et~al. (2022). FLEURS: Few-shot Learning Evaluation of Universal Representations of Speech. arXiv:2205.12446. \url{https://arxiv.org/abs/2205.12446}.
+\bibitem[Park et~al.(2019)]{Park2019}
+Park, D.~S., Chan, W., Zhang, Y., Chiu, C.-C., Zoph, B., Cubuk, E.~D., and Le, Q.~V. (2019). SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition. \emph{Proceedings of Interspeech}, 2613--2617. \url{https://doi.org/10.21437/Interspeech.2019-2680}.
+\bibitem[Radford et~al.(2023)]{Radford2023}
+Radford, A., Kim, J.~W., Xu, T., Brockman, G., McLeavey, C., and Sutskever, I. (2023). Robust Speech Recognition via Large-Scale Weak Supervision. \emph{Proceedings of ICML}, 202, 28492--28518. \url{https://proceedings.mlr.press/v202/radford23a.html}.
+\end{thebibliography}
+\end{document}
