@@ -29,6 +29,7 @@ FAMILIES = (
     ("rq2", "s5_specaug_ld_sortagrad_seed{seed}"),
 )
 QUEUE_PATH = PROJECT_ROOT / "experiments/medium/queue.json"
+A100_GPU_NAME = "NVIDIA A100-SXM4-40GB"
 
 
 def specifications(root: Path) -> list[tuple[Path, dict[str, Any]]]:
@@ -121,8 +122,79 @@ def expected_files(root: Path) -> dict[Path, str]:
     return files
 
 
-def materialize(root: Path, check_only: bool = False) -> None:
-    files = expected_files(root)
+def a100_control_files(root: Path) -> dict[Path, str]:
+    queue = json.loads((root / "experiments/medium/queue.json").read_text(encoding="utf-8"))
+    sources = []
+    for entry in queue["runs"][:5]:
+        path = root / entry["experiment_dir"] / "config.json"
+        sources.append((path, json.loads(path.read_text(encoding="utf-8"))))
+    expected_names = [f"c0_random_seed{seed}_v2" for seed in SEEDS] + ["c1_sortagrad_seed42", "c1_sortagrad_seed43"]
+    if [path.parent.name for path, _ in sources] != expected_names:
+        raise ValueError("Original RTX-trained Medium control order changed")
+    identities = {source["experiment_id"]: f"a100-{source['experiment_id']}" for _, source in sources}
+    files: dict[Path, str] = {}
+    entries = []
+    for source_path, source in sources:
+        config = copy.deepcopy(source)
+        original_id = source["experiment_id"]
+        experiment_id = identities[original_id]
+        control = source.get("control_experiment")
+        config.update(
+            experiment_id=experiment_id, experiment_name=experiment_id,
+            control_experiment=identities[control] if control else None,
+            output_dir=source["output_dir"].replace("medium/", "medium_a100/", 1),
+        )
+        config["resources"].update(required_gpu_name=A100_GPU_NAME, require_idle_gpu=True)
+        config["wandb"].update(
+            run_name=experiment_id, job_type="a100-hardware-replication", resume_run_id=None,
+            tags=source["wandb"]["tags"] + ["a100-replication", "hardware-matched-control"],
+        )
+        config["a100_replication"] = {
+            "original_experiment_id": original_id,
+            "source_config": source_path.relative_to(root).as_posix(),
+            "source_config_sha256": sha256_file(source_path),
+            "initialisation": "fresh pinned pretrained Medium; never resume RTX checkpoints",
+            "required_gpu_name": A100_GPU_NAME,
+        }
+        relative_dir = Path("experiments") / config["output_dir"]
+        config_path = root / relative_dir / "config.json"
+        files[config_path] = json.dumps(config, indent=2) + "\n"
+        files[config_path.with_name("run.sh")] = (
+            '#!/usr/bin/env bash\nset -euo pipefail\n'
+            'EXPERIMENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"\n'
+            'ROOT_DIR="$(cd "$EXPERIMENT_DIR/../../../.." && pwd)"\n'
+            'exec "$ROOT_DIR/scripts/run_experiment.sh" "$EXPERIMENT_DIR"\n'
+        )
+        files[config_path.with_name("experiment.md")] = (
+            f"# {experiment_id}\n\n"
+            f"Fresh A100 hardware-matched replication of `{source_path.relative_to(root).as_posix()}`.\n"
+            "All scientific settings and seeds are unchanged. Original outputs are preserved.\n"
+            "This is not continuation from the RTX checkpoint or an additional independent seed.\n\n"
+            "Protocol: `documents/data/medium_a100_controls_2026-10-15.md`.\n"
+        )
+        entries.append({
+            "experiment_dir": relative_dir.as_posix(), "experiment_id": experiment_id,
+            "control_experiment": config["control_experiment"], "runner": config["runner"],
+            "output_dir": config["output_dir"],
+            "source_config": source_path.relative_to(root).as_posix(),
+        })
+    files[root / "experiments/medium_a100/queue.json"] = json.dumps({
+        "schema_version": 1, "model": queue["model"], "runs": entries,
+        "required_gpu_name": A100_GPU_NAME, "estimated_disk_reserve_gib": 32 * len(entries),
+        "training_launched": False,
+        "reused_a100_controls": [{
+            "experiment_id": "medium-rq1-c1-sortagrad-seed44",
+            "output_dir": "medium/rq1/c1_sortagrad_seed44",
+            "matched_control_experiment": identities["medium-rq1-c0-random-seed44-v2"],
+            "reason": "Already trained from pretrained Medium on this A100 machine",
+        }],
+        "analysis_policy": "A100-only Medium cohort by hardware provenance, not outcome; retain RTX records separately",
+    }, indent=2) + "\n"
+    return files
+
+
+def materialize(root: Path, check_only: bool = False, *, a100_controls: bool = False) -> None:
+    files = a100_control_files(root) if a100_controls else expected_files(root)
     for path, content in files.items():
         if path.exists() and path.read_text(encoding="utf-8") != content:
             raise FileExistsError(f"Refusing to replace differing queue definition: {path}")
@@ -138,9 +210,10 @@ def materialize(root: Path, check_only: bool = False) -> None:
             path.chmod(0o775)
 
 
-def validate_inputs(root: Path, output_root: Path) -> list[dict[str, Any]]:
-    materialize(root, check_only=True)
-    queue = json.loads((root / "experiments/medium/queue.json").read_text(encoding="utf-8"))
+def validate_inputs(root: Path, output_root: Path, *, a100_controls: bool = False) -> list[dict[str, Any]]:
+    materialize(root, check_only=True, a100_controls=a100_controls)
+    queue_path = "experiments/medium_a100/queue.json" if a100_controls else "experiments/medium/queue.json"
+    queue = json.loads((root / queue_path).read_text(encoding="utf-8"))
     for entry in queue["runs"]:
         config_path = root / entry["experiment_dir"] / "config.json"
         config = json.loads(config_path.read_text(encoding="utf-8"))
@@ -169,10 +242,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Validate prepared queue without writing files.")
     parser.add_argument("--list", action="store_true", help="Validate and print ordered experiment directories.")
-    parser.add_argument("--dry-run-runners", action="store_true", help="Validate all 27 actual runner dry-runs, never train.")
+    parser.add_argument("--dry-run-runners", action="store_true", help="Validate every selected runner by dry-run, never train.")
+    parser.add_argument("--a100-controls", action="store_true", help="Prepare the five fresh hardware-matched A100 controls in a separate namespace.")
     args = parser.parse_args()
-    materialize(PROJECT_ROOT, check_only=args.check or args.list or args.dry_run_runners)
-    entries = validate_inputs(PROJECT_ROOT, Path(os.environ.get("ASR_OUTPUT_ROOT", "/ext_data/casper/asr_experiment_outputs")))
+    materialize(PROJECT_ROOT, check_only=args.check or args.list or args.dry_run_runners, a100_controls=args.a100_controls)
+    entries = validate_inputs(PROJECT_ROOT, Path(os.environ.get("ASR_OUTPUT_ROOT", "/ext_data/casper/asr_experiment_outputs")), a100_controls=args.a100_controls)
     if args.list:
         print("\n".join(entry["experiment_dir"] for entry in entries))
         return

@@ -89,6 +89,8 @@ fi
 
 required_free_gpu_mb="$("$PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("resources", {}).get("min_free_gpu_mb", 0))' "$CONFIG_FILE")"
 required_free_disk_gb="$("$PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("resources", {}).get("min_free_disk_gb", 0))' "$CONFIG_FILE")"
+required_gpu_name="$("$PYTHON" -c 'import json,sys; print(json.load(open(sys.argv[1])).get("resources", {}).get("required_gpu_name", ""))' "$CONFIG_FILE")"
+require_idle_gpu="$("$PYTHON" -c 'import json,sys; print(int(json.load(open(sys.argv[1])).get("resources", {}).get("require_idle_gpu", False)))' "$CONFIG_FILE")"
 
 if (( required_free_gpu_mb > 0 )); then
     if ! command -v nvidia-smi >/dev/null 2>&1; then
@@ -98,6 +100,31 @@ if (( required_free_gpu_mb > 0 )); then
     free_gpu_mb="$(nvidia-smi --id="${CUDA_VISIBLE_DEVICES:-0}" --query-gpu=memory.free --format=csv,noheader,nounits | head -1 | tr -d ' ')"
     if (( free_gpu_mb < required_free_gpu_mb )); then
         echo "Insufficient GPU memory: ${free_gpu_mb} MiB free, ${required_free_gpu_mb} MiB required." >&2
+        exit 1
+    fi
+fi
+
+if [[ -n "$required_gpu_name" ]]; then
+    if [[ -f "$ROOT_DIR/.env" ]]; then
+        "$PYTHON" - "$ROOT_DIR/.env" <<'PY'
+import sys
+from dotenv import dotenv_values
+
+if "CUDA_VISIBLE_DEVICES" in dotenv_values(sys.argv[1]):
+    raise SystemExit("Remove CUDA_VISIBLE_DEVICES from .env; it would override the assigned A100 GPU.")
+PY
+    fi
+    actual_gpu_name="$(nvidia-smi --id="${CUDA_VISIBLE_DEVICES:-0}" --query-gpu=name --format=csv,noheader)"
+    if [[ "$actual_gpu_name" != "$required_gpu_name" ]]; then
+        echo "Require GPU $required_gpu_name; got $actual_gpu_name." >&2
+        exit 1
+    fi
+fi
+if [[ "$require_idle_gpu" == 1 ]]; then
+    selected_uuid="$(nvidia-smi --id="${CUDA_VISIBLE_DEVICES:-0}" --query-gpu=uuid --format=csv,noheader)"
+    busy_gpu_ids="$(nvidia-smi --query-compute-apps=gpu_uuid --format=csv,noheader)"
+    if printf '%s\n' "$busy_gpu_ids" | grep -Fxq "$selected_uuid"; then
+        echo "Selected GPU has an active compute process; refusing concurrent hardware-control training." >&2
         exit 1
     fi
 fi

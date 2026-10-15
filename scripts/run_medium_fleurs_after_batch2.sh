@@ -11,18 +11,42 @@ HF_HOME_VALUE="${WHISPER_HF_HOME:-/ext_data/casper/huggingface_cache}"
 ARTIFACT_ROOT="$ROOT_DIR/artifacts/experiment_outputs"
 LOG_DIR="$ARTIFACT_ROOT/medium/logs"
 SESSION="medium-fleurs-after-batch2"
+QUEUE_PATH="$ROOT_DIR/experiments/medium/queue.json"
+TRAINING_PREFIX="medium-batch2-gpu"
+QUEUE_SIZE=27
+START_INDEX=16
+EXPECTED_RUNS=11
+OUTPUT_PREFIX="medium/"
+A100_CONTROLS=false
 
 usage() {
-    echo "Usage: $0 [--preflight-only | --controller | --local-only | --local-preflight-only]" >&2
+    echo "Usage: $0 [--a100-controls] [--preflight-only | --controller | --local-only | --local-preflight-only]" >&2
     exit 2
 }
 
-if (( $# > 1 )); then usage; fi
-mode="${1:---launch}"
-case "$mode" in
-    --launch|--preflight-only|--controller|--local-only|--local-preflight-only) ;;
-    *) usage ;;
-esac
+mode="--launch"
+mode_set=false
+for argument in "$@"; do
+    case "$argument" in
+        --a100-controls)
+            A100_CONTROLS=true
+            QUEUE_PATH="$ROOT_DIR/experiments/medium_a100/queue.json"
+            TRAINING_PREFIX="whisper-medium-a100-controls-gpu"
+            QUEUE_SIZE=5
+            START_INDEX=0
+            EXPECTED_RUNS=5
+            OUTPUT_PREFIX="medium_a100/"
+            SESSION="medium-a100-fleurs-after-controls"
+            LOG_DIR="$ARTIFACT_ROOT/medium_a100/logs"
+            ;;
+        --launch|--preflight-only|--controller|--local-only|--local-preflight-only)
+            if [[ "$mode_set" == true ]]; then usage; fi
+            mode="$argument"
+            mode_set=true
+            ;;
+        *) usage ;;
+    esac
+done
 
 for path in "$PYTHON" "$ASR_CLI" "$FLEURS_ROOT/preparation_summary.json" \
     "$FLEURS_ROOT/validation.jsonl" "$FLEURS_ROOT/test.jsonl"; do
@@ -32,16 +56,16 @@ for path in "$PYTHON" "$ASR_CLI" "$FLEURS_ROOT/preparation_summary.json" \
     fi
 done
 
-ordered_outputs="$("$PYTHON" - "$ROOT_DIR/experiments/medium/queue.json" "$OUTPUT_ROOT" "$ARTIFACT_ROOT" "$mode" <<'PY'
+ordered_outputs="$("$PYTHON" - "$QUEUE_PATH" "$OUTPUT_ROOT" "$ARTIFACT_ROOT" "$mode" "$START_INDEX" "$QUEUE_SIZE" "$OUTPUT_PREFIX" "$EXPECTED_RUNS" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 queue = json.load(open(sys.argv[1], encoding="utf-8"))
-assert len(queue["runs"]) == 27, "Expected the frozen 27-run Medium queue"
+assert len(queue["runs"]) == int(sys.argv[6]), "Unexpected frozen queue size"
 local_only = sys.argv[4] in {"--local-only", "--local-preflight-only"}
 outputs = []
-for run in queue["runs"] if local_only else queue["runs"][16:]:
+for run in queue["runs"] if local_only else queue["runs"][int(sys.argv[5]):]:
     output = run["output_dir"]
     if local_only:
         directory = Path(sys.argv[2]) / output
@@ -54,9 +78,9 @@ for run in queue["runs"] if local_only else queue["runs"][16:]:
     outputs.append(output)
 assert outputs and len(set(outputs)) == len(outputs), "No eligible unique local models"
 if not local_only:
-    assert len(outputs) == 11
+    assert len(outputs) == int(sys.argv[8])
 for output in outputs:
-    assert output.startswith("medium/") and ".." not in output.split("/")
+    assert output.startswith(sys.argv[7]) and ".." not in output.split("/")
 print("\n".join(outputs))
 PY
 )"
@@ -82,24 +106,26 @@ if [[ "$mode" == "--preflight-only" || "$mode" == "--local-preflight-only" ]]; t
 fi
 
 if [[ "$mode" == "--launch" ]]; then
-    if tmux has-session -t "$SESSION" 2>/dev/null; then
+    if tmux has-session -t "=$SESSION" 2>/dev/null; then
         echo "FLEURS controller already exists: $SESSION" >&2
         exit 1
     fi
     for lane in 0 1; do
-        if ! tmux has-session -t "medium-batch2-gpu$lane" 2>/dev/null; then
-            echo "Missing training controller medium-batch2-gpu$lane" >&2
+        if ! tmux has-session -t "=$TRAINING_PREFIX$lane" 2>/dev/null; then
+            echo "Missing training controller $TRAINING_PREFIX$lane" >&2
             exit 1
         fi
     done
     mkdir -p "$LOG_DIR"
-    log_file="$LOG_DIR/medium-fleurs-after-batch2-$(date -u +%Y%m%dT%H%M%SZ).log"
-    printf -v controller_command '%q ' "$0" --controller
+    log_file="$LOG_DIR/$SESSION-$(date -u +%Y%m%dT%H%M%SZ).log"
+    controller_arguments=(bash "$ROOT_DIR/scripts/run_medium_fleurs_after_batch2.sh")
+    if [[ "$A100_CONTROLS" == true ]]; then controller_arguments+=(--a100-controls); fi
+    printf -v controller_command '%q ' "${controller_arguments[@]}" --controller
     printf -v quoted_log '%q' "$log_file"
     tmux new-session -d -s "$SESSION" -c "$ROOT_DIR" \
         "set -o pipefail; ${controller_command}2>&1 | tee -a ${quoted_log}"
     tmux set-window-option -t "$SESSION" remain-on-exit on >/dev/null
-    echo "Queued FLEURS evaluation for 11 batch-two runs in $SESSION"
+    echo "Queued FLEURS evaluation for ${#outputs[@]} runs in $SESSION"
     echo "Controller log: $log_file"
     exit 0
 fi
@@ -113,19 +139,19 @@ if [[ "$mode" == "--local-only" ]]; then
     gpu_ids=("$CUDA_VISIBLE_DEVICES")
     lane_count=1
 else
-echo "Waiting for both batch-two training controllers to finish successfully."
+echo "Waiting for both $TRAINING_PREFIX training controllers to finish successfully."
 for lane in 0 1; do
-    session="medium-batch2-gpu$lane"
+    session="$TRAINING_PREFIX$lane"
     while true; do
-        if ! tmux has-session -t "$session" 2>/dev/null; then
+        if ! tmux has-session -t "=$session" 2>/dev/null; then
             echo "Training controller disappeared: $session" >&2
             exit 1
         fi
-        pane_dead="$(tmux display-message -p -t "$session" '#{pane_dead}')"
+        pane_dead="$(tmux display-message -p -t "$session:0.0" '#{pane_dead}')"
         if [[ "$pane_dead" == "1" ]]; then break; fi
         sleep 30
     done
-    status="$(tmux display-message -p -t "$session" '#{pane_dead_status}')"
+    status="$(tmux display-message -p -t "$session:0.0" '#{pane_dead_status}')"
     if [[ "$status" != "0" ]]; then
         echo "Training controller $session failed with status $status; FLEURS not started." >&2
         exit 1
@@ -140,6 +166,18 @@ if (( ${#gpu_ids[@]} < 2 )); then
 fi
 fi
 for (( lane=0; lane<lane_count; lane++ )); do
+    if [[ "$A100_CONTROLS" == true ]]; then
+        gpu_name="$(nvidia-smi --id="${gpu_ids[$lane]}" --query-gpu=name --format=csv,noheader)"
+        if [[ "$gpu_name" != "NVIDIA A100-SXM4-40GB" ]]; then
+            echo "Expected the A100 control device; got $gpu_name." >&2
+            exit 1
+        fi
+        busy_gpu_ids="$(nvidia-smi --query-compute-apps=gpu_uuid --format=csv,noheader)"
+        if printf '%s\n' "$busy_gpu_ids" | grep -Fxq "${gpu_ids[$lane]}"; then
+            echo "A100 GPU lane $lane still has an active compute process; evaluation not started." >&2
+            exit 1
+        fi
+    fi
     free_gpu_mb="$(nvidia-smi --id="${gpu_ids[$lane]}" --query-gpu=memory.free --format=csv,noheader,nounits | tr -d ' ')"
     if [[ ! "$free_gpu_mb" =~ ^[0-9]+$ ]] || (( free_gpu_mb < 20000 )); then
         echo "GPU $lane has only ${free_gpu_mb:-unknown} MiB free; require 20000 MiB." >&2
@@ -209,4 +247,4 @@ wait "$pid0" || status0=$?
 wait "$pid1" || status1=$?
 echo "FLEURS lane statuses: GPU 0=$status0, GPU 1=$status1"
 if (( status0 != 0 || status1 != 0 )); then exit 1; fi
-echo "All 11 local batch-two Medium FLEURS evaluations completed."
+echo "All ${#outputs[@]} queued Medium FLEURS evaluations completed."

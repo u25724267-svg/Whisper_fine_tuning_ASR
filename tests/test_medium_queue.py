@@ -12,11 +12,51 @@ from unittest.mock import patch
 
 from asr_experiments.config import PROJECT_ROOT
 from asr_experiments.commands.data.prepare_medium_queue import (
-    MODEL_ID, MODEL_REVISION, derive_config, expected_files, materialize, specifications,
+    A100_GPU_NAME, MODEL_ID, MODEL_REVISION, a100_control_files,
+    derive_config, expected_files, materialize, specifications,
 )
 
 
 class MediumQueueTests(unittest.TestCase):
+    def test_a100_controls_change_only_operational_metadata(self) -> None:
+        files = a100_control_files(PROJECT_ROOT)
+        self.assertEqual(len(files), 16)
+        configs = [json.loads(content) for path, content in files.items() if path.name == "config.json"]
+        self.assertEqual(len(configs), 5)
+        allowed = {"experiment_id", "experiment_name", "control_experiment", "output_dir", "resources", "wandb", "a100_replication"}
+        identities = {config["experiment_id"] for config in configs}
+        for config in configs:
+            source_path = PROJECT_ROOT / config["a100_replication"]["source_config"]
+            source = json.loads(source_path.read_text())
+            with self.subTest(experiment=config["experiment_id"]):
+                self.assertEqual({key: value for key, value in config.items() if key not in allowed},
+                                 {key: value for key, value in source.items() if key not in allowed})
+                self.assertNotEqual(config["output_dir"], source["output_dir"])
+                self.assertEqual(config["resources"]["required_gpu_name"], A100_GPU_NAME)
+                self.assertTrue(config["resources"]["require_idle_gpu"])
+                self.assertIsNone(config["wandb"]["resume_run_id"])
+                self.assertEqual(config["wandb"]["project"], "whisper-shona-multilingual")
+                if config["control_experiment"]:
+                    self.assertIn(config["control_experiment"], identities)
+        queue = json.loads(files[PROJECT_ROOT / "experiments/medium_a100/queue.json"])
+        self.assertEqual(queue["estimated_disk_reserve_gib"], 160)
+        self.assertEqual(queue["reused_a100_controls"][0]["experiment_id"], "medium-rq1-c1-sortagrad-seed44")
+        self.assertNotIn("a100-medium-rq1-c1-sortagrad-seed44", identities)
+        self.assertEqual(files, a100_control_files(PROJECT_ROOT))
+
+    def test_a100_materialization_refuses_existing_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            existing = root / "config.json"
+            missing = root / "new.json"
+            existing.write_text("original")
+            with patch("asr_experiments.commands.data.prepare_medium_queue.a100_control_files",
+                       return_value={missing: "new", existing: "changed"}):
+                with self.assertRaises(FileExistsError):
+                    materialize(root, a100_controls=True)
+            self.assertFalse(missing.exists())
+            self.assertEqual(existing.read_text(), "original")
+
     def test_all_27_configs_preserve_scientific_contracts(self) -> None:
         sources = specifications(PROJECT_ROOT)
         self.assertEqual(len(sources), 27)
@@ -146,7 +186,7 @@ class MediumGPULauncherTests(unittest.TestCase):
         queue.write_text(json.dumps({"estimated_disk_reserve_gib": 0}))
         (self.root / "asr.py").write_text(
             "import sys\nfrom pathlib import Path\n"
-            f"if sys.argv[1] == 'prepare_medium_queue': print('\\n'.join({self.experiments!r}))\n"
+            f"if sys.argv[1] == 'prepare_medium_queue': print('\\n'.join({self.experiments!r}[:5] if '--a100-controls' in sys.argv else {self.experiments!r}))\n"
             "elif sys.argv[1] == 'mirror_experiment_artifacts':\n"
             "    target = Path(sys.argv[sys.argv.index('--output-dir') + 1])\n"
             "    target.mkdir(parents=True, exist_ok=True)\n"
@@ -157,7 +197,10 @@ class MediumGPULauncherTests(unittest.TestCase):
         (tools / "nvidia-smi").write_text(
             "#!/usr/bin/env python3\nimport os, sys\n"
             "if '--query-gpu=uuid' in sys.argv:\n"
-            "    print('\\n'.join(f'GPU-test-{index}' for index in range(int(os.getenv('MOCK_GPU_COUNT', '2')))))\n"
+            "    selected = [argument.split('=', 1)[1] for argument in sys.argv if argument.startswith('--id=')]\n"
+            "    print(selected[0] if selected else '\\n'.join(f'GPU-test-{index}' for index in range(int(os.getenv('MOCK_GPU_COUNT', '2')))))\n"
+            "elif '--query-gpu=name' in sys.argv: print(os.getenv('MOCK_GPU_NAME', 'NVIDIA A100-SXM4-40GB'))\n"
+            "elif '--query-compute-apps=gpu_uuid' in sys.argv: print(os.getenv('MOCK_BUSY_GPU', ''))\n"
             "else:\n"
             "    key = 'MOCK_GPU1_FREE' if '--id=GPU-test-1' in sys.argv else 'MOCK_GPU0_FREE'\n"
             "    print(os.getenv(key, '40000'))\n"
@@ -230,6 +273,51 @@ class MediumGPULauncherTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(len(self.launches()), 1)
         self.assertIn("CUDA_VISIBLE_DEVICES=GPU-test-1", shlex.split(self.launches()[0][-1]))
+
+    def test_a100_queue_partitions_five_and_rejects_wrong_or_busy_gpu(self) -> None:
+        queue = self.root / "experiments/medium_a100/queue.json"
+        queue.parent.mkdir()
+        queue.write_text(json.dumps({"estimated_disk_reserve_gib": 0}))
+        for overrides, message in (({"MOCK_GPU_NAME": "NVIDIA GeForce RTX 4090"}, "require"),
+                                   ({"MOCK_BUSY_GPU": "GPU-test-1"}, "active compute")):
+            with self.subTest(overrides=overrides), patch.dict(self.environment, overrides):
+                result = self.run_script("run_medium_rq1_rq2.sh", "--a100-controls", "--preflight-only")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(message, result.stderr)
+                self.assertEqual(self.launches(), [])
+        result = self.run_script("run_medium_rq1_rq2.sh", "--a100-controls")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.launches()), 2)
+        for index, launch in enumerate(self.launches()):
+            self.assertEqual(launch[launch.index("-s") + 1], f"whisper-medium-a100-controls-gpu{index}")
+            tokens = shlex.split(launch[-1])
+            self.assertIn(f"CUDA_VISIBLE_DEVICES=GPU-test-{index}", tokens)
+            self.assertEqual([token for token in tokens if token.startswith("experiments/")], self.experiments[:5][index::2])
+
+    def test_individual_a100_run_requires_idle_selected_device(self) -> None:
+        path = self.root / self.experiments[0] / "config.json"
+        config = json.loads(path.read_text())
+        config["resources"].update(required_gpu_name=A100_GPU_NAME, require_idle_gpu=True)
+        path.write_text(json.dumps(config))
+        for overrides, message in (({"MOCK_GPU_NAME": "NVIDIA GeForce RTX 4090"}, "Require GPU"),
+                                   ({"MOCK_BUSY_GPU": "GPU-test-1"}, "active compute")):
+            with self.subTest(overrides=overrides), patch.dict(self.environment, overrides):
+                result = self.run_script("run_experiment.sh", str(path.parent))
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(message, result.stderr)
+                self.assertEqual(self.launches(), [])
+                self.assertFalse((self.root / "outputs/run00").exists())
+            environment_file = self.root / ".env"
+            environment_file.write_text("CUDA_VISIBLE_DEVICES=0,1\n")
+            with patch.dict(self.environment, {"PYTHONPATH": os.pathsep.join(sys.path)}):
+                result = self.run_script("run_experiment.sh", str(path.parent))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Remove CUDA_VISIBLE_DEVICES from .env", result.stderr)
+            self.assertEqual(self.launches(), [])
+            environment_file.unlink()
+        result = self.run_script("run_experiment.sh", str(path.parent))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("--resume-from-checkpoint", shlex.split(self.launches()[0][-1]))
 
     def test_prediction_export_keeps_lane_gpu(self) -> None:
         output = self.root / "outputs/run00"

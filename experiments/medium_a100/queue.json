@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "model": {
+    "id": "openai/whisper-medium",
+    "revision": "abdf7c39ab9d0397620ccaea8974cc764cd0953e"
+  },
+  "runs": [
+    {
+      "experiment_dir": "experiments/medium_a100/rq1/c0_random_seed42_v2",
+      "experiment_id": "a100-medium-rq1-c0-random-seed42-v2",
+      "control_experiment": null,
+      "runner": "train_full.py",
+      "output_dir": "medium_a100/rq1/c0_random_seed42_v2",
+      "source_config": "experiments/medium/rq1/c0_random_seed42_v2/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium_a100/rq1/c0_random_seed43_v2",
+      "experiment_id": "a100-medium-rq1-c0-random-seed43-v2",
+      "control_experiment": null,
+      "runner": "train_full.py",
+      "output_dir": "medium_a100/rq1/c0_random_seed43_v2",
+      "source_config": "experiments/medium/rq1/c0_random_seed43_v2/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium_a100/rq1/c0_random_seed44_v2",
+      "experiment_id": "a100-medium-rq1-c0-random-seed44-v2",
+      "control_experiment": null,
+      "runner": "train_full.py",
+      "output_dir": "medium_a100/rq1/c0_random_seed44_v2",
+      "source_config": "experiments/medium/rq1/c0_random_seed44_v2/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium_a100/rq1/c1_sortagrad_seed42",
+      "experiment_id": "a100-medium-rq1-c1-sortagrad-seed42",
+      "control_experiment": "a100-medium-rq1-c0-random-seed42-v2",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium_a100/rq1/c1_sortagrad_seed42",
+      "source_config": "experiments/medium/rq1/c1_sortagrad_seed42/config.json"
+    },
+    {
+      "experiment_dir": "experiments/medium_a100/rq1/c1_sortagrad_seed43",
+      "experiment_id": "a100-medium-rq1-c1-sortagrad-seed43",
+      "control_experiment": "a100-medium-rq1-c0-random-seed43-v2",
+      "runner": "train_sortagrad.py",
+      "output_dir": "medium_a100/rq1/c1_sortagrad_seed43",
+      "source_config": "experiments/medium/rq1/c1_sortagrad_seed43/config.json"
+    }
+  ],
+  "required_gpu_name": "NVIDIA A100-SXM4-40GB",
+  "estimated_disk_reserve_gib": 160,
+  "training_launched": false,
+  "reused_a100_controls": [
+    {
+      "experiment_id": "medium-rq1-c1-sortagrad-seed44",
+      "output_dir": "medium/rq1/c1_sortagrad_seed44",
+      "matched_control_experiment": "a100-medium-rq1-c0-random-seed44-v2",
+      "reason": "Already trained from pretrained Medium on this A100 machine"
+    }
+  ],
+  "analysis_policy": "A100-only Medium cohort by hardware provenance, not outcome; retain RTX records separately"
+}
