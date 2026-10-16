@@ -53,8 +53,8 @@ The corrected Shona preparation supplies 393 validation and 925 test recordings.
 These recordings are not used for the study's WAXAL fine-tuning or checkpoint
 selection. ``External'' denotes a different corpus and collection process;
 it does not establish that the recordings were absent from Whisper's original
-pretraining. Base and Medium use identical reference-manifest hashes for each
-evaluation split. A difference between WAXAL and FLEURS scores describes
+pretraining. Base and Medium use identical evaluation lists and reference text,
+verified using file checksums. A difference between WAXAL and FLEURS scores describes
 performance on different populations, rather than identifying its acoustic
 or linguistic cause.
 
@@ -74,7 +74,7 @@ Unless marked otherwise, entries are the arithmetic mean and sample standard
 deviation (SD) of seeds 42, 43, and 44. A seed controls random operations during
 training; it does not create new evaluation speakers. SD describes variation
 between these executions, not a confidence interval or statistical significance.
-All models begin from pinned pretrained weights. Base C2/C3 and Medium C3
+All models begin from fixed versions of the pretrained weights. Base C2/C3 and Medium C3
 have identical WAXAL prediction hashes across their seed-labelled records;
 their scores are shown once with a dagger ($\dagger$), without an artificial
 zero SD. Medium C3 and Base C2 also have identical FLEURS predictions. Base
@@ -82,7 +82,7 @@ C3 has two distinct external prediction exports across three records; its
 displayed external mean is marked $\dagger$ and is not treated as three
 independent training outcomes. C4, C4R, and C7 each have only one seed.
 
-Recognition tables consistently use the canonical item-prediction summaries.
+Recognition tables consistently use the saved per-recording prediction summaries.
 Training-loop scores can differ slightly because they come from a separate
 generation pass. A positive improvement is control WER minus treatment WER,
 measured in percentage points (pp). Thus a reduction from 24\% to 23\% is
@@ -93,6 +93,8 @@ No new statistical significance claim is inferred from the condition means.
 \label{sec:migration}
 
 The Base study and the first Medium runs were trained on the RTX 4090.
+C0 denotes clean speech with random training order; C1 denotes the
+duration-first SortaGrad curriculum.
 When that machine became unavailable, the remaining Medium work moved to two
 A100-SXM4-40GB GPUs. Each GPU ran an independent experiment; this was not
 two-GPU distributed training, and the batch size was not doubled. The original
@@ -109,7 +111,7 @@ The 27-run Medium analysis and the five historical RTX-trained controls are
 kept separate throughout.
 
 The scientific settings remain matched: three epochs, train and evaluation
-batch size six, one gradient-accumulation step, learning rate $10^{-5}$,
+batch size six, an optimiser update after each batch, learning rate $10^{-5}$,
 500 warm-up steps, half-precision arithmetic, and gradient checkpointing
 to reduce memory use by recomputing intermediate activations. Greedy decoding
 chooses the most likely next token without beam search; Shona transcription
@@ -218,7 +220,7 @@ background energy. These quantities are difficulty proxies, not direct
 measurements of linguistic difficulty. A2 applies the fixed composite
 waveform-augmentation policy with random ordering; A3 applies the same
 policy with C3 ordering. This policy perturbs the waveform using the
-configured noise, room-response, and tempo operations; it does not identify
+configured noise, simulated room reverberation, and tempo operations; it does not identify
 their separate contributions.
 
 S2/S3 apply light SpecAugment masking with random/SortaGrad ordering, and

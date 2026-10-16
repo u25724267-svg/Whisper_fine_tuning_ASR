@@ -4518,6 +4518,13 @@
     "artifacts/experiment_outputs/medium/rq1/c1_sortagrad_seed43/item_predictions/test.jsonl": "7277d38ecbfcb266e81cac8869a418265ae89ad521a129e59520a821e7c36319",
     "artifacts/experiment_outputs/baselines/whisper_base_zero_shot_waxal_fleurs_v1/summary.json": "61477b3f9592149fc84b3a6f1a3730716908707fa610b92d64b4a1ddd06e9452",
     "artifacts/experiment_outputs/baselines/whisper_medium_zero_shot_fleurs_v1/summary.json": "8c4f1f4b711321ea980d6ebe69a062b43dd891af8f1268977a21b8f09d304857",
+    "artifacts/experiment_outputs/baselines/whisper_medium_zero_shot_fleurs_v1/fleurs_validation.jsonl": "a432217a75b05904230054166388f404c8dd99025aacf5785716d8ba21b0a015",
+    "artifacts/experiment_outputs/baselines/whisper_medium_zero_shot_fleurs_v1/fleurs_test.jsonl": "46e4d72f5c720d7a79b4928f5e0e87c48e1cde2c6dc9bb11d728d9f352addc1f",
+    "documents/data/medium_a100_controls_2026-10-15.md": "a3ecf53d9a0911906c72240d7ea202d9b5c9a1cb525909a52feaa65fcc1c1526",
+    "documents/data/whisper_medium_rq1_rq2_protocol.md": "05561cf01c68029b54d5019eb0b4e46b1374cd4d25513401c5981b6afca1f9d8",
+    "artifacts/experiment_outputs/rq1/comparisons/c3_vs_c0_test.json": "78bf5ba05438ab09d154f22f55021ec9d43d79add36e7faec6085b2003cdb9cc",
+    "artifacts/experiment_outputs/medium/diagnostics/memory_clean_batch6_20261006_v2.json": "b1dcd7e67decaf5200c56b64f3d7831c462f445f1c67fabafa9aeb5b4b5986fb",
+    "artifacts/experiment_outputs/medium/diagnostics/memory_ld_batch6_20261006.json": "2e6dc743c04defca7b959d58395a612be19df6321283bda72dca3ea1bf5cec15",
     "/ext_data/casper/asr_experiment_outputs/medium_a100/rq1/c0_random_seed42_v2/wandb/wandb/run-20261015_082502-1uj53ju8/files/wandb-metadata.json": "77dbdb44d6e75989b6d259710066186503b900ab5fbfe6d72b951e00381eef5d",
     "/ext_data/casper/asr_experiment_outputs/medium_a100/rq1/c0_random_seed42_v2/wandb/wandb/run-20261015_082502-1uj53ju8/run-1uj53ju8.wandb": "24a7dc9d5c166f0dc5e785633114b05641b27f583e505f2090eab56ff7197381",
     "/ext_data/casper/asr_experiment_outputs/medium_a100/rq1/c0_random_seed43_v2/wandb/wandb/run-20261015_082501-l4wzi68a/files/wandb-metadata.json": "0bf05fa234ecf170e83f0f8fe8816256d0c16ee4190d46e61fc14ef600fc9912",
@@ -4637,7 +4644,11 @@
     "artifacts/experiment_outputs/medium/rq1/c0_random_seed44_v2/item_predictions/validation.jsonl",
     "artifacts/experiment_outputs/medium/rq1/c0_random_seed44_v2/item_predictions/test.jsonl",
     "artifacts/experiment_outputs/medium/rq1/c1_sortagrad_seed42/item_predictions/validation.jsonl",
-    "artifacts/experiment_outputs/medium/rq1/c1_sortagrad_seed42/item_predictions/test.jsonl"
+    "artifacts/experiment_outputs/medium/rq1/c1_sortagrad_seed42/item_predictions/test.jsonl",
+    "artifacts/experiment_outputs/baselines/whisper_base_zero_shot_waxal_fleurs_v1/validation.jsonl",
+    "artifacts/experiment_outputs/baselines/whisper_base_zero_shot_waxal_fleurs_v1/test.jsonl",
+    "artifacts/experiment_outputs/baselines/whisper_base_zero_shot_waxal_fleurs_v1/fleurs_validation.jsonl",
+    "artifacts/experiment_outputs/baselines/whisper_base_zero_shot_waxal_fleurs_v1/fleurs_test.jsonl"
   ],
   "manifest_hashes": {
     "validation": "c8e00a0751c93d177e7c0a4217e80e77ae44ee9862d42b48c6467f579e249c92",
@@ -4661,5 +4672,5 @@
   "medium_waxal_zero_shot_status": "In progress according to the user; no completed summary at audit.",
   "source_chapter": "documents/thesis/chapter4_results.tex",
   "source_chapter_sha256": "6de424cbaf6777cc782c95ff3afae5ce03bbf94fe7f771a5782da5174c52ad11",
-  "builder_sha256": "d219668bb3bab25b39e38464446d47fcc655ad2b838e20449bd590ebfaf8e3e4"
+  "builder_sha256": "95a760f93cc8ac30fa6cc81442e9ebd929ab4b71dd48785bca962d6c4199cec3"
 }

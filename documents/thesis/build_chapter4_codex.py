@@ -32,6 +32,8 @@ def run(model,code,seed,prefix):
     summary=read(d/'item_predictions/summary.json')
     results=read(d/'all_results.json'); manifest=read(d/'run_manifest.json'); cfg=read(d/'experiment_config.json')
     assert manifest['effective_seed']==seed and results['epoch']==3
+    expected_model='openai/whisper-base' if model=='Base' else 'openai/whisper-medium'
+    assert cfg['model']['id']==manifest['model']['id']==expected_model
     r=dict(model=model,condition=code,seed=seed,source=str(d.relative_to(ROOT)),
            gpu=manifest['runtime']['gpu'], runtime_min=results['train_runtime']/60,
            validation_loss=results['validation_loss'],prediction_hashes={})
@@ -40,6 +42,7 @@ def run(model,code,seed,prefix):
     if (d/'trainer_state.json').exists():
         state=read(d/'trainer_state.json'); r['best_checkpoint']=state.get('best_model_checkpoint','').split('/')[-1]
         r['epoch_evaluations']=[h for h in state['log_history'] if 'eval_wer' in h]
+        if model=='Medium': assert state['global_step']==6906 and state['epoch']==3
     summaries=[summary]
     if (d/'fleurs_corrected_v2/summary.json').exists(): summaries.append(read(d/'fleurs_corrected_v2/summary.json'))
     for summ in summaries:
@@ -79,6 +82,20 @@ for model,s in zero.items():
     for split,v in s['splits'].items():
         assert v['manifest_sha256']==HASHES[split]
         assert abs(v['wer']-100*sum(v[k] for k in ['substitutions','deletions','insertions'])/v['reference_words'])<1e-9
+        baseline_dir='whisper_base_zero_shot_waxal_fleurs_v1' if model=='Base' else 'whisper_medium_zero_shot_fleurs_v1'
+        prediction=OUT/'baselines'/baseline_dir/(split+'.jsonl')
+        if prediction.exists():
+            assert hashlib.sha256(prediction.read_bytes()).hexdigest()==v['predictions_sha256']
+            SOURCES[str(prediction.relative_to(ROOT))]=v['predictions_sha256']
+        else:
+            missing.append(str(prediction.relative_to(ROOT)))
+
+for relative in ['documents/data/medium_a100_controls_2026-10-15.md',
+                 'documents/data/whisper_medium_rq1_rq2_protocol.md',
+                 'artifacts/experiment_outputs/rq1/comparisons/c3_vs_c0_test.json',
+                 'artifacts/experiment_outputs/medium/diagnostics/memory_clean_batch6_20261006_v2.json',
+                 'artifacts/experiment_outputs/medium/diagnostics/memory_ld_batch6_20261006.json']:
+    SOURCES[relative]=hashlib.sha256((ROOT/relative).read_bytes()).hexdigest()
 
 telemetry=[]
 for p in sorted(Path('/ext_data/casper/asr_experiment_outputs/medium_a100').glob('rq1/*/wandb/wandb/run-*/*.wandb')):
