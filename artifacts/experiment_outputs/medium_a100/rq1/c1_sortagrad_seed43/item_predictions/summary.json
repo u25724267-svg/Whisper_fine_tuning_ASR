@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "experiment_id": "a100-medium-rq1-c1-sortagrad-seed43",
+  "model_source": "/ext_data/casper/asr_experiment_outputs/medium_a100/rq1/c1_sortagrad_seed43",
+  "model_revision": null,
+  "model_dir": "/ext_data/casper/asr_experiment_outputs/medium_a100/rq1/c1_sortagrad_seed43",
+  "config": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/experiments/medium_a100/rq1/c1_sortagrad_seed43/config.json",
+  "config_sha256": "8ccef835f0993316133be44a892f47607e7f3c6a20efce32f2dee444dcc705e1",
+  "splits": {
+    "validation": {
+      "manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/validation.jsonl",
+      "manifest_sha256": "c8e00a0751c93d177e7c0a4217e80e77ae44ee9862d42b48c6467f579e249c92",
+      "rows": 1715,
+      "wer": 25.702299399925653,
+      "cer": 4.999834354811992,
+      "substitutions": 7003,
+      "deletions": 1164,
+      "insertions": 1513,
+      "hits": 29495,
+      "reference_words": 37662,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/medium_a100/rq1/c1_sortagrad_seed43/item_predictions/validation.jsonl",
+      "predictions_sha256": "443794d58a1571b43a104d0cfc1b15ef3eb1a4e73a194fd11e73a812207f9c06"
+    },
+    "test": {
+      "manifest": "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/test.jsonl",
+      "manifest_sha256": "fe7c790d5914c2cf28f0f4bf24316b7b6eb857db39a79ee337052e4d710aef4d",
+      "rows": 1671,
+      "wer": 23.638057218895543,
+      "cer": 4.5107123538957214,
+      "substitutions": 6406,
+      "deletions": 1092,
+      "insertions": 1384,
+      "hits": 30077,
+      "reference_words": 37575,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/medium_a100/rq1/c1_sortagrad_seed43/item_predictions/test.jsonl",
+      "predictions_sha256": "f1db084b21eb765d101788f658af01347138980c76c04251ec1f1f63ebade269"
+    }
+  }
+}

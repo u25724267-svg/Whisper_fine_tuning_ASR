@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "experiment_id": "whisper-medium-zero-shot-fleurs-v1",
+  "model_source": "openai/whisper-medium",
+  "model_revision": "abdf7c39ab9d0397620ccaea8974cc764cd0953e",
+  "model_dir": null,
+  "config": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/experiments/baselines/whisper_medium_zero_shot_fleurs/config.json",
+  "config_sha256": "436f49e0927de77c845e3fcdcfa0638e442bc11a99dc342557ea7d966919d7dd",
+  "splits": {
+    "fleurs_validation": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/validation.jsonl",
+      "manifest_sha256": "fb516a0cdf110ce4f1b8a1694eec5e999555e240012a975ea6be4f2bb271907f",
+      "rows": 393,
+      "wer": 134.2145711650784,
+      "cer": 99.80639997021538,
+      "substitutions": 1256,
+      "deletions": 5249,
+      "insertions": 2227,
+      "hits": 1,
+      "reference_words": 6506,
+      "predictions": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/artifacts/experiment_outputs/baselines/whisper_medium_zero_shot_fleurs_v1/fleurs_validation.jsonl",
+      "predictions_sha256": "a432217a75b05904230054166388f404c8dd99025aacf5785716d8ba21b0a015"
+    },
+    "fleurs_test": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/test.jsonl",
+      "manifest_sha256": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3",
+      "rows": 925,
+      "wer": 130.88134108963533,
+      "cer": 100.49531863485353,
+      "substitutions": 2522,
+      "deletions": 13457,
+      "insertions": 4945,
+      "hits": 8,
+      "reference_words": 15987,
+      "predictions": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/artifacts/experiment_outputs/baselines/whisper_medium_zero_shot_fleurs_v1/fleurs_test.jsonl",
+      "predictions_sha256": "46e4d72f5c720d7a79b4928f5e0e87c48e1cde2c6dc9bb11d728d9f352addc1f"
+    }
+  }
+}
