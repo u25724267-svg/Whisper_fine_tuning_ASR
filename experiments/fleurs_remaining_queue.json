@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "prepared_date": "2026-10-16",
+  "status": "prepared_not_launched",
+  "cloud_inventory_status": "primary_root_weight_objects_verified_sidecars_pending",
+  "primary_weight_bytes": 37676642448,
+  "restore_status": "not_started",
+  "protocol": {
+    "root": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2",
+    "validation_rows": 393,
+    "test_rows": 925,
+    "validation_sha256": "fb516a0cdf110ce4f1b8a1694eec5e999555e240012a975ea6be4f2bb271907f",
+    "test_sha256": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3",
+    "per_device_eval_batch_size": 6,
+    "fp16": true,
+    "generation_max_length": 225,
+    "language": "shona",
+    "task": "transcribe",
+    "decoding": "greedy",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "medium_primary": {
+    "expected_count": 11,
+    "archive_sources_verified_this_preparation": true,
+    "archive_verification_scope": "root_model_object_presence_and_size_only",
+    "root_weight_bytes_per_model": 3055544304,
+    "inference_package_verification_status": "pending_all_run_sidecar_and_selected_checkpoint_checks",
+    "archive_groups": [
+      {
+        "gcs_root": "gs://casper/completed-runs/2026-10-10",
+        "outputs": ["medium/rq1/c1_sortagrad_seed44"]
+      },
+      {
+        "gcs_root": "gs://casper/completed-runs/2026-10-12",
+        "outputs": [
+          "medium/rq1/c3_snr_duration_seed42",
+          "medium/rq1/c3_snr_duration_seed43",
+          "medium/rq1/c3_snr_duration_seed44",
+          "medium/rq2/a2_waveform_random_seed42",
+          "medium/rq2/a2_waveform_random_seed43",
+          "medium/rq2/a2_waveform_random_seed44",
+          "medium/rq2/a3_waveform_c3_seed42",
+          "medium/rq2/a3_waveform_c3_seed43",
+          "medium/rq2/a3_waveform_c3_seed44",
+          "medium/rq2/s2_specaug_lb_random_seed42"
+        ]
+      }
+    ]
+  },
+  "base_primary": {
+    "expected_count": 14,
+    "gcs_root": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs",
+    "archive_status": "root_model_object_presence_and_size_verified",
+    "root_weight_bytes_per_model": 290403936,
+    "inference_package_verification_status": "pending_all_run_sidecar_and_selected_checkpoint_checks",
+    "outputs": [
+      "rq1/c2_snr_seed42",
+      "rq1/c2_snr_seed43",
+      "rq1/c2_snr_seed44",
+      "rq1/c3_snr_duration_seed43",
+      "rq1/c3_snr_duration_seed44",
+      "rq1/c4_acoustic_cumulative_seed42",
+      "rq1/c4r_random_pacing_seed42",
+      "rq1/c5_s2s_margin_seed42",
+      "rq1/c5_s2s_margin_seed43",
+      "rq1/c5_s2s_margin_seed44",
+      "rq1/c6_wer_margin_seed42",
+      "rq1/c6_wer_margin_seed43",
+      "rq1/c6_wer_margin_seed44",
+      "rq1/c7_acoustic_s2s_hybrid_seed42"
+    ]
+  },
+  "historical_not_in_primary_queue": {
+    "medium_rtx_controls_with_completed_a100_replacements": [
+      "medium/rq1/c0_random_seed42_v2",
+      "medium/rq1/c0_random_seed43_v2",
+      "medium/rq1/c0_random_seed44_v2",
+      "medium/rq1/c1_sortagrad_seed42",
+      "medium/rq1/c1_sortagrad_seed43"
+    ],
+    "base_legacy_or_repeatability_only": [
+      "rq1/c0_random_nondisjoint_seed42",
+      "rq1/c0_random_seed42",
+      "rq1/c5_s2s_margin_seed42_rerun"
+    ]
+  }
+}

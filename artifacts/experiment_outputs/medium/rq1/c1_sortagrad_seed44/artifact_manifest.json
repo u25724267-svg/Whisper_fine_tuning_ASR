@@ -4,7 +4,7 @@
   "source_dir": "/ext_data/casper/asr_experiment_outputs/medium/rq1/c1_sortagrad_seed44",
   "output_dir": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/artifacts/experiment_outputs/medium/rq1/c1_sortagrad_seed44",
   "files": 15,
-  "bytes": 9727236,
+  "bytes": 3017115,
   "entries": [
     {
       "path": "all_results.json",
@@ -42,19 +42,19 @@
       "sha256": "cc1f668bc9869ebb294de3e903ec25b565d10fb599cb714d8c67e89084000794"
     },
     {
-      "path": "curriculum_orders/epoch_01_order.jsonl",
-      "bytes": 1977365,
-      "sha256": "b8302a7a5c7ea6b14385daf107495615ccdbb37e0c300bfde9e021488a7579de"
+      "path": "fleurs_corrected_v2/fleurs_test.jsonl",
+      "bytes": 514180,
+      "sha256": "1929b9266105780cfbe76cfd0608f73cf538cd843db57bc4ac3862e1b81c7e94"
     },
     {
-      "path": "curriculum_orders/epoch_02_order.jsonl",
-      "bytes": 1880716,
-      "sha256": "6b312a8c9220569743cd5aaa33d53fda64d3b1dfc5540ed674e9fb709fb6cd94"
+      "path": "fleurs_corrected_v2/fleurs_validation.jsonl",
+      "bytes": 215241,
+      "sha256": "c0e28eddf779fc4fec15c491915d45c2cc1c380aca0e3e678b83f15ca691e213"
     },
     {
-      "path": "curriculum_orders/epoch_03_order.jsonl",
-      "bytes": 1880716,
-      "sha256": "e4fbe00954c86845d4b6c528ed5b83aa4edf859e9e9a4350fb24573f66a91781"
+      "path": "fleurs_corrected_v2/summary.json",
+      "bytes": 1825,
+      "sha256": "8a6308d7e6f8b8a63f51cb03e9fced8f297f48b06565718ec8468dac4733ec52"
     },
     {
       "path": "item_predictions/summary.json",
@@ -72,14 +72,14 @@
       "sha256": "17d781297bf26d7934d6e7f843f8da26561d892fa1f41b8201019b78bbfd8cb0"
     },
     {
-      "path": "logs/predictions.log",
-      "bytes": 315230,
-      "sha256": "e942dbc1fbca53302d26f3ff201fe3a8978de1426c8e83ff050dd8b056601fe5"
+      "path": "logs/fleurs_corrected_v2.log",
+      "bytes": 101818,
+      "sha256": "317125aae60045d5cc21c9461e4dd38ee64f3af4796ccb70e0280f3788f485c5"
     },
     {
-      "path": "logs/train.log",
-      "bytes": 1489158,
-      "sha256": "81d2461c94b925d2a4cf9b7a595c8056674e9ebd313a1e03f645f99f172cb88a"
+      "path": "logs/fleurs_mirror.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ]
 }

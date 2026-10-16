@@ -3,8 +3,8 @@
   "selection": "non-model result and audit artifacts",
   "source_dir": "/ext_data/casper/asr_experiment_outputs/medium/rq2/a2_waveform_random_seed42",
   "output_dir": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/artifacts/experiment_outputs/medium/rq2/a2_waveform_random_seed42",
-  "files": 12,
-  "bytes": 3803130,
+  "files": 15,
+  "bytes": 3018501,
   "entries": [
     {
       "path": "all_results.json",
@@ -42,6 +42,21 @@
       "sha256": "ae638c9a0307949e54d354a241caf101fafa5529f423974ca4e9cd1208661bbb"
     },
     {
+      "path": "fleurs_corrected_v2/fleurs_test.jsonl",
+      "bytes": 513730,
+      "sha256": "9c0755baada2e6f714de55a381d416f905bac1d1dbe77111c94956640b6f6ff7"
+    },
+    {
+      "path": "fleurs_corrected_v2/fleurs_validation.jsonl",
+      "bytes": 215897,
+      "sha256": "344be084a00811cf3175b35f05a38a8e28b28d552564a56fe4fc8f4b13b2fd37"
+    },
+    {
+      "path": "fleurs_corrected_v2/summary.json",
+      "bytes": 1861,
+      "sha256": "195b73f1319d5b39234e65380de47a57629dc2a2582e01f5fca50dd1fb42f2d5"
+    },
+    {
       "path": "item_predictions/summary.json",
       "bytes": 1846,
       "sha256": "c17adc130b729a86a4a6c0a5f388af005b1c5d979b536294489756a0f6c5adfe"
@@ -57,14 +72,14 @@
       "sha256": "769445599c078815a67094a5e48c4326a22c53639e7c47058e9ea775a3b66e61"
     },
     {
-      "path": "logs/predictions.log",
-      "bytes": 315986,
-      "sha256": "a842757bffbcb7ebfd7ef94f8d5dd22e9cda5ac86929f26afe56af168f027d9e"
+      "path": "logs/fleurs_corrected_v2.log",
+      "bytes": 100317,
+      "sha256": "43f508bfaccfbd574c5d37f72a28bafd98a53a994cdfdf40e7e770d5cb32866b"
     },
     {
-      "path": "logs/train.log",
-      "bytes": 1300448,
-      "sha256": "52c6549d02863ec349fdb73abacc8a5c82f240cf3d6fb5688f7daff8192a1339"
+      "path": "logs/fleurs_mirror.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ]
 }

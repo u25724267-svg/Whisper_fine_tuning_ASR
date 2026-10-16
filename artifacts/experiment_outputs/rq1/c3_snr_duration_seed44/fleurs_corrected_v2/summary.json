@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "experiment_id": "rq1-c3-snr-duration-seed44",
+  "model_source": "/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44",
+  "model_revision": null,
+  "model_dir": "/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44",
+  "config": "/home/casper/ASR experiments/Whisper_fine_tuning_ASR/experiments/rq1/c3_snr_duration_seed44/config.json",
+  "config_sha256": "11b6e96294eeaa018d6812a8a562270fb14e6ae76b2e5d68873880873a74c1ec",
+  "splits": {
+    "fleurs_validation": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/validation.jsonl",
+      "manifest_sha256": "fb516a0cdf110ce4f1b8a1694eec5e999555e240012a975ea6be4f2bb271907f",
+      "rows": 393,
+      "wer": 59.560405779280664,
+      "cer": 21.376049442469146,
+      "substitutions": 2900,
+      "deletions": 255,
+      "insertions": 720,
+      "hits": 3351,
+      "reference_words": 6506,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/fleurs_corrected_v2/fleurs_validation.jsonl",
+      "predictions_sha256": "b37c701f3cc43bcdd364be32b153bd02d4f3965547cb4f710d38db03ffeaa198"
+    },
+    "fleurs_test": {
+      "manifest": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/test.jsonl",
+      "manifest_sha256": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3",
+      "rows": 925,
+      "wer": 59.254394195283666,
+      "cer": 20.090607067351254,
+      "substitutions": 7251,
+      "deletions": 631,
+      "insertions": 1591,
+      "hits": 8105,
+      "reference_words": 15987,
+      "predictions": "/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/fleurs_corrected_v2/fleurs_test.jsonl",
+      "predictions_sha256": "15e16b85cbc5963b814baac75c84aa4ce7867035b40a7416314d9644c230f252"
+    }
+  }
+}

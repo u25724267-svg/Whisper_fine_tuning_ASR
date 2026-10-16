@@ -1,0 +1,2700 @@
+{
+  "queue_sha256": "66a9cb55d1e1c2fb86ca4a1c358e986f61b85db2fee40e5988ecb12a87c90798",
+  "devices": [
+    "GPU-a07c98b8-2826-fb55-33d9-0ca863f82f4b",
+    "GPU-b5fdfd69-c926-2336-9c8d-45a3936a6b43"
+  ],
+  "protocol": {
+    "root": "/ext_data/casper/asr_data/fleurs_shona_corrected_v2",
+    "validation_rows": 393,
+    "test_rows": 925,
+    "validation_sha256": "fb516a0cdf110ce4f1b8a1694eec5e999555e240012a975ea6be4f2bb271907f",
+    "test_sha256": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3",
+    "per_device_eval_batch_size": 6,
+    "fp16": true,
+    "generation_max_length": 225,
+    "language": "shona",
+    "task": "transcribe",
+    "decoding": "greedy",
+    "clear_forced_decoder_ids": true,
+    "clear_suppress_tokens": true
+  },
+  "restore_bytes": 37779004102,
+  "runs": [
+    {
+      "output": "medium/rq1/c1_sortagrad_seed44",
+      "config_sha256": "3900abc230ab51f99ae3d8c9cbbe88c2f598859fcbfbd1efa935b346ae30de2b",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/model.safetensors#1791672466885331",
+          "size": 3055544304,
+          "crc32c": "ZJZ9CQ=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/config.json#1791672458220782",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/generation_config.json#1791672458101807",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/preprocessor_config.json#1791672458617284",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/tokenizer_config.json#1791672472905110",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/special_tokens_map.json#1791672463429883",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/vocab.json#1791672472747402",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/merges.txt#1791672458525189",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/normalizer.json#1791672458556795",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/experiment_config.json#1791672458093078",
+          "size": 3678,
+          "crc32c": "rOe12g=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/trainer_state.json#1791672463343708",
+          "size": 6972,
+          "crc32c": "VTCpkg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/run_manifest.json#1791672458618935",
+          "size": 2089,
+          "crc32c": "YMQc4Q=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/train_results.json#1791672472978643",
+          "size": 209,
+          "crc32c": "n9s4CQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/validation_results.json#1791672463474020",
+          "size": 228,
+          "crc32c": "VqXStA=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/test_results.json#1791672472647447",
+          "size": 198,
+          "crc32c": "O9Z9dQ=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/item_predictions/summary.json#1791672458224604",
+          "size": 1811,
+          "crc32c": "+/9bxA=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/item_predictions/validation.jsonl#1791672458434667",
+          "size": 1094533,
+          "crc32c": "UxcAIA=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/item_predictions/test.jsonl#1791672458376473",
+          "size": 1073738,
+          "crc32c": "Ky5zmg=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/added_tokens.json#1791672430102354",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-10/medium/rq1/c1_sortagrad_seed44/all_results.json#1791672430104795",
+          "size": 595,
+          "crc32c": "M8NfpQ=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq1/c3_snr_duration_seed42",
+      "config_sha256": "0657a768247780b5adc74988c0139a9be705fb4948957133591b4eb9698166b1",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/model.safetensors#1791838419681779",
+          "size": 3055544304,
+          "crc32c": "6VmYfg=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/config.json#1791838375903404",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/generation_config.json#1791838407635836",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/preprocessor_config.json#1791838407552568",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/tokenizer_config.json#1791838407772865",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/special_tokens_map.json#1791838407719567",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/vocab.json#1791838407946050",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/merges.txt#1791838407925808",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/normalizer.json#1791838408256897",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/experiment_config.json#1791838408222453",
+          "size": 4175,
+          "crc32c": "dbkweQ=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/trainer_state.json#1791838407849402",
+          "size": 6984,
+          "crc32c": "fFbemg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/run_manifest.json#1791838407504287",
+          "size": 2356,
+          "crc32c": "WPZf0A=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/train_results.json#1791838407773612",
+          "size": 208,
+          "crc32c": "W8loKg=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/validation_results.json#1791838407851976",
+          "size": 226,
+          "crc32c": "wzbcCQ=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/test_results.json#1791838407772678",
+          "size": 199,
+          "crc32c": "JuChag=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/item_predictions/summary.json#1791838386241798",
+          "size": 1829,
+          "crc32c": "vUFm5w=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/item_predictions/validation.jsonl#1791838386091505",
+          "size": 1094465,
+          "crc32c": "WlBL+Q=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/item_predictions/test.jsonl#1791838407719042",
+          "size": 1073883,
+          "crc32c": "Mh3bvQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/added_tokens.json#1791838314117154",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed42/all_results.json#1791838314119586",
+          "size": 593,
+          "crc32c": "aSDZhg=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq1/c3_snr_duration_seed43",
+      "config_sha256": "bec70819b823de2cb0c5120ca73295ce0d28ca7c47d7e5505d59a8dc94480094",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/model.safetensors#1791838535165665",
+          "size": 3055544304,
+          "crc32c": "6VmYfg=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/config.json#1791838533792168",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/generation_config.json#1791838492165212",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/preprocessor_config.json#1791838533927024",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/tokenizer_config.json#1791838533893432",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/special_tokens_map.json#1791838533865310",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/vocab.json#1791838534219129",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/merges.txt#1791838533658035",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/normalizer.json#1791838523383129",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/experiment_config.json#1791838492103350",
+          "size": 4196,
+          "crc32c": "Kh3q9Q=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/trainer_state.json#1791838534037209",
+          "size": 6984,
+          "crc32c": "zL2Osw=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/run_manifest.json#1791838534681519",
+          "size": 2356,
+          "crc32c": "jdGH5g=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/train_results.json#1791838534655762",
+          "size": 209,
+          "crc32c": "Phr8RQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/validation_results.json#1791838534160120",
+          "size": 226,
+          "crc32c": "wbjZ0Q=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/test_results.json#1791838533724850",
+          "size": 199,
+          "crc32c": "SY5bwA=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/item_predictions/summary.json#1791838523516642",
+          "size": 1829,
+          "crc32c": "FZvpng=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/item_predictions/validation.jsonl#1791838534165574",
+          "size": 1094465,
+          "crc32c": "WlBL+Q=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/item_predictions/test.jsonl#1791838492465403",
+          "size": 1073883,
+          "crc32c": "Mh3bvQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/added_tokens.json#1791838430361022",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed43/all_results.json#1791838430334469",
+          "size": 594,
+          "crc32c": "hK4wPw=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq1/c3_snr_duration_seed44",
+      "config_sha256": "e76c0bfdfb1ad1a999a4c52e9758725a1f93c0b2b1870d56ecf95384a7c55853",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/model.safetensors#1791838643460846",
+          "size": 3055544304,
+          "crc32c": "6VmYfg=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/config.json#1791838597887616",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/generation_config.json#1791838651191320",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/preprocessor_config.json#1791838629442772",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/tokenizer_config.json#1791838650770179",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/special_tokens_map.json#1791838650840386",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/vocab.json#1791838650994444",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/merges.txt#1791838609147481",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/normalizer.json#1791838629585763",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/experiment_config.json#1791838598463674",
+          "size": 4141,
+          "crc32c": "+CjRiw=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/trainer_state.json#1791838639840036",
+          "size": 6986,
+          "crc32c": "2EL8/w=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/run_manifest.json#1791838640196396",
+          "size": 2356,
+          "crc32c": "2cBwGQ=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/train_results.json#1791838650698871",
+          "size": 209,
+          "crc32c": "lZp+9g=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/validation_results.json#1791838640053333",
+          "size": 227,
+          "crc32c": "tHzmPA=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/test_results.json#1791838651105998",
+          "size": 199,
+          "crc32c": "uBKa+A=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/item_predictions/summary.json#1791838629300617",
+          "size": 1829,
+          "crc32c": "YYEmnA=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/item_predictions/validation.jsonl#1791838608996643",
+          "size": 1094465,
+          "crc32c": "WlBL+Q=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/item_predictions/test.jsonl#1791838608838421",
+          "size": 1073883,
+          "crc32c": "Mh3bvQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/added_tokens.json#1791838546791168",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq1/c3_snr_duration_seed44/all_results.json#1791838546735241",
+          "size": 595,
+          "crc32c": "EMp11g=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq2/a2_waveform_random_seed42",
+      "config_sha256": "d9361f34b343a51046555df91dbc62519d8a95bec1b058d12a69d101b47da9c5",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/model.safetensors#1791838761861663",
+          "size": 3055544304,
+          "crc32c": "oMGp+Q=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/config.json#1791838716330394",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/generation_config.json#1791838757750726",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/preprocessor_config.json#1791838758491864",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/tokenizer_config.json#1791838758081821",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/special_tokens_map.json#1791838757261005",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/vocab.json#1791838757986312",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/merges.txt#1791838746715316",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/normalizer.json#1791838746756400",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/experiment_config.json#1791838716557111",
+          "size": 3936,
+          "crc32c": "/zKz2g=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/trainer_state.json#1791838757824141",
+          "size": 6987,
+          "crc32c": "x7NFgg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/run_manifest.json#1791838757384442",
+          "size": 1671,
+          "crc32c": "JNadXA=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/train_results.json#1791838758497574",
+          "size": 208,
+          "crc32c": "xWtYZA=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/validation_results.json#1791838757948327",
+          "size": 227,
+          "crc32c": "FFbItQ=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/test_results.json#1791838757519460",
+          "size": 199,
+          "crc32c": "vWHo9A=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/item_predictions/summary.json#1791838716620692",
+          "size": 1846,
+          "crc32c": "OHSHpQ=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/item_predictions/validation.jsonl#1791838758567592",
+          "size": 1096531,
+          "crc32c": "x4Pouw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/item_predictions/test.jsonl#1791838757625502",
+          "size": 1074497,
+          "crc32c": "WaG3LQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/added_tokens.json#1791838664850882",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed42/all_results.json#1791838664836211",
+          "size": 594,
+          "crc32c": "EhdvGg=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq2/a2_waveform_random_seed43",
+      "config_sha256": "1e4ef12a37c6fbedd2dbc1e53c8b382d2352eb5bf8391961c8ffe49fa9917c04",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/model.safetensors#1791838893697195",
+          "size": 3055544304,
+          "crc32c": "1q56DQ=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/config.json#1791838892448949",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/generation_config.json#1791838840780271",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/preprocessor_config.json#1791838860865568",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/tokenizer_config.json#1791838861355061",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/special_tokens_map.json#1791838892488384",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/vocab.json#1791838882130372",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/merges.txt#1791838882054856",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/normalizer.json#1791838860724690",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/experiment_config.json#1791838840726642",
+          "size": 3957,
+          "crc32c": "B7QRpw=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/trainer_state.json#1791838861471132",
+          "size": 6981,
+          "crc32c": "Hhl7Cw=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/run_manifest.json#1791838881736729",
+          "size": 1671,
+          "crc32c": "qe0K+Q=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/train_results.json#1791838861429376",
+          "size": 207,
+          "crc32c": "8kDfBg=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/validation_results.json#1791838882000973",
+          "size": 227,
+          "crc32c": "b4rFKQ=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/test_results.json#1791838892329394",
+          "size": 195,
+          "crc32c": "aXhx7Q=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/item_predictions/summary.json#1791838840789055",
+          "size": 1847,
+          "crc32c": "vqZD+w=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/item_predictions/validation.jsonl#1791838840833894",
+          "size": 1094935,
+          "crc32c": "vpr0sg=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/item_predictions/test.jsonl#1791838840834226",
+          "size": 1074190,
+          "crc32c": "hJGyFw=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/added_tokens.json#1791838788896438",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed43/all_results.json#1791838788864045",
+          "size": 589,
+          "crc32c": "1/iNYA=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq2/a2_waveform_random_seed44",
+      "config_sha256": "a9d84e6a9211f62e17595cef633415cb0b8e6157510e5c5705541451f93baac7",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/model.safetensors#1791838987422865",
+          "size": 3055544304,
+          "crc32c": "KobddA=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/config.json#1791838971170810",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/generation_config.json#1791838971268759",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/preprocessor_config.json#1791838971467523",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/tokenizer_config.json#1791838981324957",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/special_tokens_map.json#1791839012897250",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/vocab.json#1791839012901306",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/merges.txt#1791838971337814",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/normalizer.json#1791838971423643",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/experiment_config.json#1791838971396629",
+          "size": 3957,
+          "crc32c": "1Y4QyA=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/trainer_state.json#1791838981503871",
+          "size": 6988,
+          "crc32c": "INLW9A=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/run_manifest.json#1791838981600728",
+          "size": 1671,
+          "crc32c": "QWzYaQ=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/train_results.json#1791838981354759",
+          "size": 207,
+          "crc32c": "pjHZwQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/validation_results.json#1791839013193754",
+          "size": 229,
+          "crc32c": "XmDmUg=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/test_results.json#1791838981631406",
+          "size": 199,
+          "crc32c": "3HpGeg=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/item_predictions/summary.json#1791838971027749",
+          "size": 1846,
+          "crc32c": "ZhQuTQ=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/item_predictions/validation.jsonl#1791838971110814",
+          "size": 1096305,
+          "crc32c": "UULSoA=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/item_predictions/test.jsonl#1791838971139668",
+          "size": 1074461,
+          "crc32c": "plOZxg=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/added_tokens.json#1791838909298559",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a2_waveform_random_seed44/all_results.json#1791838909283083",
+          "size": 595,
+          "crc32c": "7DS8AQ=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq2/a3_waveform_c3_seed42",
+      "config_sha256": "504b5522b440e291bfbcb2c3f70234c35b019c27ac1d48eba7a0a2877c9a942e",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/model.safetensors#1791839141015951",
+          "size": 3055544304,
+          "crc32c": "RWYMGA=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/config.json#1791839088676812",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/generation_config.json#1791839088971274",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/preprocessor_config.json#1791839119892059",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/tokenizer_config.json#1791839140838385",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/special_tokens_map.json#1791839141029121",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/vocab.json#1791839141401947",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/merges.txt#1791839141740857",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/normalizer.json#1791839141226498",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/experiment_config.json#1791839089040587",
+          "size": 4906,
+          "crc32c": "hMV9nQ=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/trainer_state.json#1791839141311890",
+          "size": 6985,
+          "crc32c": "BjRohA=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/run_manifest.json#1791839120056652",
+          "size": 2480,
+          "crc32c": "L5S7Ig=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/train_results.json#1791839140978307",
+          "size": 209,
+          "crc32c": "bJf8AQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/validation_results.json#1791839141252709",
+          "size": 228,
+          "crc32c": "h/SU4w=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/test_results.json#1791839141109834",
+          "size": 199,
+          "crc32c": "PrkjCQ=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/item_predictions/summary.json#1791839141578595",
+          "size": 1824,
+          "crc32c": "1Pb5fQ=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/item_predictions/validation.jsonl#1791839120059609",
+          "size": 1095151,
+          "crc32c": "mibLdg=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/item_predictions/test.jsonl#1791839109669854",
+          "size": 1074416,
+          "crc32c": "rtrWdg=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/added_tokens.json#1791839038021594",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed42/all_results.json#1791839038006494",
+          "size": 596,
+          "crc32c": "C0ny8g=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq2/a3_waveform_c3_seed43",
+      "config_sha256": "b6196442b8f95d68a649c681134e75c8604e51659973c585843092f699e39397",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/model.safetensors#1791839259096206",
+          "size": 3055544304,
+          "crc32c": "rZXvhQ=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/config.json#1791839205487396",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/generation_config.json#1791839258423800",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/preprocessor_config.json#1791839236914603",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/tokenizer_config.json#1791839258177712",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/special_tokens_map.json#1791839247545305",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/vocab.json#1791839258283446",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/merges.txt#1791839216597916",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/normalizer.json#1791839247459104",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/experiment_config.json#1791839237023081",
+          "size": 4927,
+          "crc32c": "XpAvEQ=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/trainer_state.json#1791839247333953",
+          "size": 6987,
+          "crc32c": "E0GiBg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/run_manifest.json#1791839237049446",
+          "size": 2480,
+          "crc32c": "OqUEeQ=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/train_results.json#1791839247238030",
+          "size": 209,
+          "crc32c": "3WUnNQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/validation_results.json#1791839258420946",
+          "size": 229,
+          "crc32c": "prN+pA=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/test_results.json#1791839258190868",
+          "size": 199,
+          "crc32c": "/IMeLA=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/item_predictions/summary.json#1791839216142774",
+          "size": 1824,
+          "crc32c": "Px9NuQ=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/item_predictions/validation.jsonl#1791839216455841",
+          "size": 1095714,
+          "crc32c": "dSZ0DQ=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/item_predictions/test.jsonl#1791839216303459",
+          "size": 1074711,
+          "crc32c": "gBcI3A=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/added_tokens.json#1791839154261602",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed43/all_results.json#1791839154221865",
+          "size": 597,
+          "crc32c": "PX9Nyg=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq2/a3_waveform_c3_seed44",
+      "config_sha256": "55eddf49492ed421a6dfd62f94513243fb28576580b674f935079e3095d9ae1c",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/model.safetensors#1791839350984305",
+          "size": 3055544304,
+          "crc32c": "PqNGYw=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/config.json#1791839321543110",
+          "size": 1275,
+          "crc32c": "Ms0bkw=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/generation_config.json#1791839349590891",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/preprocessor_config.json#1791839349429818",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/tokenizer_config.json#1791839349302831",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/special_tokens_map.json#1791839344708718",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/vocab.json#1791839344166593",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/merges.txt#1791839334866595",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/normalizer.json#1791839344011238",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/experiment_config.json#1791839343513859",
+          "size": 4927,
+          "crc32c": "zOfpyA=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/trainer_state.json#1791839343887665",
+          "size": 6984,
+          "crc32c": "HSILJA=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/run_manifest.json#1791839344012640",
+          "size": 2480,
+          "crc32c": "3SUifw=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/train_results.json#1791839343765387",
+          "size": 207,
+          "crc32c": "IUplDA=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/validation_results.json#1791839349453664",
+          "size": 227,
+          "crc32c": "9i3UPg=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/test_results.json#1791839343646702",
+          "size": 197,
+          "crc32c": "0dewdQ=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/item_predictions/summary.json#1791839334188230",
+          "size": 1822,
+          "crc32c": "rb7ZyQ=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/item_predictions/validation.jsonl#1791839334601803",
+          "size": 1095732,
+          "crc32c": "h6esTg=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/item_predictions/test.jsonl#1791839334436968",
+          "size": 1074384,
+          "crc32c": "5kcLnQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/added_tokens.json#1791839281960319",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/a3_waveform_c3_seed44/all_results.json#1791839281971684",
+          "size": 591,
+          "crc32c": "joTHzg=="
+        }
+      }
+    },
+    {
+      "output": "medium/rq2/s2_specaug_lb_random_seed42",
+      "config_sha256": "e7a8fe7129d3f8f9a6bc26f15503fef8ebca0b6989795ce98dd221980043c06b",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/model.safetensors#1791839429931032",
+          "size": 3055544304,
+          "crc32c": "vTvnsw=="
+        },
+        "config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/config.json#1791839408575424",
+          "size": 1537,
+          "crc32c": "dOgOcQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/generation_config.json#1791839408698740",
+          "size": 2842,
+          "crc32c": "9y9AKw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/preprocessor_config.json#1791839428916613",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/tokenizer_config.json#1791839428995055",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/special_tokens_map.json#1791839428833929",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/vocab.json#1791839428995211",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/merges.txt#1791839417649861",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/normalizer.json#1791839429309790",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/experiment_config.json#1791839408633956",
+          "size": 3550,
+          "crc32c": "lENqSg=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/trainer_state.json#1791839428553119",
+          "size": 6986,
+          "crc32c": "bpS5xA=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/run_manifest.json#1791839428783727",
+          "size": 1891,
+          "crc32c": "dB2PnQ=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/train_results.json#1791839429309256",
+          "size": 208,
+          "crc32c": "WsJ7UQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/validation_results.json#1791839428939175",
+          "size": 227,
+          "crc32c": "3cNDag=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/test_results.json#1791839428629755",
+          "size": 196,
+          "crc32c": "J0hBnA=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/item_predictions/summary.json#1791839428954661",
+          "size": 1859,
+          "crc32c": "RM+RkA=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/item_predictions/validation.jsonl#1791839428763407",
+          "size": 1095409,
+          "crc32c": "/t+IbQ=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/item_predictions/test.jsonl#1791839429312975",
+          "size": 1074536,
+          "crc32c": "we+qxQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/added_tokens.json#1791839362509258",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/completed-runs/2026-10-12/medium/rq2/s2_specaug_lb_random_seed42/all_results.json#1791839362480459",
+          "size": 591,
+          "crc32c": "z+vZuw=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c2_snr_seed42",
+      "config_sha256": "61493ec3fb34ba858ac7383b03b07e14733130fbbbedfc9bf4f376fc26c35073",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/model.safetensors#1791456188979141",
+          "size": 290403936,
+          "crc32c": "RI2Xhw=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/config.json#1791456173008248",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/generation_config.json#1791456173014502",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/preprocessor_config.json#1791456206184685",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/tokenizer_config.json#1791456207279320",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/special_tokens_map.json#1791456172994231",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/vocab.json#1791456184247425",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/merges.txt#1791456174002707",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/normalizer.json#1791456173327851",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/experiment_config.json#1791456173038853",
+          "size": 3314,
+          "crc32c": "oZK57w=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/trainer_state.json#1791456206228693",
+          "size": 6951,
+          "crc32c": "D3xTSQ=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/run_manifest.json#1791456206228718",
+          "size": 2328,
+          "crc32c": "RkXA/A=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/train_results.json#1791456206937979",
+          "size": 207,
+          "crc32c": "+ICr2w=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/validation_results.json#1791456206215704",
+          "size": 227,
+          "crc32c": "Syrl3Q=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/test_results.json#1791456173001221",
+          "size": 195,
+          "crc32c": "Q8bzzw=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/item_predictions/summary.json#1791456173211597",
+          "size": 1627,
+          "crc32c": "MyuF3w=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/item_predictions/validation.jsonl#1791456174960903",
+          "size": 1096327,
+          "crc32c": "nOErAw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/item_predictions/test.jsonl#1791456208234116",
+          "size": 1077639,
+          "crc32c": "ZSf1OA=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/added_tokens.json#1791456173034106",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed42/all_results.json#1791456172995212",
+          "size": 589,
+          "crc32c": "CvMUHQ=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c2_snr_seed43",
+      "config_sha256": "7fe1f75aec9a0b6912dc74f0261e9626fc0e92cc2125e31c0e53231298db9375",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/model.safetensors#1791460122236121",
+          "size": 290403936,
+          "crc32c": "RI2Xhw=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/config.json#1791456233896451",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/generation_config.json#1791456234036741",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/preprocessor_config.json#1791456235080563",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/tokenizer_config.json#1791456242046165",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/special_tokens_map.json#1791456240948613",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/vocab.json#1791456242751713",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/merges.txt#1791456235542990",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/normalizer.json#1791456234940393",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/experiment_config.json#1791456234054487",
+          "size": 3601,
+          "crc32c": "jAWQAg=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/trainer_state.json#1791456241010417",
+          "size": 6950,
+          "crc32c": "98I0Yg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/run_manifest.json#1791456240941374",
+          "size": 2328,
+          "crc32c": "gQczHw=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/train_results.json#1791456240945716",
+          "size": 207,
+          "crc32c": "IkBR/g=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/validation_results.json#1791456240990331",
+          "size": 227,
+          "crc32c": "eTioRw=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/test_results.json#1791456240951063",
+          "size": 194,
+          "crc32c": "NgL2Jw=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/item_predictions/summary.json#1791456234077492",
+          "size": 1627,
+          "crc32c": "cCRGDw=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/item_predictions/validation.jsonl#1791456235840873",
+          "size": 1096327,
+          "crc32c": "nOErAw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/item_predictions/test.jsonl#1791456235823628",
+          "size": 1077639,
+          "crc32c": "ZSf1OA=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/added_tokens.json#1791456206165163",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed43/all_results.json#1791456206133331",
+          "size": 588,
+          "crc32c": "Dkmg6Q=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c2_snr_seed44",
+      "config_sha256": "88bf6f000e2d67019bd70bbad5622205935517472166372f6970988b91ed2070",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/model.safetensors#1791460141483567",
+          "size": 290403936,
+          "crc32c": "RI2Xhw=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/config.json#1791456256954676",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/generation_config.json#1791456264572460",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/preprocessor_config.json#1791456264840356",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/tokenizer_config.json#1791456265622220",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/special_tokens_map.json#1791456264964313",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/vocab.json#1791456266917654",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/merges.txt#1791456266185758",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/normalizer.json#1791456265160141",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/experiment_config.json#1791456257663229",
+          "size": 3601,
+          "crc32c": "9gA8iQ=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/trainer_state.json#1791456265138126",
+          "size": 6951,
+          "crc32c": "giwUlg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/run_manifest.json#1791456265086373",
+          "size": 2328,
+          "crc32c": "cfHM6A=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/train_results.json#1791456265012263",
+          "size": 207,
+          "crc32c": "D0d0Rg=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/validation_results.json#1791456265131389",
+          "size": 227,
+          "crc32c": "Ty1vgg=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/test_results.json#1791456264947981",
+          "size": 195,
+          "crc32c": "/0bX1g=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/item_predictions/summary.json#1791456264586231",
+          "size": 1627,
+          "crc32c": "IbEypw=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/item_predictions/validation.jsonl#1791456266387159",
+          "size": 1096327,
+          "crc32c": "nOErAw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/item_predictions/test.jsonl#1791456266393577",
+          "size": 1077639,
+          "crc32c": "ZSf1OA=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/added_tokens.json#1791456241296758",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c2_snr_seed44/all_results.json#1791456241308270",
+          "size": 589,
+          "crc32c": "iM1CDg=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c3_snr_duration_seed43",
+      "config_sha256": "83ddb57a6036fdf24281d52d5af05a0bffab6b1642db46c3886be49a4be45086",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/model.safetensors#1791456302537870",
+          "size": 290403936,
+          "crc32c": "Rw9RQA=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/config.json#1791456282214945",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/generation_config.json#1791456282214538",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/preprocessor_config.json#1791456282118031",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/tokenizer_config.json#1791456307093663",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/special_tokens_map.json#1791456305930056",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/vocab.json#1791456307634039",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/merges.txt#1791456283593599",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/normalizer.json#1791456344870124",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/experiment_config.json#1791456306103682",
+          "size": 3709,
+          "crc32c": "wZmbrg=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/trainer_state.json#1791456305982800",
+          "size": 6959,
+          "crc32c": "oWWNJg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/run_manifest.json#1791456306216855",
+          "size": 2342,
+          "crc32c": "hil+Ww=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/train_results.json#1791456305946469",
+          "size": 207,
+          "crc32c": "X6rn+w=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/validation_results.json#1791456305878383",
+          "size": 225,
+          "crc32c": "svYfgA=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/test_results.json#1791456305919775",
+          "size": 197,
+          "crc32c": "5RbV0A=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/item_predictions/summary.json#1791456282853320",
+          "size": 1675,
+          "crc32c": "ObF/ow=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/item_predictions/validation.jsonl#1791456307740211",
+          "size": 1095550,
+          "crc32c": "1Yt6dw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/item_predictions/test.jsonl#1791456338872154",
+          "size": 1074592,
+          "crc32c": "Q0Y0Sw=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/added_tokens.json#1791456282454885",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed43/all_results.json#1791456282204759",
+          "size": 589,
+          "crc32c": "XlI+lQ=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c3_snr_duration_seed44",
+      "config_sha256": "11b6e96294eeaa018d6812a8a562270fb14e6ae76b2e5d68873880873a74c1ec",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/model.safetensors#1791456346913623",
+          "size": 290403936,
+          "crc32c": "Rw9RQA=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/config.json#1791456315639170",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/generation_config.json#1791456315622909",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/preprocessor_config.json#1791456315750787",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/tokenizer_config.json#1791456316693545",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/special_tokens_map.json#1791456337428834",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/vocab.json#1791456316781738",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/merges.txt#1791456317030848",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/normalizer.json#1791456315953532",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/experiment_config.json#1791456306476930",
+          "size": 3662,
+          "crc32c": "d0/gTg=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/trainer_state.json#1791456315704092",
+          "size": 6960,
+          "crc32c": "EuD0dg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/run_manifest.json#1791456315603836",
+          "size": 2342,
+          "crc32c": "bu1bSw=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/train_results.json#1791456315650507",
+          "size": 208,
+          "crc32c": "6VIBAQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/validation_results.json#1791456315587479",
+          "size": 225,
+          "crc32c": "PXjmVQ=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/test_results.json#1791456344850944",
+          "size": 197,
+          "crc32c": "wct2OA=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/item_predictions/summary.json#1791456337471563",
+          "size": 1675,
+          "crc32c": "vwHVVw=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/item_predictions/validation.jsonl#1791456308064654",
+          "size": 1095550,
+          "crc32c": "1Yt6dw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/item_predictions/test.jsonl#1791456317590547",
+          "size": 1074592,
+          "crc32c": "Q0Y0Sw=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/added_tokens.json#1791456306193054",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c3_snr_duration_seed44/all_results.json#1791456305895057",
+          "size": 590,
+          "crc32c": "ZilG5w=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c4_acoustic_cumulative_seed42",
+      "config_sha256": "ce90a946edee449501aad0ec0eb44431128c0c72ca8a70288eba9254e20d50be",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/model.safetensors#1791456384571154",
+          "size": 290403936,
+          "crc32c": "ReShWw=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/config.json#1791456375319662",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/generation_config.json#1791456375284976",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/preprocessor_config.json#1791456375317835",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/tokenizer_config.json#1791456375964532",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/special_tokens_map.json#1791456375302657",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/vocab.json#1791456377017905",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/merges.txt#1791456376711602",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/normalizer.json#1791456375299154",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/experiment_config.json#1791456375294098",
+          "size": 3873,
+          "crc32c": "PEIwRg=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/trainer_state.json#1791456375293007",
+          "size": 6972,
+          "crc32c": "A8XLGQ=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/run_manifest.json#1791456375312652",
+          "size": 2477,
+          "crc32c": "rIWUrg=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/train_results.json#1791456375289239",
+          "size": 208,
+          "crc32c": "GvzlmA=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/validation_results.json#1791456375274998",
+          "size": 225,
+          "crc32c": "7Q7Rig=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/test_results.json#1791456375272842",
+          "size": 196,
+          "crc32c": "qlInbQ=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/item_predictions/summary.json#1791456375309405",
+          "size": 1708,
+          "crc32c": "eDnxSA=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/item_predictions/validation.jsonl#1791456376796682",
+          "size": 1096072,
+          "crc32c": "YPlM0Q=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/item_predictions/test.jsonl#1791456377078057",
+          "size": 1075958,
+          "crc32c": "3OsBoQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/added_tokens.json#1791456337733411",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4_acoustic_cumulative_seed42/all_results.json#1791456344895891",
+          "size": 589,
+          "crc32c": "TamBxA=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c4r_random_pacing_seed42",
+      "config_sha256": "20120da32e12544ce283985782ccc9cb67304c37a0944c7808d0ce8554dac77e",
+      "best_checkpoint": "checkpoint-6906",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/model.safetensors#1791460179613091",
+          "size": 290403936,
+          "crc32c": "Mbuvwg=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/config.json#1791456402014707",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/generation_config.json#1791456401954094",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/preprocessor_config.json#1791456402128921",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/tokenizer_config.json#1791456403277272",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/special_tokens_map.json#1791456402175226",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/vocab.json#1791456404133821",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/merges.txt#1791456402990621",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/normalizer.json#1791456402506359",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/experiment_config.json#1791456401923078",
+          "size": 3757,
+          "crc32c": "P3kfVA=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/trainer_state.json#1791456402236710",
+          "size": 6962,
+          "crc32c": "V395cw=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/run_manifest.json#1791456402162761",
+          "size": 2413,
+          "crc32c": "AebO6A=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/train_results.json#1791456402154583",
+          "size": 206,
+          "crc32c": "DX5bkw=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/validation_results.json#1791456402166219",
+          "size": 226,
+          "crc32c": "jO9xQw=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/test_results.json#1791456402134466",
+          "size": 197,
+          "crc32c": "eMhUrg=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/item_predictions/summary.json#1791456402074277",
+          "size": 1682,
+          "crc32c": "ELB/Tw=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/item_predictions/validation.jsonl#1791456403412274",
+          "size": 1096474,
+          "crc32c": "z7JVSw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/item_predictions/test.jsonl#1791456403779450",
+          "size": 1076564,
+          "crc32c": "C11Z6w=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/added_tokens.json#1791456381076882",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c4r_random_pacing_seed42/all_results.json#1791456380856808",
+          "size": 589,
+          "crc32c": "j/A6KQ=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c5_s2s_margin_seed42",
+      "config_sha256": "1f814b6dfad4286248546ad3cf33655dd1877ff4590c0ec0ee71df806c469ec0",
+      "best_checkpoint": "checkpoint-4604",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/model.safetensors#1791456463555255",
+          "size": 290403936,
+          "crc32c": "BnOYRg=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/config.json#1791456412860562",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/generation_config.json#1791456425491865",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/preprocessor_config.json#1791456413068865",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/tokenizer_config.json#1791456414687111",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/special_tokens_map.json#1791456413079953",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/vocab.json#1791456443955015",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/merges.txt#1791456426305301",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/normalizer.json#1791456425780861",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/experiment_config.json#1791456442206546",
+          "size": 3274,
+          "crc32c": "YEbm9A=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/trainer_state.json#1791456412870773",
+          "size": 6973,
+          "crc32c": "OoVJMQ=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/run_manifest.json#1791456413072387",
+          "size": 2293,
+          "crc32c": "AtNMMw=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/train_results.json#1791456412920094",
+          "size": 206,
+          "crc32c": "WCsz4A=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/validation_results.json#1791456412903334",
+          "size": 228,
+          "crc32c": "oP/tCw=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/test_results.json#1791456413246107",
+          "size": 195,
+          "crc32c": "RSIZmg=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/item_predictions/summary.json#1791456425403969",
+          "size": 1664,
+          "crc32c": "/Nq7nQ=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/item_predictions/validation.jsonl#1791456429248479",
+          "size": 1098483,
+          "crc32c": "94GhxQ=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/item_predictions/test.jsonl#1791456427151574",
+          "size": 1076665,
+          "crc32c": "4uJYrw=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/added_tokens.json#1791456413096686",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed42/all_results.json#1791456402515763",
+          "size": 589,
+          "crc32c": "ZDY3mw=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c5_s2s_margin_seed43",
+      "config_sha256": "dd8aac82c5cd4eb34e4b0bd40bc854a8a5086110a9513b0cab919b6f986f8577",
+      "best_checkpoint": "checkpoint-4604",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/model.safetensors#1791456491675097",
+          "size": 290403936,
+          "crc32c": "JYSq/w=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/config.json#1791456488885806",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/generation_config.json#1791456488929669",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/preprocessor_config.json#1791456488896353",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/tokenizer_config.json#1791456513788567",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/special_tokens_map.json#1791456512707120",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/vocab.json#1791456490431777",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/merges.txt#1791456490356955",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/normalizer.json#1791456469618456",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/experiment_config.json#1791456499180266",
+          "size": 3284,
+          "crc32c": "p6hbeg=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/trainer_state.json#1791456512675601",
+          "size": 6964,
+          "crc32c": "YIdcBg=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/run_manifest.json#1791456488904815",
+          "size": 2293,
+          "crc32c": "hRMY0Q=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/train_results.json#1791456512678137",
+          "size": 207,
+          "crc32c": "/AxKiQ=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/validation_results.json#1791456488876752",
+          "size": 225,
+          "crc32c": "yOCKGA=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/test_results.json#1791456488883024",
+          "size": 196,
+          "crc32c": "vZeb5g=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/item_predictions/summary.json#1791456478226151",
+          "size": 1663,
+          "crc32c": "NTTo3g=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/item_predictions/validation.jsonl#1791456471374707",
+          "size": 1097579,
+          "crc32c": "MrL+uw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/item_predictions/test.jsonl#1791456470549503",
+          "size": 1079289,
+          "crc32c": "tZxYZg=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/added_tokens.json#1791456460879681",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed43/all_results.json#1791456460610688",
+          "size": 588,
+          "crc32c": "Wi1icA=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c5_s2s_margin_seed44",
+      "config_sha256": "2b6c673120768bdf4402ae3222123f3f7bbb8b53ca489c6bf8b1c9b287774360",
+      "best_checkpoint": "checkpoint-4604",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/model.safetensors#1791460272987013",
+          "size": 290403936,
+          "crc32c": "LkFepg=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/config.json#1791456512713853",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/generation_config.json#1791456512682219",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/preprocessor_config.json#1791456513211021",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/tokenizer_config.json#1791456513853351",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/special_tokens_map.json#1791456513228892",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/vocab.json#1791456514603041",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/merges.txt#1791456513886355",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/normalizer.json#1791456513238769",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/experiment_config.json#1791456512724298",
+          "size": 3284,
+          "crc32c": "/b38uw=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/trainer_state.json#1791456513236454",
+          "size": 6972,
+          "crc32c": "rALRng=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/run_manifest.json#1791456513253337",
+          "size": 2293,
+          "crc32c": "LgLGkA=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/train_results.json#1791456513241758",
+          "size": 206,
+          "crc32c": "IB6Tig=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/validation_results.json#1791456513234575",
+          "size": 228,
+          "crc32c": "d1T8gw=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/test_results.json#1791456513229665",
+          "size": 195,
+          "crc32c": "LeVP1g=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/item_predictions/summary.json#1791456512735770",
+          "size": 1663,
+          "crc32c": "pJ9q9A=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/item_predictions/validation.jsonl#1791456514229482",
+          "size": 1097557,
+          "crc32c": "CQy5uw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/item_predictions/test.jsonl#1791456514221425",
+          "size": 1075963,
+          "crc32c": "7z6bvg=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/added_tokens.json#1791456469426478",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c5_s2s_margin_seed44/all_results.json#1791456488945880",
+          "size": 589,
+          "crc32c": "yNQXZQ=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c6_wer_margin_seed42",
+      "config_sha256": "13b879e5f4676cc881b2d5f08c09c66cba8ac418ba8fa9b969154f3e683b8540",
+      "best_checkpoint": "checkpoint-4604",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/model.safetensors#1791460292243579",
+          "size": 290403936,
+          "crc32c": "+mC0iQ=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/config.json#1791456536884616",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/generation_config.json#1791456543092055",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/preprocessor_config.json#1791456551607857",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/tokenizer_config.json#1791456537943824",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/special_tokens_map.json#1791456562309640",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/vocab.json#1791456538081529",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/merges.txt#1791456552614097",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/normalizer.json#1791456543080394",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/experiment_config.json#1791456551728343",
+          "size": 3307,
+          "crc32c": "RonxYQ=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/trainer_state.json#1791456524247613",
+          "size": 6968,
+          "crc32c": "QhEDJw=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/run_manifest.json#1791456524273193",
+          "size": 2329,
+          "crc32c": "Wy/GSQ=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/train_results.json#1791456562433762",
+          "size": 208,
+          "crc32c": "ttzsZg=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/validation_results.json#1791456543546890",
+          "size": 226,
+          "crc32c": "DjaKgw=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/test_results.json#1791456524242835",
+          "size": 196,
+          "crc32c": "rbIibQ=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/item_predictions/summary.json#1791456593963293",
+          "size": 1665,
+          "crc32c": "fxOAlw=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/item_predictions/validation.jsonl#1791456595304066",
+          "size": 1095071,
+          "crc32c": "SA9YhA=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/item_predictions/test.jsonl#1791456545041490",
+          "size": 1074579,
+          "crc32c": "75izsg=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/added_tokens.json#1791456514029693",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed42/all_results.json#1791456513780636",
+          "size": 590,
+          "crc32c": "ls7geA=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c6_wer_margin_seed43",
+      "config_sha256": "88e173ff2808946f69302f0c1345cc9b819ef226f589798c600c99a1e77538ba",
+      "best_checkpoint": "checkpoint-4604",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/model.safetensors#1791456573292881",
+          "size": 290403936,
+          "crc32c": "Q3fn8Q=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/config.json#1791456524267021",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/generation_config.json#1791456537065751",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/preprocessor_config.json#1791456551592289",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/tokenizer_config.json#1791456552256733",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/special_tokens_map.json#1791456562350282",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/vocab.json#1791456564069783",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/merges.txt#1791456544718263",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/normalizer.json#1791456586208996",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/experiment_config.json#1791456524250764",
+          "size": 3277,
+          "crc32c": "N418vg=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/trainer_state.json#1791456586333069",
+          "size": 6960,
+          "crc32c": "3VThzw=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/run_manifest.json#1791456543153500",
+          "size": 2329,
+          "crc32c": "KoVP7g=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/train_results.json#1791456562309275",
+          "size": 208,
+          "crc32c": "Xuzb5A=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/validation_results.json#1791456562321520",
+          "size": 227,
+          "crc32c": "k119ww=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/test_results.json#1791456551667669",
+          "size": 197,
+          "crc32c": "m2CDhA=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/item_predictions/summary.json#1791456536967706",
+          "size": 1662,
+          "crc32c": "922NvA=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/item_predictions/validation.jsonl#1791456538109871",
+          "size": 1095028,
+          "crc32c": "SkGrgg=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/item_predictions/test.jsonl#1791456538687803",
+          "size": 1075013,
+          "crc32c": "OcUJig=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/added_tokens.json#1791456524475972",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed43/all_results.json#1791456536857139",
+          "size": 592,
+          "crc32c": "m6DT1g=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c6_wer_margin_seed44",
+      "config_sha256": "054fbd52abf2a3abf7d9a492118a95cda31ec0386588cd1420edb3b2bb08eaad",
+      "best_checkpoint": "checkpoint-4604",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/model.safetensors#1791456598220505",
+          "size": 290403936,
+          "crc32c": "nPp6gg=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/config.json#1791456593868554",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/generation_config.json#1791456586250825",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/preprocessor_config.json#1791456586247813",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/tokenizer_config.json#1791456587363478",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/special_tokens_map.json#1791456586233307",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/vocab.json#1791456587619817",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/merges.txt#1791456587672915",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/normalizer.json#1791456586618582",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/experiment_config.json#1791456586344628",
+          "size": 3277,
+          "crc32c": "PTvV0A=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/trainer_state.json#1791456586337893",
+          "size": 6968,
+          "crc32c": "SwORgw=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/run_manifest.json#1791456586516550",
+          "size": 2329,
+          "crc32c": "d8Egdg=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/train_results.json#1791456586248634",
+          "size": 207,
+          "crc32c": "X41k6Q=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/validation_results.json#1791456586269457",
+          "size": 227,
+          "crc32c": "CEdpHg=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/test_results.json#1791456586746130",
+          "size": 195,
+          "crc32c": "qJ9JpA=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/item_predictions/summary.json#1791456593924604",
+          "size": 1663,
+          "crc32c": "JPbrSw=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/item_predictions/validation.jsonl#1791456587834094",
+          "size": 1095312,
+          "crc32c": "7JhMHA=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/item_predictions/test.jsonl#1791456588083849",
+          "size": 1075007,
+          "crc32c": "gvM8nQ=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/added_tokens.json#1791456562343043",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c6_wer_margin_seed44/all_results.json#1791456562280935",
+          "size": 589,
+          "crc32c": "pbIBFg=="
+        }
+      }
+    },
+    {
+      "output": "rq1/c7_acoustic_s2s_hybrid_seed42",
+      "config_sha256": "1b0a101228d31e78b6052d0199de26851f211f8dd655727ad03d5a86b1347bb3",
+      "best_checkpoint": "checkpoint-4604",
+      "files": {
+        "model.safetensors": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/model.safetensors#1791456668879646",
+          "size": 290403936,
+          "crc32c": "0jSQBA=="
+        },
+        "config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/config.json#1791456619945698",
+          "size": 1267,
+          "crc32c": "zevJnQ=="
+        },
+        "generation_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/generation_config.json#1791456619956335",
+          "size": 2894,
+          "crc32c": "BDYqmw=="
+        },
+        "preprocessor_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/preprocessor_config.json#1791456619869941",
+          "size": 339,
+          "crc32c": "nviDFQ=="
+        },
+        "tokenizer_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/tokenizer_config.json#1791456620565261",
+          "size": 282683,
+          "crc32c": "uCmrAw=="
+        },
+        "special_tokens_map.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/special_tokens_map.json#1791456619899931",
+          "size": 2194,
+          "crc32c": "92MNbQ=="
+        },
+        "vocab.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/vocab.json#1791456621814469",
+          "size": 1036584,
+          "crc32c": "V4IM2w=="
+        },
+        "merges.txt": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/merges.txt#1791456620929867",
+          "size": 493869,
+          "crc32c": "tJDrMQ=="
+        },
+        "normalizer.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/normalizer.json#1791456620222292",
+          "size": 52666,
+          "crc32c": "MX+ZxA=="
+        },
+        "experiment_config.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/experiment_config.json#1791456620034755",
+          "size": 3645,
+          "crc32c": "0wrSEA=="
+        },
+        "trainer_state.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/trainer_state.json#1791456619855494",
+          "size": 6974,
+          "crc32c": "yqb1oQ=="
+        },
+        "run_manifest.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/run_manifest.json#1791456620180523",
+          "size": 2700,
+          "crc32c": "8nzv0g=="
+        },
+        "train_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/train_results.json#1791456620169960",
+          "size": 206,
+          "crc32c": "VeMUgg=="
+        },
+        "validation_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/validation_results.json#1791456619865419",
+          "size": 226,
+          "crc32c": "j68v1g=="
+        },
+        "test_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/test_results.json#1791456619868046",
+          "size": 197,
+          "crc32c": "3vVRVw=="
+        },
+        "item_predictions/summary.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/item_predictions/summary.json#1791456620157187",
+          "size": 1706,
+          "crc32c": "zuLIAw=="
+        },
+        "item_predictions/validation.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/item_predictions/validation.jsonl#1791456621448310",
+          "size": 1099070,
+          "crc32c": "VNbzKw=="
+        },
+        "item_predictions/test.jsonl": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/item_predictions/test.jsonl#1791456621269068",
+          "size": 1078044,
+          "crc32c": "R73cXw=="
+        },
+        "added_tokens.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/added_tokens.json#1791456587189413",
+          "size": 34604,
+          "crc32c": "uiuLOQ=="
+        },
+        "all_results.json": {
+          "url": "gs://casper/qhivi-backup-2026-10-07/ext_data/casper/asr_experiment_outputs/rq1/c7_acoustic_s2s_hybrid_seed42/all_results.json#1791456593924040",
+          "size": 589,
+          "crc32c": "YFVEVQ=="
+        }
+      }
+    }
+  ]
+}
