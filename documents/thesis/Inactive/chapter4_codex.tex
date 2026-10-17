@@ -6,7 +6,8 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=25mm]{geometry}
-\usepackage{amsmath,booktabs,array}
+\usepackage{amsmath,booktabs,array,graphicx}
+\graphicspath{{figures/}{documents/thesis/figures/}}
 \usepackage[round,authoryear]{natbib}
 \usepackage[hidelinks]{hyperref}
 \setlength{\emergencystretch}{3em}
@@ -17,14 +18,23 @@
 
 \section{Introduction}
 
-This chapter examines whether curriculum learning and data augmentation improve
-Shona automatic speech recognition. It reports the completed Whisper Base study
+This chapter addresses two research questions:
+\begin{enumerate}
+\item \textbf{RQ1:} How do acoustic-property, model-derived, and hybrid curriculum
+schedules affect the fine-tuning of a pretrained speech recogniser on limited
+labelled Shona speech?
+\item \textbf{RQ2:} How does combining a curriculum schedule with waveform or
+spectrogram augmentation affect recognition on unseen Shona speakers and an
+external Shona speech corpus?
+\end{enumerate}
+These questions concern both the observed error differences and the strength
+of the evidence for them. The chapter reports the completed Whisper Base study
 and the matched Whisper Medium extension, including their evaluation on an
 external speech corpus. Whisper is the pretrained speech recogniser adapted
-in these experiments \citep{Radford2023}. The central findings are that Medium
-achieves substantially lower error than Base, that the effect of augmentation
-depends on the model and evaluation corpus, and that combining a curriculum
-with augmentation does not consistently improve every outcome.
+in these experiments \citep{Radford2023}. The A100-trained Medium group has
+substantially lower observed error than the RTX-trained Base group. Augmentation
+effects depend on the model and evaluation corpus, and adding a curriculum
+does not consistently lower every observed error measure.
 
 The results incorporate the migration from an NVIDIA RTX 4090 to a machine
 with two NVIDIA A100 GPUs. Fresh A100 repetitions of the earlier Medium
@@ -76,18 +86,22 @@ training; it does not create new evaluation speakers. SD describes variation
 between these executions, not a confidence interval or statistical significance.
 All models begin from fixed versions of the pretrained weights. Base C2/C3 and Medium C3
 have identical WAXAL prediction hashes across their seed-labelled records;
-their scores are shown once with a dagger ($\dagger$), without an artificial
-zero SD. Medium C3 and Base C2 also have identical FLEURS predictions. Base
+their scores are shown once with superscript D, without an artificial zero SD. D means identical
+prediction records for that evaluation split. Medium C3 and Base C2 also have identical FLEURS predictions. Base
 C3 has two distinct external prediction exports across three records; its
-displayed external mean is marked $\dagger$ and is not treated as three
-independent training outcomes. C4, C4R, and C7 each have only one seed.
+displayed external mean is marked E (repeated exports) and is not treated as
+three independent training outcomes. S marks a single-seed condition: C4, C4R,
+and C7. These symbols describe different evidence structures and are not
+significance markers.
 
 Recognition tables consistently use the saved per-recording prediction summaries.
 Training-loop scores can differ slightly because they come from a separate
 generation pass. A positive improvement is control WER minus treatment WER,
 measured in percentage points (pp). Thus a reduction from 24\% to 23\% is
 1 pp, or a 4.17\% relative reduction. Calculations use unrounded values.
-No new statistical significance claim is inferred from the condition means.
+Paired uncertainty intervals are reported separately from SD. There is no
+universal 0.5-pp boundary between a meaningful difference and noise: precision
+depends on the paired outcomes, sample dependence, and training variation.
 
 \section{Hardware migration and the analysis groups}
 \label{sec:migration}
@@ -173,7 +187,9 @@ contract are used within each comparison.
 \begin{table}[htbp]\centering\small
 \caption{Zero-shot and clean fine-tuned performance. Error rates are percentages.
 Fine-tuned values are three-seed means; each zero-shot model is evaluated once.
-Gain is the zero-shot minus fine-tuned test WER in pp.}
+Gain is the zero-shot minus fine-tuned test WER in pp, calculated before
+rounding. This is a draft snapshot: Medium WAXAL zero-shot evaluation is
+in progress and must be completed or explicitly excluded before submission.}
 \label{tab:zero}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lllrrrr}\toprule
@@ -235,9 +251,10 @@ are separate interventions, not combined in one condition.
 
 \begin{table}[htbp]\centering\scriptsize
 \caption{Matched conditions on WAXAL v2. Entries are percentages, mean $\pm$
-sample SD unless marked $\dagger$ for identical prediction records. All Medium
+sample SD unless marked D for identical prediction records. All Medium
 entries use A100 training. Validation WER governs checkpoint selection;
-test WER and CER describe held-out recognition.}
+test WER and CER describe held-out recognition. Differences are calculated
+before rounding; subtraction of displayed entries can differ by 0.01 pp.}
 \label{tab:waxal}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrrrrr}\toprule
@@ -246,7 +263,7 @@ Cell & Val. WER & Test WER & Test CER & Val. WER & Test WER & Test CER\\\midrule
 % BEGIN CODEX waxal
 C0 & $32.91 \pm 0.48$ & $31.04 \pm 0.29$ & $6.82 \pm 0.17$ & $25.56 \pm 0.25$ & $23.78 \pm 0.32$ & $4.51 \pm 0.17$ \\
 C1 & $32.60 \pm 0.11$ & $30.96 \pm 0.06$ & $6.89 \pm 0.12$ & $25.80 \pm 0.32$ & $23.81 \pm 0.31$ & $4.54 \pm 0.25$ \\
-C3 & $32.84^{\dagger}$ & $30.46^{\dagger}$ & $6.47^{\dagger}$ & $25.77^{\dagger}$ & $23.82^{\dagger}$ & $4.36^{\dagger}$ \\
+C3 & $32.84^{\mathrm{D}}$ & $30.46^{\mathrm{D}}$ & $6.47^{\mathrm{D}}$ & $25.77^{\mathrm{D}}$ & $23.82^{\mathrm{D}}$ & $4.36^{\mathrm{D}}$ \\
 A2 & $33.06 \pm 0.24$ & $31.30 \pm 0.28$ & $7.12 \pm 0.22$ & $25.03 \pm 0.09$ & $23.30 \pm 0.10$ & $4.40 \pm 0.03$ \\
 A3 & $33.04 \pm 0.34$ & $31.37 \pm 0.27$ & $7.10 \pm 0.15$ & $25.02 \pm 0.07$ & $23.64 \pm 0.14$ & $4.40 \pm 0.07$ \\
 S2 & $31.76 \pm 0.16$ & $30.20 \pm 0.35$ & $6.71 \pm 0.45$ & $24.54 \pm 0.14$ & $22.65 \pm 0.32$ & $4.25 \pm 0.06$ \\
@@ -256,12 +273,24 @@ S5 & $32.41 \pm 0.08$ & $30.69 \pm 0.41$ & $7.09 \pm 0.30$ & $24.05 \pm 0.15$ & 
 % END CODEX waxal
 \bottomrule\end{tabular}\end{table}
 
-Clean Medium C0 lowers test WER from Base's 31.04\% to 23.78\%, a 7.27-pp
-reduction. Test CER falls from 6.82\% to 4.51\%. Every matched condition in
-Table~\ref{tab:waxal} has lower WAXAL WER with Medium. This establishes the
-observed advantage of the selected pretrained variant under the study
-conditions; it does not isolate parameter count from pretrained weights,
-architecture, or the hardware change.
+The observed C0 test-WER difference between RTX-trained Base and A100-trained
+Medium is 7.27 pp. Specifically, the unrounded means give
+$31.0446-23.7756=7.2690$ pp; subtracting the two-decimal table entries instead
+would give 7.26 pp. The same calculation rule applies to all reported gains.
+Test CER is 6.82\% for Base and 4.51\% for Medium. Every shared condition
+has lower observed WAXAL WER with the Medium execution group. This comparison
+changes both pretrained variant and training hardware, so it is a descriptive
+comparison of the recorded systems, not a controlled estimate of model size alone.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{chapter4_wer_conditions_codex.pdf}
+\caption{Test WER by condition and model/device group. Diamonds show means,
+small points show seed-labelled records, and horizontal bars show sample SD,
+not confidence intervals. C3 has no SD bar because its records are not
+independent training realisations; coincident points overlap. The two panels
+use different labelled scales. Base--Medium separation includes the device change.}
+\label{fig:wer-conditions}
+\end{figure}
 
 \subsection{RQ1: Curriculum learning}
 
@@ -270,10 +299,12 @@ slightly worsens test CER. C3 gives a larger test-WER reduction of 0.59 pp
 and the lowest clean-curriculum test CER, 6.47\%; its validation improvement
 is only 0.07 pp. The validation and test rankings therefore disagree.
 For Medium, C1 and C3 are slightly worse than C0 on both mean validation
-and test WER. C1 is worse on test WER at each matched seed; its mean
-difference is only 0.04 pp. Medium C3 improves CER while worsening WER by
-0.04 pp. A larger model consequently does not make the clean curriculum
-policies consistently beneficial.
+and test WER. C1 has slightly higher recorded test WER at each matched seed; its mean
+difference is only 0.04 pp. Medium C3 has lower CER but also a 0.04-pp
+higher WER point estimate. Both WER intervals include zero
+(Table~\ref{tab:effects}), so these results do not establish a disadvantage,
+an advantage, or equivalence. They provide no clear WER evidence favouring
+these clean curricula under the evaluated Medium protocol.
 
 Table~\ref{tab:base-screen} retains the remaining Base curriculum screen
 without repeating all per-seed records. C2 orders by descending SNR. C4
@@ -286,18 +317,18 @@ names containing ``margin'' do not denote a separately measured margin here.
 
 \begin{table}[htbp]\centering\small
 \caption{Additional Base curriculum conditions. C2 is prediction-identical
-across seeds ($\dagger$); C4/C4R/C7 have one seed. These conditions were not
+across seeds (D); C4/C4R/C7 have one seed (S). These conditions were not
 repeated with Medium. FLEURS values use the completed corrected evaluations.}
 \label{tab:base-screen}
 \begin{tabular}{lrrrr}\toprule
 Condition & WAXAL val. WER & WAXAL test WER & Test CER & FLEURS test WER\\\midrule
 % BEGIN CODEX screen
-C2 & $33.12^{\dagger}$ & $31.53^{\dagger}$ & $7.46^{\dagger}$ & $60.56^{\dagger}$ \\
-C4 & $34.47$ & $32.59$ & $7.47$ & $63.62$ \\
-C4R & $34.39$ & $32.46$ & $7.45$ & $59.63$ \\
+C2 & $33.12^{\mathrm{D}}$ & $31.53^{\mathrm{D}}$ & $7.46^{\mathrm{D}}$ & $60.56^{\mathrm{D}}$ \\
+C4 & $34.47^{\mathrm{S}}$ & $32.59^{\mathrm{S}}$ & $7.47^{\mathrm{S}}$ & $63.62^{\mathrm{S}}$ \\
+C4R & $34.39^{\mathrm{S}}$ & $32.46^{\mathrm{S}}$ & $7.45^{\mathrm{S}}$ & $59.63^{\mathrm{S}}$ \\
 C5 & $33.91 \pm 0.26$ & $31.78 \pm 0.73$ & $7.37 \pm 0.68$ & $60.39 \pm 0.97$ \\
 C6 & $33.92 \pm 0.33$ & $31.98 \pm 0.28$ & $6.93 \pm 0.10$ & $58.91 \pm 0.93$ \\
-C7 & $34.52$ & $32.19$ & $7.57$ & $62.94$ \\
+C7 & $34.52^{\mathrm{S}}$ & $32.19^{\mathrm{S}}$ & $7.57^{\mathrm{S}}$ & $62.94^{\mathrm{S}}$ \\
 % END CODEX screen
 \bottomrule\end{tabular}\end{table}
 
@@ -319,26 +350,28 @@ additional value of combining augmentation with a curriculum. This distinction
 prevents a useful augmentation policy from being interpreted automatically
 as evidence for a useful combination.
 
-\begin{table}[htbp]\centering\small
+\begin{table}[htbp]\centering\scriptsize
 \caption{Matched mean test-WER improvement, control minus treatment (pp).
-Positive values favour the treatment. These are descriptive differences,
-not confidence intervals. A3--A2 and S3--S2 isolate the addition of the
-curriculum within the corresponding augmentation policy.}
+Positive values favour the treatment. Medium entries include exploratory
+95\% paired cluster-bootstrap intervals for the mean over the three fixed
+checkpoints; Base entries remain descriptive. Intervals are unadjusted for
+20 comparisons and do not estimate training-seed uncertainty. A3--A2 and
+S3--S2 add the curriculum within augmentation. All effects precede rounding.}
 \label{tab:effects}
 \begin{tabular}{lrrrr}\toprule
  & \multicolumn{2}{c}{WAXAL} & \multicolumn{2}{c}{FLEURS}\\
 Treatment versus control & Base & Medium & Base & Medium\\\midrule
 % BEGIN CODEX effects
-C1 versus C0 & $+0.09$ & $-0.04$ & $+0.55$ & $-0.49$ \\
-C3 versus C0 & $+0.59$ & $-0.04$ & $-0.94$ & $+0.68$ \\
-A2 versus C0 & $-0.25$ & $+0.48$ & $-1.18$ & $+0.78$ \\
-A3 versus C3 & $-0.91$ & $+0.18$ & $-0.85$ & $-0.10$ \\
-A3 versus A2 & $-0.07$ & $-0.34$ & $-0.61$ & $-0.20$ \\
-S2 versus C0 & $+0.84$ & $+1.12$ & $-1.36$ & $+1.20$ \\
-S3 versus C1 & $+0.53$ & $+1.39$ & $-1.41$ & $+1.33$ \\
-S3 versus S2 & $-0.23$ & $+0.23$ & $+0.51$ & $-0.36$ \\
-S4 versus S2 & $-0.18$ & $+0.20$ & $-3.15$ & $-1.54$ \\
-S5 versus S3 & $-0.27$ & $-0.01$ & $-3.87$ & $-0.54$ \\
+C1 versus C0 & $+0.09$ & $-0.04\;[-0.36, +0.38]$ & $+0.55$ & $-0.49\;[-1.35, +0.28]$ \\
+C3 versus C0 & $+0.59$ & $-0.04\;[-0.40, +0.41]$ & $-0.94$ & $+0.68\;[-0.15, +1.52]$ \\
+A2 versus C0 & $-0.25$ & $+0.48\;[-0.04, +0.89]$ & $-1.18$ & $+0.78\;[-0.01, +1.59]$ \\
+A3 versus C3 & $-0.91$ & $+0.18\;[-0.43, +0.67]$ & $-0.85$ & $-0.10\;[-0.99, +0.77]$ \\
+A3 versus A2 & $-0.07$ & $-0.34\;[-0.84, +0.30]$ & $-0.61$ & $-0.20\;[-0.98, +0.56]$ \\
+S2 versus C0 & $+0.84$ & $+1.12\;[+0.56, +1.57]$ & $-1.36$ & $+1.20\;[+0.37, +2.00]$ \\
+S3 versus C1 & $+0.53$ & $+1.39\;[+0.93, +1.71]$ & $-1.41$ & $+1.33\;[+0.40, +2.28]$ \\
+S3 versus S2 & $-0.23$ & $+0.23\;[-0.09, +0.56]$ & $+0.51$ & $-0.36\;[-0.98, +0.24]$ \\
+S4 versus S2 & $-0.18$ & $+0.20\;[-0.35, +0.68]$ & $-3.15$ & $-1.54\;[-2.83, -0.44]$ \\
+S5 versus S3 & $-0.27$ & $-0.01\;[-0.52, +0.37]$ & $-3.87$ & $-0.54\;[-1.62, +0.41]$ \\
 % END CODEX effects
 \bottomrule\end{tabular}\end{table}
 
@@ -374,9 +407,8 @@ ordering and is not accompanied by uniformly lower CER.
 
 \begin{table}[htbp]\centering\scriptsize
 \caption{Corrected FLEURS results for the shared Base/Medium conditions.
-Entries are percentages. The dagger marks repeated deterministic outcomes
-or, for Base C3, the mean over three exports with only two distinct predictions;
-it does not imply independent seed replication.}
+Entries are percentages. D marks identical prediction records. E marks Base C3: a mean over three
+exports with only two distinct predictions. Neither denotes independent seed replication.}
 \label{tab:fleurs}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrrrrr}\toprule
@@ -385,7 +417,7 @@ Cell & Val. WER & Test WER & Test CER & Val. WER & Test WER & Test CER\\\midrule
 % BEGIN CODEX fleurs
 C0 & $56.94 \pm 1.25$ & $58.31 \pm 0.59$ & $18.93 \pm 0.26$ & $37.08 \pm 2.33$ & $38.36 \pm 0.48$ & $9.98 \pm 0.47$ \\
 C1 & $55.74 \pm 0.31$ & $57.76 \pm 0.05$ & $19.17 \pm 0.32$ & $36.53 \pm 0.21$ & $38.86 \pm 0.58$ & $10.70 \pm 0.35$ \\
-C3 & $59.58^{\dagger}$ & $59.25^{\dagger}$ & $20.09^{\dagger}$ & $36.54^{\dagger}$ & $37.69^{\dagger}$ & $9.93^{\dagger}$ \\
+C3 & $59.58^{\mathrm{E}}$ & $59.25^{\mathrm{E}}$ & $20.09^{\mathrm{E}}$ & $36.54^{\mathrm{D}}$ & $37.69^{\mathrm{D}}$ & $9.93^{\mathrm{D}}$ \\
 A2 & $56.95 \pm 0.72$ & $59.49 \pm 1.47$ & $20.03 \pm 0.42$ & $36.77 \pm 0.95$ & $37.59 \pm 0.44$ & $10.08 \pm 0.36$ \\
 A3 & $57.04 \pm 0.94$ & $60.10 \pm 2.04$ & $20.56 \pm 1.60$ & $37.92 \pm 1.64$ & $37.79 \pm 0.65$ & $10.01 \pm 0.28$ \\
 S2 & $57.12 \pm 1.13$ & $59.67 \pm 0.51$ & $20.47 \pm 0.34$ & $36.54 \pm 1.29$ & $37.16 \pm 0.28$ & $9.89 \pm 0.15$ \\
@@ -447,8 +479,62 @@ external results, but not uncertainty about generalisation. FLEURS has 348
 distinct test sentence prompts, with repeated readings of some prompts.
 Archived bootstrap analyses group recordings by prompt because speaker
 identities are unavailable. This cannot account for unknown speaker dependence.
-No new complete paired uncertainty analysis of the Medium comparisons is
-claimed here, and three seed averages do not replace one.
+The paired analysis below addresses evaluation-cluster uncertainty; it does
+not make the training seeds or unrecorded speakers more numerous.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{chapter4_domain_scatter_codex.pdf}
+\caption{WAXAL versus FLEURS mean test WER. Lower and farther left is better.
+Dashed lines intersect at each model's clean C0 control (square). Points left
+of and below that control have lower means on both corpora. Separate axis
+ranges expose within-model rankings; distances must not be compared across
+panels. This plot describes point estimates, not significance.}
+\label{fig:domain-scatter}
+\end{figure}
+
+\subsection{Paired uncertainty and the strength of the evidence}
+\label{sec:uncertainty}
+
+The review-stage analysis evaluates all ten existing within-Medium contrasts
+in Table~\ref{tab:effects} on both test corpora, rather than testing only the
+most favourable result. For each of 100,000 bootstrap repetitions, it samples
+24 WAXAL speakers or 348 FLEURS prompts with replacement, retaining all
+recordings from each sampled group. The same sampled groups are used for
+control and treatment at all three seeds. Corpus WER is recomputed from
+summed word-edit counts and reference words, and the three paired differences
+are averaged. The 2.5th and 97.5th percentiles give the reported 95\% interval.
+No individual utterance percentage or seed-by-recording pair is treated as an
+independent observation. These intervals condition on the trained models;
+they do not estimate variation over new training seeds.
+
+For Medium S2 versus C0, the WAXAL improvement is 1.12 pp with an interval
+of [0.56, 1.57] pp, and the FLEURS improvement is 1.20 pp with an interval
+of [0.37, 2.00] pp. However, the two corpora and ten contrasts constitute
+20 inspected comparisons. Using wider 99.75\% bootstrap intervals as a
+Bonferroni sensitivity check gives [0.04, 1.86] pp on WAXAL and
+[$-0.10$, 2.44] pp on FLEURS. Thus the external point estimate is favourable,
+but the more conservative interval includes zero. These approximate bootstrap
+adjustments address this stated family, not the study's earlier adaptive
+selection of conditions.
+
+The clean curriculum differences near 0.04 pp, the waveform-random WER
+gains, and the S3--S2 WAXAL difference all have unadjusted intervals spanning
+zero. Their directions describe the observed models but do not establish
+population advantages or disadvantages. Conversely, Medium S3 versus clean
+C1 retains a positive WAXAL interval even under the wider sensitivity check
+([0.57, 1.90] pp). An interval including zero is uncertainty about direction,
+not proof that two methods are equivalent.
+
+Only three paired training seeds remain. A paired \emph{t}-test would place
+strong reliance on the distribution of those three differences; it cannot
+establish that assumption from this sample. As an explicit sensitivity check,
+all $2^3=8$ sign reversals of the S2--C0 seed differences give a two-sided
+exact sign-flip value of $p=0.25$, under the assumption that signs are
+exchangeable under the null. This is the smallest attainable two-sided value
+with three nonzero pairs, even when all favour treatment. It measures a
+different uncertainty from the cluster intervals. More independent seeds,
+not a more favourable choice of test, are needed for stronger claims about
+training-run consistency.
 
 \section{Training time, memory use, and learning behaviour}
 \label{sec:resources}
@@ -569,33 +655,7 @@ better recognition, and three epoch-level observations cannot locate an
 exact onset of overfitting or prove a regularisation mechanism. The chapter's
 accuracy comparisons consistently use the selected checkpoints.
 
-\section{Interpretation, remaining limitations, and answers to the research questions}
-
-The completed Medium matrix and external evaluations resolve several earlier
-evidence gaps. Model-size conclusions are no longer based only on Base;
-SortaGrad is no longer represented by one Medium seed; all masking cells
-have final results; and Medium's external performance is measured. Fresh
-A100 controls remove the earlier within-Medium training-hardware mismatch.
-The new sampled memory evidence also extends the short feasibility probes,
-although it does not supply uniform allocator measurements for every run.
-These advances require revising the earlier blanket claims that waveform
-augmentation is ineffective and that masking gains do not transfer externally.
-
-For RQ1, no clean curriculum improves every reported endpoint across both
-models and corpora. Base C3 favours WAXAL test recognition but worsens
-FLEURS, while Medium C3 has the reverse WER pattern. SortaGrad gives small
-Base WER gains, but does not improve Medium WAXAL test WER after the A100
-control reruns. Dynamic Base curricula add no consistent accuracy benefit,
-and generated-WER ordering is substantially more expensive.
-
-For RQ2, light masking is useful in-domain for both models. Medium's
-waveform-random and light-mask-random conditions also improve mean FLEURS
-test WER, in contrast with their Base counterparts. Combining waveform
-augmentation with C3 does not improve on waveform augmentation alone.
-Combining light masking with SortaGrad gives the lowest Medium mean WAXAL
-test WER, but worsens external WER relative to light masking alone.
-Consequently, an in-domain ranking is insufficient for a claim of general
-robustness, and the best choice depends on the stated evaluation objective.
+\section{Limitations}
 
 Five limitations continue to constrain these conclusions. First, the findings
 remain conditional on Shona, one WAXAL split, the pinned pretrained variants,
@@ -604,8 +664,9 @@ about training variability; identical deterministic predictions do not create
 independent evidence. Second, WAXAL test results contributed to the historical
 choice of C3 for the waveform study. Repeated inspection of WAXAL and FLEURS
 does not constitute fresh confirmation, and unadjusted screening intervals
-do not control the error rate across all comparisons. New Medium paired
-intervals and formal interaction analyses remain outstanding.
+do not control the error rate across all comparisons. The new Medium paired cluster intervals remain conditional on the fixed
+checkpoints. Formal interaction uncertainty and broader training-seed
+replication remain outstanding.
 
 Third, the composite waveform policy does not isolate noise, room-response,
 or tempo effects, and the Base--Medium comparison changes pretrained weights,
@@ -627,6 +688,40 @@ this revision; these checks do not reproduce unavailable training or certify
 every historical model weight. Full per-run values, source paths, missing-file
 records, and memory-measurement provenance accompany the chapter in
 \path{chapter4_per_run_codex.csv} and \path{chapter4_evidence_codex.json}.
+
+\section{Conclusion}
+
+The completed Medium matrix and external evaluations resolve several earlier
+evidence gaps. The observed system comparison now includes both Base and Medium;
+SortaGrad is no longer represented by one Medium seed; all masking cells
+have final results; and Medium's external performance is measured. Fresh
+A100 controls remove the earlier within-Medium training-hardware mismatch.
+The new sampled memory evidence also extends the short feasibility probes,
+although it does not supply uniform allocator measurements for every run.
+These advances require revising the earlier blanket claims that waveform
+augmentation is ineffective and that masking gains do not transfer externally.
+
+For RQ1, no clean curriculum improves every reported endpoint across both
+models and corpora. Base C3 has lower WAXAL and higher FLEURS test WER than
+its clean random control; Medium C3 has the reverse point-estimate pattern.
+SortaGrad gives small observed Base WER gains, but the A100 Medium evidence
+does not establish a WAXAL WER advantage or disadvantage. Dynamic Base curricula
+add no consistent observed accuracy benefit,
+and generated-WER ordering is substantially more expensive.
+
+For RQ2, light masking lowers observed in-domain WER for both models; the
+Medium cluster intervals support its advantage over clean controls conditional
+on the trained checkpoints. Medium's waveform-random and light-mask-random
+conditions also have lower mean FLEURS test WER, in contrast with their Base
+counterparts. External uncertainty is wider, and the light-mask interval
+includes zero under the 20-comparison sensitivity check. Combining waveform
+augmentation with C3 does not lower the observed mean WER relative to waveform
+augmentation alone.
+Combining light masking with SortaGrad gives the lowest Medium mean WAXAL
+test WER, but a higher external mean than light masking alone; neither
+S3--S2 contrast has a 95\% interval excluding zero.
+Consequently, an in-domain ranking is insufficient for a claim of general
+robustness, and the best choice depends on the stated evaluation objective.
 
 \begin{thebibliography}{9}
 \bibitem[Amodei et~al.(2016)]{Amodei2016}

@@ -129,8 +129,9 @@ def mean(model,code,key): return st.mean(r[key] for r in D[model][code])
 def cell(model,code,key):
     rows=D[model][code]; vals=[r[key] for r in rows]
     if code in ['C2','C3']:
-        return f'${st.mean(vals):.2f}^{{\\dagger}}$'
-    if len(vals)==1: return f'${vals[0]:.2f}$'
+        mark='E' if model=='Base' and code=='C3' and key.startswith('fleurs_') else 'D'
+        return f'${st.mean(vals):.2f}^{{\\mathrm{{{mark}}}}}$'
+    if len(vals)==1: return f'${vals[0]:.2f}^{{\\mathrm{{S}}}}$'
     return f'${st.mean(vals):.2f} \\pm {st.stdev(vals):.2f}$'
 def row(fields):return ' & '.join(fields)+r' \\'
 tables={}
@@ -153,7 +154,17 @@ for title,prefix in [('waxal',''),('fleurs','fleurs_')]:
         for key in ['validation_wer','test_wer','test_cer']]) for code in COMMON)
 tables['screen']='\n'.join(row([c]+[cell('Base',c,k) for k in ['validation_wer','test_wer','test_cer','fleurs_test_wer']])
     for c in ['C2','C4','C4R','C5','C6','C7'])
-tables['effects']='\n'.join(row([f'{t} versus {c}']+[f'${mean(m,c,k)-mean(m,t,k):+.2f}$'
+uncertainty_path=HERE/'chapter4_uncertainty_codex.json'
+uncertainty=read(uncertainty_path)
+intervals={(r['split'],r['treatment'],r['control']):r for r in uncertainty['results']}
+def effect_cell(model,treatment,control,key):
+    value=mean(model,control,key)-mean(model,treatment,key)
+    if model=='Base':return f'${value:+.2f}$'
+    result=intervals[(key.removesuffix('_wer'),treatment,control)]
+    assert abs(result['improvement_pp']-value)<1e-10
+    lo,hi=result['ci95_pp']
+    return f'${value:+.2f}\\;[{lo:+.2f}, {hi:+.2f}]$'
+tables['effects']='\n'.join(row([f'{t} versus {c}']+[effect_cell(m,t,c,k)
     for k in ['test_wer','fleurs_test_wer'] for m in ['Base','Medium']])
     for t,c in [('C1','C0'),('C3','C0'),('A2','C0'),('A3','C3'),('A3','A2'),
                 ('S2','C0'),('S3','C1'),('S3','S2'),('S4','S2'),('S5','S3')])

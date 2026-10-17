@@ -1,0 +1,751 @@
+
+
+\graphicspath{{{images/}}
+\begin{document}
+\section{Methodology}
+
+\subsection{Introduction}
+This chapter details the methodology which we use to investigate curriculum learning approaches for ASR in the Shona language, a low resource Bantu language. We utilize an experimental approach to evaluate whether organizing data according to sample difficulty significantly improves the performance of ASR systems.
+The methodology begins with data acquisition, preparation, and preprocessing followed by establishing a baseline ASR system. We apply curriculum learning strategies to organize the data according to a difficulty score. Additionally, we explore data augmentation techniques to determine whether introducing acoustic variability and slight noise can improve model generalization.
+We utilize word error rate (WER) as the primary metric for evaluation, character error rate is included as a secondary evaluation metric. We compare the performance of each trained model with the baseline to determine the effectiveness of each training strategy.
+The remainder of this chapter presents the research design, implementation details, dataset and preprocessing procedures, baseline ASR model, curriculum learning framework, data augmentation techniques, experimental design, evaluation metrics.
+
+\subsection{Research Design}
+\subsubsection{Experimental approach}
+We approached this study with a quantitative experimental design. Automatic speech recognitions (ASR) systems were trained under controlled conditions; evaluation was done using the Word Error Rate (WER) on examples not seen during training. When training machine learning systems it is important to evaluate on unseen data, this measure the models ability to generalize compared to memorizing the training data.
+
+\subsubsection{Variables}
+The primary independent variable is the curriculum schedule, which is the order in which the labeled utterances are presented to the model.
+
+We study three additional secondary independent variables:
+\begin{enumerate}
+    \item the \emph{data augmentation policy}, we test no augmentation, synthetic waveform augmentation, or spectrogram masking augmentation (SpecAugment) which was applied to the models input features;
+    \item the \emph{interaction} between the curriculum schedule and the augmentation policy; and
+    \item the \emph{model capacity}, examined by repeating the principal
+    conditions on the larger Whisper Medium (769 million parameters) in addition to 
+    Whisper Base (74 million parameters).
+\end{enumerate}
+
+We use the corpus level word error rate WER as the primary dependent variable, because WER is the standard metric for measuring ASR transcription accuracy; therefore, it allows us to compare our results with other published work. We include character error rate CER and evaluation loss as secondary dependent variables. It is necessary to include CER because Shona is an agglutinative language therefore, where words are formed by combining different meaningful units(morphemes), one incorrect morpheme makes the complete word incorrect using WER; therefore, CER can retain partial gains which WER penalizes. One of the primary methods of identifying overfitting in machine learning is by comparing the evaluation loss against the training loss. When the evaluation loss increases while the training loss is declining that is a sign of potential overfitting. Therefore, we included evaluation loss for training diagnostics.
+
+The controlled variables are the pretrained model and model size, data splits, text normalization, number of training
+epochs, optimizer and learning-rate schedule, batch size, random seed, decoding configuration, and the checkpoint-selection rule. These were constant across all runs, such that only the factor being investigated varies. 
+
+\subsubsection{Research questions}
+
+The methodology seeks to answer the following research questions:
+
+\begin{enumerate}
+    \item What are the effects of acoustic data level curriculum learning, on the finetuning of ASR foundation models on limited Shona datasets?\citep{Braun2017}
+    \item How does combining curriculum schedulers with synthetic data augmentation affect the out of domain generalization of Shona ASR models?
+\end{enumerate}
+
+\subsubsection{Experimental Sequence}
+
+The order which the experiments were run is fixed before inspecting results, this prevents us from tuning later experiments to favor a preferred conclusion.
+\begin{itemize}
+    \item Building a fixed speaker disjoint data protocol, transcript normalization and acoustic measurements to be used for difficulty scoring. 
+    \item Establishing a baseline that uses random shuffling without augmentation and curriculum ordering.
+    \item Comparing static, dynamic and hybrid curriculum strategies against the baseline with whisper base
+    \item Evaluating data augmentation independently with no curriculum and including the best performing curriculum.
+    \item Evaluating the best performing models on an out of domain dataset.
+\end{itemize}
+
+This work is conducted in two phases, the exploratory phase, which constructs the pipeline which we implement as the foundation for running all controlled experiments. This is done by investigating model sizes, preliminary curriculum strategies, augmentation settings and to configure the data preprocessing pipeline. Explarotory runs changed more than one factor between runs, they can not be considered as controlled experiments, but are retained as evidence which informs later decisions. The controlled phase, uses experiments driven by versioned configuration files, all data files are identified by cryptographic hashes, the version of the pretrained whisper model is fixed and the experiments are carried out using multiple random seeds.
+
+\subsubsection{Controlled comparisons, random seeds, and replication}
+\label{sec:seeds}
+
+This study retains comparisons where the dataset, training, budget, random seed, decoding configuration and evaluation splits were held constant as the controlled experiments. The earlier runs which altered more than one of these factors are maintained as exploratory evidence. Our controlled experiments use the random seeds of 42, 43, and 44 which we share across the different experiments with otherwise identical conditions. The use of 3 enables us to explore run by run instability and isolate performance impact of the seed sample. Training a machine learning model involves various random processes, which includes the random shuffling order, initialization of any new created parameters and stochastic augmentation decisions. A random seed initializes the pseudo random generator; therefore, the seed produces the same random decisions, which is necessary for reproducibility. Different seeds can produce different model outcomes, event when all other parameters are identical\citep{Reimers2017, Dodge2020}.
+
+\subsection{Implementation Details}
+
+We implemented the training pipeline with Python 3.10.12 using PyTorch 2.5.1 \citep{Paszke2019}, which is an open-source deep-learning library. 
+We apply the following additional packages:
+\begin{itemize}
+    \item \textbf{Transformers 4.46.3} \citep{Wolf2020}: This package provides access to the pretrained Whisper models, feature extractor, tokenizer and a sequence to sequence training loop.
+    \item \textbf{Datasets 2.20.0} \citep{Lhoest2021}: This package provides access to Huggingface datasets and provides functions for loading, decoding and resampling data.
+    \item \textbf{Accelerate 1.1.1}: manages mixed-precision training;
+    \item \textbf{Evaluate 0.4.2} and \textbf{JiWER 3.0.4}: compute WER and CER;
+    \item \textbf{NumPy 1.26.4}: numerical computation for audio analysis and
+    statistics;
+    \item \textbf{Weights \& Biases (W\&B) 0.28.2} \citep{Biewald2020}: records
+    training curves, configurations, and system metrics for each run.
+\end{itemize}Whisper base experiments and exploratory runs are carried out on an Nvidia Geforce RTX 4090 with 24GB VRAM of memory and CUDA 12.4 driver. Whisper medium experiments are carried out on an Nvidia A100 with 40GB VRAM. All experiments were meant to be run on the same RTX4090 GPU; however, the GPU became unavailable due to reasons beyond our control; therefore, remaining Whisper medium experiments were run on a machine with 2X A100 GPUs. Because of the different GPU configurations, compute capacity and architectures we reran the Whisper medium experiments which had been run on the RTX4090 on the A100. This means all Whisper medium experiments are carried out under the same controlled environment. This was necessary because different GPU architectures perform floating point arithmetic in different way which could alter results.
+
+We utilize versioned configuration files in JavaScript Object Notation (JSON) format, which is a plain-text format for storing structured data. The configuration files for the experiments detailed the model size, manifest paths, language and task, random seed, batch and accumulation settings, optimization schedules, augmentation policy if applied, output location and meta data for tracking the experiment. Before each training run, the pipeline produces a run manifest which contains the Secure Hash Algorithm 256bit (SHA256) hash of the training script, configuration, dependency list, data manifests, package versions, GPU model, and the seed. A SHA256 hash is a unique fingerprint containing 64 characters, computed from the contents of a file, any small change to that files changes the SHA256 hash. Using SHA256 guarantees that we used the same data and code after the fact. We utilize Tmux to run long running training and data preprocessing working inside a detached terminal session, this allows the work to continue in the background if connection to the server is lost.
+
+\subsection{Dataset and Data Preparation}
+
+\subsubsection{WAXAL}
+
+This study utilizes the Shona component of the WAXAL dataset \citep{Diack2026} as the primary source of training data, collected through a multiyear effort funded by Google in partnership with several partners across the African continent. The Shona component of the WAXAL dataset contains 99.2 hours of transcribed audio and a total of 574.2 hours of audio both transcribed and unlabeled. The collection process was designed for natural speech and involved the following process: 
+
+\begin{itemize}
+    \item Image prompted speech: The participants were shown different images which cover 50 different topics and they were asked to describe what they see in their native languages. 
+    \item Recording: All the recordings had a minimum of 15 seconds and were captured in the speaker’s natural environment
+    \item Transcription: 10\%  of the data was transcribed by appropriately paid professional local linguists in that language. Each transcription was done by a single annotator.
+    \item Quality control: Quality control was implemented for each audio to check for clarity, language accuracy and relevance to the prompt, personally identifiable information was removed where available in this stage.
+\end{itemize}
+
+\subsubsection{WAXAL ACQUISITION AND NEMO MANIFEST CONVERSION}
+
+Audio and transcript analysis is conducted using the Nvidia NEMO Speech Data Explorer (SDE) \citep{Bakhturina2021}. NeMo is an open-source toolkit for training speech and language models and SDE is browser based tool within NeMo which enables interactive analysis of speech datasets. It enables easy transcript, waveform and spectrogram visualization, and audio playback. We chose SDE because it was specifically designed speech data analysis, it includes built in functions for computing audio duration, character-rate, and word-rate distributions, highlighting out of vocabulary characters, and it simplifies isolation and inspection of outliers without writing additional code. 
+Each record includes an audio clip of the speech, a reference transcription, an utterance identifier, speaker identifier, language, and gender. We implement a script which loads the data splits (training, validation, test), skips empty transcriptions, and converts the data to JSON-line (JSONL) manifest format which is accepted by the Nvidia Nemo Speech data Explorer (SDE). JSONL is a plain text format where each line is a single JSON object describing one utterance. We measure duration from the audio frame counts divided by sampling rate SoundFile, a Python library which processes audio files through the libsndfile C library, instead of using the metadata for maximum accuracy. This is necessary because the SortaGrad curriculum depends on accurate audio length to correctly order the data. The resulting manifest file contains rows storing the absolute audio path, the measured duration, the transcription, the utterance identifier, and where available speaker, language and gender fields.
+This results in local manifests containing 14109 training examples, 1727 validation examples and 1749 test examples.
+
+\subsubsection{SDE quality analysis and filtering}
+
+We utilize NEMO Speech Data Explorer (SDE) \citep{Bakhturina2021} to inspect utterance duration, transcription length, speaking rate outliers, unexpected characters and any anomalies. The observations make during this exercise motivate the rules we apply to analyze and clean the data. Therefore, speech data explorer (SDE) enables us to explore and review audio samples and their respective transcriptions, while we utilized a separate Jupyter notebook to clean the data. 
+For each utterance we calculate the character rate and word rate, these metrics measure the amount of text associated with each audio clip. Correctly transcribed speech has character-rate and word-rate within a predictable range; therefore, extreme values indicate a mismatch between the audio and transcription. The character-rate and word-rate were computed using the following formulas.
+
+\begin{equation}
+    r_i^{\text{char}} = \frac{|y_i|}{d_i}, \quad r_i^{\text{word}} = \frac{\text{words}(y_i)}{d_i}
+\end{equation}
+
+Where: 
+ $r_i^{\text{char}}$ is the character rate (characters per unit of duration) for sample i,
+ $r_i^{\text{words}}$ is the word rate (words per unit of duration) for sample i,
+ $i$: is the index identifying a specific audio clip and text transcript pair in the dataset,
+ $y_i$: is the ground-truth target text transcript for sample i,
+ $|y_i|$: is the total character count (length) of the target transcript text $y_i$,
+ $words(y_i)$: is the total number of words in the target transcript text $y_i$, and
+ $d_i$: is the duration of the audio clip $i$ (measured in seconds).
+Utterances with a duration below one second are automatically rejected, this is because the WAXAL creation process required participants to describe an image and that cannot be done in a meaningful way in less than one second. While those with a character rate below one and above 25 or the word rate exceeded 4 words per second are rejected because typical conversations have a word-rate of 2-3 words per second \citep{Yuan2006}, and Shona, being an agglutinative language feature on average longer words, which reduces the word-rate. These thresholds are applied to all data splits because errors in the validation or test transcriptions would penalize the model for dataset errors. Applying the same rules to all the dataset splits allows the splits to be statistically comparable. 
+
+The script flags newline characters and unexpected symbols which we reviewed manually. This is necessary because the Shona language utilizes symbols like the apostrophe to construct new words and define pronunciations for example, the word \emph{n'anga} meaning traditional healer uses an apostrophe to construct the velar nasal sound, written as \emph{n'} and pronounced like the English \emph{ng}, for example in a word like \emph{sing}. For this reason, we review examples with unexpected characters independently to avoid losing context.
+
+
+\begin{table}
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        Split & Input & Retained & Rejected\\
+        \hline
+        Train & 14,109 & 13,799 & 310 \\
+        \hline
+        Validation & 1,727 & 1,683 & 44 \\
+        \hline
+        Test & 1,749 & 1,711 & 38 \\
+        \hline
+    \end{tabular}
+    \caption{Table showing data preprocessing outputs}
+    \label{tab:placeholder}
+\end{table}
+
+
+The data cleaning process therefore produces five artifacts, (i) a cleaned manifest, (ii) a rejected manifest containing all the data which had been rejected and reasons for rejection, (iii) an enriched manifest which contained the derived measurements, (iv) a csv file which could then be used for manual review, and (v) a JSON policy record. The JSON policy record stores the fixed thresholds for acceptance and rejection, input-manifest SHA-256 hash, both retained and rejected counts, and the output paths. The process does not delete any source audio.
+
+\subsubsection{Silence trimming and acoustic audit}
+
+We examine the remaining audio clips for long leading and trailing silence using 100-millisecond frames. This is done because (i) whisper processes audio in fixed 30-second windows; therefore, silence will occupy part of that window without contributing meaningful information, (ii) Whisper is prone to hallucinations; therefore, training on long stretches of non-speech audio paired with transcriptions could reinforce this behavior\citep{Koenecke2024}. Long silences also reduce the accuracy of SortaGrad curriculum which uses audio length for difficulty scoring.
+
+Each recording is divided into 100-millisecond frames, and the
+root mean square (RMS) energy of each frame was computed:
+
+\begin{equation}
+    \operatorname{RMS}_f = \sqrt{\frac{1}{M}\sum_{m=1}^{M} x_{f,m}^2},
+    \label{eq:rms}
+\end{equation}
+
+where $x_{f,m}$ is the $m$-th audio sample in frame $f$ and $M$ is the number of
+samples per frame. A frame is classified as \emph{active} (containing speech or
+other sound) when its RMS energy was within 40 decibels (dB) of the loudest frame
+in the same recording:
+
+\begin{equation}
+    20\log_{10}\!\left(\frac{\operatorname{RMS}_f}{\max_{g}\operatorname{RMS}_g}\right) \geq -40~\text{dB}.
+    \label{eq:active}
+\end{equation}
+
+ A threshold of $-40dB$ is equal to 1\% of the amplitude of the loudest frame. We defined the threshold relative to each recording's peak instead of an absolute value because WAXAL captured recordings in the speaker's natural environment; therefore, recordings were captured in different environments with different noise levels. 
+ Samples with at least two seconds of trailing silence are trimmed after the last region detected as active with a padding of 250 millisecond. The 250 milliseconds of padding is necessary because it protects the decaying end of the last word, low energy sounds and voice decay can fall below the activity threshold although they contain speech. 
+ 
+ The trimmed audio is saved as a new Free Lossless Audio Codec (FLAC) file, while preserving the original audio. FLAC is chosen because it is lossless meaning the output audio is identical to the input audio while using less disk storage than uncompressed audio, it is also natively supported by the SoundFile library and and Huggingface audio loader. This analysis affects 530 of the 13799 retained training samples, while the remaining 13269 remain unchanged. 
+
+ We conduct an acoustic audit which decodes the retrained training samples and measures against the manifest on duration, sampling rate, number of channels, peak and average RMS levels, clipping (the fraction of samples which are at maximum representable amplitude, this indicate distortion), the ratio of total frames, leading and trailing silence, and signal to noise ratios. All training files were successfully decoded and matched the manifest files, no clipping or trailing silences were found. Recording with long leading silence, low proportion of active speech and those with low average amplitude are flagged for human review, because automatic removal could result in the loss of valid samples which are representative of real world speech that may be outliers from the majority of the training data.
+
+\subsubsection{Transcript Normalization}
+\label{sec:normalization}
+Word error rate WER and character error rate CER are computed by comparing the model's output transcriptions against the reference transcriptions. Any differences such as capitalization, or punctuation would contribute to transcriptions errors although they carry no acoustic information. To reduce such errors we apply text processing to all three data splits (training, validation and test), transcriptions are therefore normalized to Unicode NFC, which is the international standard for encoding text. Typographic apostrophes were mapped to the American Standard Code for International Interchange (ASCII) apostrophe because certain keyboards and may produce different symbols like curly apostrophes, which would be penalized. Typographic dashes are standardized, and the text is converted to lowercase because speech is not case sensitive; therefore, the model is not penalized on orthographic errors. We retained letters, digits and apostrophes, while other punctuation symbols are converted to spaces such that words separated by punctuation for example \emph{word,word} were not merged into a single incorrect word and repeated spaces were collapsed. 
+
+We retain the original text transcription in a "textraw" field, while the normalized form is stored in the “text” field. Retaining the original transcriptions allows us to audit the normalized text against the original and different normalization rules could be applied in the future without re-downloading the dataset. Normalization does not produce empty transcriptions or non-Latin script transcriptions.
+
+Normalization flags twenty seven training records containing digits for human review. Because the affected utterances represent 0.2\% of the training data they were retained verbatim.
+
+
+\subsubsection{Duplicate and split-leakage audit}
+
+We check whether any audio files appear more than once, either within a single data split or across different data splits. If an audio appears in both training and test splits, the model could predict it from memory, which inflates test accuracy, this is known as \emph{data leakage}\citep{Kaufman2012}.
+
+To detect duplicates we decode the Pulse-Code Modulation (PCM) hashes of audio files and compared them across the different data. A PCM sample is the numerical representation of a digital waveform, and we compute a SHA-256 hash of that sample. It is important to decode the PCM sample, because two files might contain identical audio with different metadata which would produce a different file hash, hashing the PCM samples produces the same PCM hash if the PCM samples are identical. No exact audio duplicates are found within the data splits or across the training, test and validation splits. One normalized transcription was shared across the train and validation set; however, the audio was not duplicated.
+
+The original WAXAL data does not provide a speaker independent test set, of the 97 validation speakers, 94 appear in the training set and of the 110 test speakers, 101 appear in the training set. In addition, 1700 of the 1711 test utterances are produced by speakers who are part of the training set. Evaluating a model trained on these splits will not represent true generalization performance as the model has already learned the speaker voices, and accents. This setup measures in-domain performance more than out of domain generalization, because of this, we create a separate speaker disjoint study which more accurately evaluated speaker independent performance. Prominent ASR benchmarks such as TIMIT \citep{Garofolo1993} and LibriSpeech \citep{Panayotov2015} use speaker disjoint evaluation for the same reason.
+
+
+\subsection{Speaker-disjoint split construction}
+
+\paragraph{Pooling and grouping}
+
+To construct the speaker disjoint set we pool the original normalized WAXAL manifests and group the 17,193 utterances by speaker. All the 161 distinct speakers are mapped to their respective utterances, and the utterances are grouped by speaker identifier. Speaker groups are assigned to splits instead of individual utterances such that all utterance of a single speaker fall into the same data split and no speaker could appear in more than one data split.
+
+\paragraph{Target proportions}
+
+We target 80\% of the data for the training split and 10\% for the validation and test splits which approximately matches the original WAXAL proportions. Because speakers contributed varying amounts of utterances, it is challenging to choose complete groups of speaker utterances which fit these proportions exactly. This is therefore an optimization problem where we seek to find the assignment of speakers that fits closest to the targets.
+
+\paragraph{Objective Function}
+
+For candidate assignment $a$, with target split proportion $r_k$ of split $k$ (0.8, 0.1, and 0.1), row count $n_k (a)$ which assignment $a$ places in split $k$, duration in hours $h_k (a)$, total rows  of utterances (17,193) $N$, and total duration $H$ in hours, the optimization objective was
+
+\begin{equation}
+J(a) = \sum_{k \in \{\text{train}, \text{val}, \text{test}\}} \left[ \left( \frac{n_k(a) - r_k N}{r_k N} \right)^2 + \left( \frac{h_k(a) - r_k H}{r_k H} \right)^2 \right]
+\label{split-objective}
+\end{equation}
+
+The terms in equation \eqref{eq:split-objective} is a square relative deviation, which is the difference between the achieved target size, squared. Dividing the terms by the target size makes them a proportion such that a 5\% shortfall in a small data split like test is penalized the same as a 5\% shortfall in the larger train split. This normalization ensures that the training split does not dominate the objective and the smaller splits receive equal weighting as the large split. Squaring ensures all deviations are positive and penalizes single large deviations more than several smaller ones, this favors assignments where splits are closer to the target. The number of utterances and total duration of utterances were considered with equal weights because they capture different properties, total duration determines how many hours of the speech the model receives during training, while the number of utterances determines the independent examples which contribute to an evaluation. 
+
+\paragraph{Concentration constraint}
+  Minimizing $J(a)$ does not guarantee a single speaker will not dominate a held-out split, if for example one speaker contributed half of the test utterances, the test WER would largely measure how well the model predicts utterance from that single speaker. Candidate assignments were only eligible if single speaker contributed less than 20\% of the utterances or duration of the validation or test splits. The 20\% cap guarantees at least 5 speakers in each held-out split and that a single speaker does not determine the evaluation result. 
+
+\paragraph{Search procedure}
+  There are many ways to divide 161 speakers into splits of 113, 24, and 24; therefore, it is not feasible to evaluate every possible assignment. We therefore use a seeded random search, we start by sorting the speaker identifiers by alphabetic order, for each of the 50,000 trials, the sorted list was randomly permuted using a pseudo random number generator initialized with a seed of 42, we assign the first 24 speakers in the permutation to the validation split and the following 24 to the test split and the remaining 113 to the training split. Trials that violate the concentration constraint are discarded, otherwise $J(a)$ is computed and the assignment is retained if it had a lower value of $J(a)$ than the previous assignment. Using a fixed seed ensures reproducibility and running the script again produces the same splits.
+
+\paragraph{Results and verification.}
+  The selected assignment achieves a $J(a)$ of 0.0029 and contained 13,807 training utterances  (79.76 hours, 113 speakers), 1,715 validation utterances (9.59 hours, 24 speakers), and 1,671 test utterances (9.56 hours, 24 speakers). The training split exceeds the target by 0.4\% in utterances and 0.8\% in duration, the validation split is 0.3\% smaller in utterances and 3.0\% smaller in duration. The test split is smaller than the target by 2.8\% in utterances and 3.4\% in duration. The largest share by a single speaker is 19.5\% of utterances (19.8\% of duration) in the validation split and 17.2\% for utterances (17.3\% duration) in  the test split. 
+
+
+\subsection{Fleurs out of domain evaluation data}
+
+We use the Shona component of the Google Fleurs ((Few-shot Learning Evaluation of Universal
+Representations of Speech)\citep{Conneau2022} dataset which contains 2463 training samples, 393 validation, and 925 test examples. We choose Fleurs because it is to our knowledge the only publicly available ASR evaluation dataset which supports Shona and has an open license.  The Google Fleurs dataset was created using read speech, where speakers read aloud sentences which were translated from English Wikipedia articles. Fleurs was recorded using different speakers, recording devices, speaker environment, topics, and vocabulary; therefore, it is treated as a natural out of domain evaluation corpus. Using an evaluation benchmark like Fleurs is standard practice for evaluating robustness\citep{Likhomanenko2021}.
+
+Fleurs utterances were not included during training, hyperparameter tuning or curriculum selection. We applied the same text contract as the normalized WAXAL (See \ref{sec:normalization}) dataset, which includes Unicode NFC normalization, lower-casing, standardization of apostrophes and dashes, Unicode numbers, replacement of extra punctuation with spaces, and collapsing white spaces. We retain the original transcript separately. Applying the same text contract as WAXAL ensure that WER differences indicate true recognition difficulty not differences in text formatting. 
+
+
+After normalization, we retain all 3781 examples and their original split memberships. The splits are confirmed to be 16khz mono audio as per whisper requirements, we also confirm unique utterance identifiers, and no duplicate audios. 
+
+\subsubsection{Summary of data protocols}
+
+Table \ref{tab:protocols} provides a summary of the data protocols used in this study, only the speaker disjoint protocol was used for controlled experiments
+
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{4.2cm}|p{4.2cm}|r|r|r|}
+        \hline
+        Protocol & Purpose & Train & Validation & Test \\
+        \hline
+        Normalized original splits & Exploratory baselines and model-size study & 13,799 & 1,683 & 1,711 \\
+        \hline
+        Speaker-disjoint version 2 & All controlled experiments & 13,807 & 1,715 & 1,671 \\
+        \hline
+        FLEURS Shona (corrected) & Out-of-domain evaluation only & 2,463 & 393 & 925 \\
+        \hline
+    \end{tabular}
+    \caption{Data protocols used in the study (number of utterances).}
+    \label{tab:protocols}
+\end{table}
+
+\subsection{Model Input preprocessing}
+
+The pipeline begins by verifying the audio files exist and all transcriptions are not empty. This prevents training failures caused by missing data. 
+\paragraph{Resampling}
+All audio is decoded to mono-channel speech and resampled to 16kHz meaning that the audio sample is represented by 16,000 amplitude values for each second. WAXAL samples were originally stored at 48kHz and resampling to 16kHz was necessary because Whisper was exclusively pretrained on 16kHz audio and its feature extractor expects that same sampling rate.
+
+\paragraph{Log-Mel spectrogram}
+
+The whisper feature extractor operates by converting the waveform into an 80 channel log-mel spectrogram, a spectrogram is a time-frequency representation of sound. Whisper was trained on 30 second audio clips; therefore, the encoder accepts 3000 frames which equates to 30 seconds of audio. Shorter utterances are padded with silence to match the 3000 frames requirement of whisper, while utterances longer than 30 seconds are truncated to the first 30 seconds. In the speaker disjoint data protocol, 520 utterances from the training split (3.8\%), 21 validation utterances and 40 test utterances exceeded 30 seconds; therefore, the model did not see the end of the audio for these utterances which introduces some label noise since transcripts remained intact.
+
+\paragraph{Attention Mask.}
+An attention mask is a binary vector that marks the frequencies containing real audio and those containing padding, we retain the attention mask for each input. The Whisper encoder processes the complete 3000 frame window, we retain the attention mask because time masking in SpecAugment requires active frames, placing a mask on padding would have no augmentation effect and would weaken augmentation performance on shorter utterances.
+
+\paragraph{Tokenization}
+Tokenization splits text into smaller units, there are different approaches to tokenization which include but are not limited to sub-word tokenization, character level tokenization and word level tokenization. The Whisper tokenizer uses byte-pair encoding (BPE) which is sub-word tokenization algorithm\citep{Sennrich2016, Radford2022} where frequent sequences of characters are represented by a single token. Whisper shares the same vocabulary across all its 99 languages, including Shona. The tokenizer is configured with the Shona language setting and task set to transcription. Using this configuration all target sequences begin with special tokens  \texttt{<|startoftranscript|><|sn|><|transcribe|><|notimestamps|>}, which configures the decoder for Shona transcription.
+
+\paragraph{Padding and the loss function.}
+During training several utterances are processed simultaneously in a \emph{batch} which is stored as a rectangular array. Since transcriptions vary in length, shorter transcriptions were padded to match the length of the longest transcription in that batch. Positions with padding are not real text; therefore, the model was not trained to predict them by replacing every padded position with $-100$. The model was trained by minimizing the cross entropy loss at token level which measures the probability that the model assigns to a correct token.
+
+\begin{equation}
+    \mathcal{L} = -\frac{1}{|\mathcal{V}|}\sum_{(b,t)\in\mathcal{V}}
+    \log p_\theta\!\left(y_{b,t} \mid y_{b,<t}, x_b\right),
+    \qquad
+    \mathcal{V} = \{(b,t) : y_{b,t} \neq -100\},
+    \label{eq:ce-loss}
+\end{equation}
+
+where $b$ is the index of an utterance in the batch, $t$ is the index of the token position, $y_{b,t}$ is the reference token,  $y_{b,<t}$ are the previous reference tokens,
+$x_b$ is the input spectrogram, and $p_\theta$ is the probability predicted by the
+model with parameters $\theta$. In PyTorch, the cross-entropy function excludes
+every position whose target is equal to its \texttt{ignore\_index} parameter, whose
+default value is $-100$. Positions labeled $-100$ are excluded from both
+the sum and the count $|\mathcal{V}|$: they contribute neither to the loss nor the gradient, and the loss is averaged over real tokens only. The leading
+\texttt{<|startoftranscript|>} token is removed from the labels because the
+Whisper decoder automatically inserts it as its first input.
+
+\subsection{Baseline ASR Model}
+\subsubsection{Whisper model}
+ 
+The OpenAI Whisper \citep{Radford2022}  is a family of models trained on 680,000 hours of labeled speech data. Of the total training data 438,000 was English, while 117,000 hours covered other 96 languages. Due to the data imbalance, the models naturally perform better on English compared to other lower resource languages.
+We chose Whisper as the foundation model for three reasons, (i) it natively supports Shona; therefore the model could be finetuned without modifying the vocabulary or architecture, (ii) its multilingual pretraining provides a strong baseline for finetuning even with limited data, and (iii) its openly available with different checkpoint sizes which caters for different compute budgets.
+
+\subsubsection{Model Sizes}
+
+During the exploratory phase we test Whisper Tiny, Base, Medium, Large and Large-v3 checkpoints, whisper base 74 million parameters is chosen as the primary screening model while Whisper medium was used to test to scale up model capacity. 
+
+We chose Whisper base as the primary screening model because one whisper base training run cost 0.6 GPU-hours, which allows for fast iterations. Whisper large was discarded for controlled experiments because (i) during the exploratory phase Whisper large produces an improvement of 1.0 WER points compared to medium, while Whisper medium produces a 4.7 point WER improvement over base, (ii) one Whisper large run took 15.35 hours compared to 2.56 hours on medium, and (iii) Whisper large does not fit in the 24GB of VRAM under the same configuration as medium and base and therefore required batch size of one with gradient accumulation and an 8-bit optimizer. This difference in optimization procedure would contaminate the controlled experiments. Whisper Tiny and small are discarded because Tiny's performance is too low and small's training speed is too slow for fast iteration. 
+
+\subsubsection{Zero-shot Evaluation}
+Before finetuning, each pretrained model size is taken through \emph{zero-shot} evaluation, this is when a model is evaluated before any training, using the same, data splits, text contract, language, task prefix, and decoding settings as the fined-tuned counterparts. This isolates performance that was gained from finetuning from that of the pretrained model alone. 
+
+\subsubsection{Fine-tuning configuration}
+\label{sec:finetuning}
+All runs are executed from the pretrained checkpoints, no run is initialized from the weights of a previous experiment. We do not explore parameter efficient fine-tuning; therefore, all model weights are updated (full fine-tuning) in all runs.
+The following settings are held constant for all controlled runs, for both model sizes.
+
+\begin{itemize}
+    \item \textbf{Optimizer:} AdamW \citep{Loshchilov2019} is the default optimizer
+    of the Transformers training loop. AdamW optimizer adapts the step size of each
+    parameter according to the historical gradients, this makes training
+    robust to differences in scale between parameters, and applies weight decay
+    separately from the gradient updates.
+    \item \textbf{Learning rate:} $1 \times 10^{-5}$. The learning rate controls
+    the step size for each parameter update. Fine-tuning favors a small learning rate because large updates can overwrite the knowledge learned during pretraining, this is known as catastrophic forgetting\citep{Mosbach2021}. A learning rate of 
+    $1 \times 10^{-5}$ is widely adopted from the Whisper fine-tuning recipe\citep{Gandhi2022}.
+    \item \textbf{Warm-up:} 500 steps, where the learning rate increased
+    linearly from zero to $1 \times 10^{-5}$, it then decreases linearly
+    towards zero by the time training ends. The value of 500 steps, approximately 7\% of
+    the 6,906 total updates, follows the same recipe \citep{Gandhi2022}.
+    \item \textbf{Batch size:} six utterances per update, with no gradient
+    accumulation. This is the largest batch that fit comfortably in GPU memory
+    for Base. The same batch size is retained for Medium, which fit with a
+    peak memory reservation of approximately 15~GB, so that both model sizes
+    received exactly the same sequence of updates.
+    \item \textbf{Epochs:} an epoch is a single complete pass on the training data, all models are trained using three epochs. With 13,807 training samples and a batch size of six, one epoch contains 2,302 updates, and three epochs contain 6,906 updates. With the available compute budget, we can afford 3 epochs for each run to accommodate all curriculum and augmentation conditions at three seeds.
+    \item \textbf{Mixed precision (FP16):} calculations were performed in
+    16-bit floating-point precision instead of 32-bit. This nearly halves the
+    memory required for activations and substantially speeds up training modern
+    GPUs, 
+    \item \textbf{Gradient check-pointing:} instead of storing all intermediate
+    results during the forward pass for use in the backward pass, select
+    results are stored and the rest are recomputed when needed. This substantially reduces memory use at the cost of approximately one additional forward
+    computation \citep{Chen2016} pass, this enabled Medium to be trained with
+    the same batch size as Base on a 24~GB GPU.
+\end{itemize}
+
+
+\subsubsection{Decoding}
+\label{sec:decoding}
+
+The transcriptions are generated using greedy decoding, where the decoder selects
+the highest probability token at each step. All controlled runs use greedy decoding because it is deterministic; therefore, differences between outputs do not arise from randomness in decoding, and it is significantly cheaper than beam search, which keeps track of several candidate
+transcriptions in parallel. Applying a fixed decoding method ensures that
+decoding does not become an additional factor when comparing training strategies. We; however, do not claim that greedy decoding gives the best achievable WER.
+The maximum output length was set to 225 tokens, which is sufficient for 30-second utterances and protects the model from generation loops where a model generates tokens indefinitely. The language and task are explicitly set to Shona transcription. 
+
+
+\subsubsection{Checkpointing and model selection}
+\label{sec:checkpointing}
+
+The model is evaluated on the validation data split, and a checkpoint (a
+copy of the model) is saved at the end of each epoch, which corresponds to updates
+2,302, 4,604, and 6,906. Evaluating at the end of each epoch, rather than a fixed
+number of updates, ensures that all saved checkpoints have seen each training
+samples the same number of times. The checkpoint with the lowest validation WER is selected as the final model and evaluated once on the test split. The test split is not used to select checkpoints or hyper-parameters.
+
+\subsection{Curriculum Learning Framework}
+
+Curriculum learning changes the order of training examples such that the model learns first from examples which are perceived as easier and progressively introduces more difficult examples. Let the labeled training set be
+
+\begin{equation}
+  \mathcal{D} = \{(x_i, y_i, d_i)\}_{i=1}^N,  
+\end{equation}
+
+where $x_i$ is an utterance, $y_i$ is its reference transcription, and $d_i$ is its duration. Under a curriculum each sample is assigned a difficulty score of $s_i$ and order / schedule is built based on those scores. The main principle of easy to hard follows \citep{Bengio2009}. Curriculum strategies are split into three categories which include static where difficulty information is captured from the properties of the recordings. A dynamic curriculum is built from the model’s current loss or recognition error, and it adjusts as the model learns. A hybrid Curriculum combines the static information from the data with model-based difficulty information which is updated at every epoch. 
+
+\subsubsection{Seeded random shuffling reference}
+
+This is the primary experimental control. Training examples are
+shuffled into a pseudo-random permutation when each epoch starts using the
+seeded random number generator in PyTorch's. The seed changes deterministically
+with each epoch ($\text{seed} + e$, where $e \in \{0, 1, 2\}$), this ensures
+that every run experiences independent, reproducible shuffling sequences. Utterances 
+appear once per epoch; therefore, the model sees
+$N = 13{,}807$ samples per epoch and 41,421 over the
+complete three-epoch budget. All curriculum and augmentation conditions are
+evaluated against C0 to isolate the causal effect of presentation order.
+
+\subsubsection{Duration-based SortaGrad}
+
+SortaGrad (sorting gradients) uses utterance duration $d_i$ as a model independent signal for difficulty. This approach is adopted from Deep Speech 2 introduced by \citep{Amodei2015}. Shorter utterances typically contain less words and are less taxing on the decoder, which makes transcription easier.
+
+During the first epoch ($e=0$), all 13,807 training utterances are sorted
+in ascending order of measured duration:
+\begin{equation}
+    d_{(1)} \le d_{(2)} \le \dots \le d_{(N)}.
+\end{equation}
+
+The string utterance identifier $u_i$, followed by dataset row index are used 
+as tie-breakers. In the following epochs ($e \in \{1, 2\}$), the duration sorting
+is removed, and utterances are shuffled using the same seeded pseudo-random
+permutations identical in formulation to random shuffling. This follows the Deep 
+Speech 2 approach and rationale that it stabilizes early parameter trajectories when gradients 
+are unstable, while random shuffling prevents overfitting to a fixed length progression.
+No utterances are dropped, cycled, or oversampled; SortaGrad strictly manipulates
+presentation order during the first epoch while keeping subsequent epochs
+identical to random shuffling.
+
+\subsubsection{Strict acoustic signal-to-noise ratio}
+
+We investigate whether introducing acoustically clean speech before
+noisy speech improves fine-tuning, this approach was adapted from noise-robust ASR
+curriculum studies \citep{Braun2017}. The acoustic proxy $\widehat{\text{SNR}}_i$ estimates the 
+ratio of active speech energy relative to background noise energy in decibels, capped at 60~dB.
+
+A higher SNR indicates cleaner speech assumed to be easier, the difficulty
+score is defined as the inverse SNR percentile rank:
+\begin{equation}
+    s_i^{\text{C2}} = 1.0 - P(\widehat{\text{SNR}}_i).
+    \label{eq:c2-score}
+\end{equation}
+Under Equation~\eqref{eq:c2-score}, the cleaner recordings with a high SNR receive
+a score near $0.0$, while recordings with higher background noises receive scores near
+$1.0$. Utterances are sorted in ascending order of $s_i^{\text{C2}}$ in all three 
+training epochs. Ties are resolved deterministically using the utterance identifier $u_i$. This curriculum is static and deterministic; therefore, repeated runs with different seeds yield identical results.
+
+\subsection{Dynamic Curriculum}
+
+\subsubsection{Sequence-to-sequence curriculum}
+
+Sequence to sequence curriculum utilizes the model's training loss to update the ordering during training. The first epoch utilizes no ordering, the proceeding epochs record the negative log-likelihood of each utterance and normalized it by its audio duration:
+
+\begin{equation}
+    s_i^{\text{S2S}} = \frac{-\sum_{t=1}^{T_i} \log p_\theta(y_{i,t} \mid y_{i,<t}, x_i)}{d_i}
+\end{equation}
+
+Where:
+ $s_i^ \text{S2S}$ is the overall Sequence-to-Sequence (S2S) score for sample $i$. Lower values typically indicate higher model confidence for the target sequence,
+ $i$ is the index representing a specific sequence or data sample in the dataset,
+$t$ is the current time step (token index) in the output sequence,
+$T_i$ is the total length (number of tokens) of the target sequence $y_i$,
+$\sum_{t=1}^{T_i}$ is the summation over all token positions from the first token $(t=1)$ to the last token $(T_i)$,
+$p_\theta$ is the conditional probability distribution predicted by the sequence model parameterized by weights $θ$,
+$y_(i,t)$ is the ground-truth target token at step t for sample i.
+$y_(i,<t)$ is the preceding generated/target tokens prior to step t (i.e., $y_(i,1),y_(i,2),…,y_(i,t-1))$.
+$x_i$ is the input feature/sequence (such as audio spectrum features in speech processing or source text in machine translation) for sample $i$.
+$d_i$ is the normalization factor (typically sequence length $T_i$, audio duration, or number of bytes/characters) used to ensure that sequences of varying length are evaluated on a comparable scale.
+
+Duration Normalization is important because longer utterances accumulate more cross entropy loss because they contain more tokens. This causes longer utterances to be classified as difficult irrespective of the actual acoustic complexity. Dividing by the audio duration defines difficulty by the loss per second of audio.
+Scores are captured at runtime during each experiment’s forward pass, instead of being calculated per completed epoch checkpoint. This prevents the computational overhead of having to run training split wide evaluation at each epoch boundary. This model loss curricula is adapted from \citep{Karakasidis1382}. At every epoch, examples ranked based on the assigned difficulty score, with duration, utterance identifier, and the original index being used as tie breakers respectively. Scores were recomputed every epoch; therefore, difficulty scores were dynamic.
+
+\subsubsection{WER curriculum}
+
+The WER curriculum utilizes the word error rate (WER) as a difficulty indicator, examples the model predicted transcriptions more accurately were classified as easier. The per example WER was calculated by:
+
+\begin{equation}
+    s_i^{\text{WER}} = \frac{S_i + D_i + I_i}{N_i}
+\end{equation}
+
+where $S_i$, $D_i$, and $I_i$ are the substitution, deletion, and insertion counts for utterance $i$, and $N_i$ is the number of words in its reference. We then min-max normalized the scores and applied the new ranking on the next epoch. Although dependent on the model, this method more accurately represents difficulty compared to static approaches but also adds generation overhead to training. This approach was adapted from \citep{Karakasidis1382}. During the first epoch we utilize the same seeded random order as the baseline experiment while we collect the initial WER scores. Computational overhead is calculated from gpu time relative to the baseline experiment.
+
+\subsubsection{Uniform difficulty mixing}
+The dynamic curricula we implemented separated the ranked examples into easy, medium, and hard categories. To avoid overfitting on the easy examples, we replaced 20\% of the easy category with examples from other difficulty categories. Of the replacement examples 40\% were sampled from medium difficulty category, while 60\% came from the hard category. This processed added 356 medium examples and 533 hard examples into the easy category. 
+
+\subsection{Data Augmentation}
+\subsubsection{Feature-level augmentation}
+
+We investigate feature level data augmentation using the SpecAugment \citep{Park2019} technique applied to Whisper’s Log-Mel spectrogram input. SpecAugment works by masking time frames or frequency channels without adding acoustics artifacts into the audio. Masking forces the encoder to reconstruct the missing information from the surrounding context. We implement time masking and frequency masking while the model is the in training mode only, validation, test and inference features remain unchanged, this is done to evaluate the generalization performance on unmodified speech after augmentation.
+We apply a time mask probability of 0.05, a time-mask length of eight frames, with at least one time mask. We include a frequency mask of probability of 0.05 with a frequency mask length of 8 mel channels, and at least one frequency mask. We set the values of masked features to zero.
+Three principal conditions were defined:
+
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Condition & Clean presentation probability & Mild SpecAugment probability \\
+        \hline
+        Clean control & 1.0 & 0.0 \\
+        \hline
+        Always-augmented & 0.0 & 1.0 \\
+        \hline
+        Mixed augmentation & 0.5 & 0.5 \\
+        \hline
+    \end{tabular}
+    \caption{Table showing augmentation probabilities across experimental conditions}
+    \label{tab:augmentation_probabilities}
+\end{table}
+
+For the mixed condition, we utilize a Bernoulli draw independently for each example; therefore, the dataset is not doubled, and the augmented features are not stored. In the 3 epoch configuration each utterance has a 50\% chance of being presented clean and augmented.
+During augmentation experiments, model revision, manifests, seed, training schedule, effective batch size, decoding, and evaluation are kept the same. 
+
+\subsubsection{Synthetic waveform augmentation}
+
+We investigate an additional augmentation strategy which applies synthetic waveform augmentation instead of modifying the spectrogram. In this approach we add non speech noise to a targeted signal to noise ratio (SNR), room impulse-response convolution, and mild tempo perturbation to WAXAL train set, WAXAL validation, test, and the whole of fleurs remained unchanged.
+This approach is adapted from augmentation work by \citep{Ko2017} and OpenSLR SLR28 which provides the foundation for simulated-RIR (room impulse-response) and introduces point source augmentation; therefore, this experiment utilizes the OpenSLR SLR28 which is an open license corpus which provides point source and non-speech noise audio recordings and simulated room impulse responses(RIRs). We apply additive noise with a target SNR which is sampled uniformly from 10-25db, simulated RIR convolution with a probability of 0.3 and a pitch preserving tempo perturbation with a probability of 0.5 using a factor of either 0.9 or 1.1 both with equal probability.  
+The best performing curriculum is then applied with the augmentation in the following configurations: curriculum only, augmentation only, and curriculum plus augmentation. All the training runs utilize the same model initialization, training data, total updates, batch size, optimizer, seed set, decoding, and checkpoint selection, SpecAugment was disabled across the different runs. 
+
+\subsubsection{Augmentation continued} 
+
+We investigate a second set of augmentation experiments based on the results of the first, on these experiments we isolate the augmentation techniques before combining them. The following table gives an overview of the following experiments
+
+
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        ID & Training condition & Evidential role \\
+        \hline
+        B00 & Clean, conventionally shuffled & Matched control \\
+        \hline
+        BN & Additive non-speech noise only & Isolated mechanism \\
+        \hline
+        BR & Simulated RIR only & Isolated mechanism \\
+        \hline
+        BT & Resampling speed factors 0.9, 1.0, and 1.1 & Closest adaptation Ko et al. (2015) \\
+        \hline
+        BNR & Only independently successful noise/RIR mechanisms & Conditional primary treatment \\
+        \hline
+    \end{tabular}
+    \caption{Table showing training conditions and evidential roles}
+    \label{tab:training_conditions}
+\end{table}
+
+\subsection{Evaluation Metrics}
+\label{sec:evaluation}
+
+\subsubsection{Primary metric: Word Error Rate (WER)}
+
+The corpus-level word error rate WER is the primary metric for speech recognition evaluations. WER is computed using:
+
+\begin{equation}
+\text{WER} = \frac{S + D + I}{N} \times 100\%
+\end{equation}
+
+where $S$, $D$, and $I$ are the total word substitutions, deletions, and insertions, and $N$ is the total number of reference words, lower WER signals better recognition performance. We utilized the Jiwer and evaluate packages to calculate the corpus WER after removing special characters.
+Because there is no limit to the maximum number of insertions, WER scores can exceed 100\% when a model hallucinates or enters a repetitive generation loop. Lower WER scores indicate higher transcription accuracy.
+We retain the training loss, runtime, GPU memory usage and checkpoint sizes for diagnostics purposes as well as insights into model training efficiency.
+
+\subsubsection{Secondary metric: Character Error Rate (CER)}
+
+We utilize character error rate (CER) as the secondary evaluation metric because Shona is a morphologically complex language and smaller word level errors may obscure the smaller gains. The CER is calculated as
+
+\begin{equation}
+\text{CER} &= \frac{S_c + D_c + I_c}{N_c} \times 100\%
+\end{equation}
+
+where $S_c$, $D_c$, $I_c$, and $N_c$ are character substitutions, deletions, insertions, and reference characters. 
+Corpus level WER and CER are calculated by summing the edit counts on the whole corpus or the slice currently being analyzed. 
+
+\subsubsection{Ethical considerations and dataset licensing}
+
+The datasets used in this research fall under to open-access research licenses:
+\begin{itemize}
+    \item \textbf{WAXAL Shona subset:} distributed under Creative Commons
+    Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0).
+    \item \textbf{Google FLEURS:} distributed under Creative Commons Attribution
+    4.0 International (CC-BY-4.0).
+    \item \textbf{OpenSLR SLR28:} distributed under Apache License 2.0.
+\end{itemize}
+Audio recordings and extracted features are stored on secure, access-controlled
+academic compute infrastructure and are not redistributed, no attempt was made to identify individuals or infer demographic attributes.
+
+\begin{thebibliography}{99}
+
+\bibitem[Bakhturina et~al.(2021)]{Bakhturina2021}
+Bakhturina, E., Lavrukhin, V., and Ginsburg, B. (2021).
+A toolbox for construction and analysis of speech datasets.
+\emph{NeurIPS Datasets and Benchmarks}.
+\url{https://arxiv.org/abs/2104.04896}.
+
+\bibitem[Bengio et~al.(2009)]{Bengio2009}
+Bengio, Y., Louradour, J., Collobert, R., and Weston, J. (2009).
+Curriculum learning. \emph{Proceedings of ICML}.
+\url{https://doi.org/10.1145/1553374.1553380}.
+
+\bibitem[Biewald(2020)]{Biewald2020}
+Biewald, L. (2020). Experiment tracking with Weights and Biases.
+Software. \url{https://wandb.ai/site/research/}.
+
+\bibitem[Chen et~al.(2016)]{Chen2016}
+Chen, T., Xu, B., Zhang, C., and Guestrin, C. (2016).
+Training deep nets with sublinear memory cost.
+\url{https://arxiv.org/abs/1604.06174}.
+
+\bibitem[Conneau et~al.(2022)]{Conneau2022}
+Conneau, A., et~al. (2022). FLEURS: Few-shot learning evaluation of universal
+representations of speech. \url{https://arxiv.org/abs/2205.12446}.
+
+\bibitem[Davis and Mermelstein(1980)]{Davis1980}
+Davis, S.~B., and Mermelstein, P. (1980).
+Comparison of parametric representations for monosyllabic word recognition
+in continuously spoken sentences. \emph{IEEE Transactions on Acoustics,
+Speech, and Signal Processing}, 28(4), 357--366.
+\url{https://doi.org/10.1109/TASSP.1980.1163420}.
+
+\bibitem[Dettmers et~al.(2022)]{Dettmers2022}
+Dettmers, T., Lewis, M., Shleifer, S., and Zettlemoyer, L. (2022).
+8-bit optimizers via block-wise quantization. \emph{Proceedings of ICLR}.
+\url{https://arxiv.org/abs/2110.02861}.
+
+\bibitem[Diack et~al.(2026)]{Diack2026}
+Diack, A., et~al. (2026). WAXAL: A large-scale multilingual African language
+speech corpus. arXiv:2602.02734, version 3.
+\url{https://arxiv.org/abs/2602.02734}.
+
+\bibitem[Dodge et~al.(2020)]{Dodge2020}
+Dodge, J., Ilharco, G., Schwartz, R., Farhadi, A., Hajishirzi, H., and
+Smith, N.~A. (2020). Fine-tuning pretrained language models: Weight
+initializations, data orders, and early stopping.
+\url{https://arxiv.org/abs/2002.06305}.
+
+\bibitem[Gandhi(2022)]{Gandhi2022}
+Gandhi, S. (2022). Fine-tune Whisper for multilingual ASR with Transformers.
+\emph{Hugging Face Blog}.
+\url{https://huggingface.co/blog/fine-tune-whisper}.
+
+\bibitem[Garofolo et~al.(1993)]{Garofolo1993}
+Garofolo, J.~S., Lamel, L.~F., Fisher, W.~M., Fiscus, J.~G., Pallett, D.~S.,
+Dahlgren, N.~L., and Zue, V. (1993). TIMIT acoustic-phonetic continuous speech
+corpus. \emph{Linguistic Data Consortium}, LDC93S1.
+\url{https://catalog.ldc.upenn.edu/LDC93S1}.
+
+\bibitem[Goyal et~al.(2017)]{Goyal2017}
+Goyal, P., et~al. (2017). Accurate, large minibatch SGD: Training ImageNet
+in 1 hour. \url{https://arxiv.org/abs/1706.02677}.
+
+\bibitem[Kaufman et~al.(2012)]{Kaufman2012}
+Kaufman, S., Rosset, S., Perlich, C., and Stitelman, O. (2012).
+Leakage in data mining: Formulation, detection, and avoidance.
+\emph{ACM Transactions on Knowledge Discovery from Data}, 6(4).
+\url{https://doi.org/10.1145/2382577.2382579}.
+
+\bibitem[Koenecke et~al.(2024)]{Koenecke2024}
+Koenecke, A., Choi, A.~S.~G., Mei, K.~X., Schellmann, H., and Sloane, M.
+(2024). Careless Whisper: Speech-to-text hallucination harms.
+\url{https://arxiv.org/abs/2402.08021}.
+
+\bibitem[Lhoest et~al.(2021)]{Lhoest2021}
+Lhoest, Q., et~al. (2021). Datasets: A community library for natural language
+processing. \emph{Proceedings of EMNLP: System Demonstrations}, 175--184.
+\url{https://aclanthology.org/2021.emnlp-demo.21/}.
+
+\bibitem[Likhomanenko et~al.(2021)]{Likhomanenko2021}
+Likhomanenko, T., et~al. (2021).
+Rethinking evaluation in ASR: Are our models robust enough?
+\emph{Proceedings of Interspeech}, 311--315.
+\url{https://doi.org/10.21437/Interspeech.2021-1758}.
+
+\bibitem[Loshchilov and Hutter(2019)]{Loshchilov2019}
+Loshchilov, I., and Hutter, F. (2019). Decoupled weight decay regularization.
+\emph{Proceedings of ICLR}. \url{https://arxiv.org/abs/1711.05101}.
+
+\bibitem[McFee et~al.(2015)]{McFee2015}
+McFee, B., et~al. (2015). librosa: Audio and music signal analysis in Python.
+\emph{Proceedings of the Python in Science Conference}.
+\url{https://doi.org/10.25080/Majora-7b98e3ed-003}.
+
+\bibitem[Micikevicius et~al.(2018)]{Micikevicius2018}
+Micikevicius, P., et~al. (2018). Mixed precision training.
+\emph{Proceedings of ICLR}. \url{https://arxiv.org/abs/1710.03740}.
+
+\bibitem[Mosbach et~al.(2021)]{Mosbach2021}
+Mosbach, M., Andriushchenko, M., and Klakow, D. (2021).
+On the stability of fine-tuning BERT: Misconceptions, explanations, and strong
+baselines. \emph{Proceedings of ICLR}.
+\url{https://arxiv.org/abs/2006.04884}.
+
+\bibitem[Panayotov et~al.(2015)]{Panayotov2015}
+Panayotov, V., Chen, G., Povey, D., and Khudanpur, S. (2015).
+LibriSpeech: An ASR corpus based on public domain audio books.
+\emph{Proceedings of ICASSP}.
+\url{https://doi.org/10.1109/ICASSP.2015.7178964}.
+
+\bibitem[Paszke et~al.(2019)]{Paszke2019}
+Paszke, A., et~al. (2019). PyTorch: An imperative style, high-performance deep
+learning library. \emph{Advances in Neural Information Processing Systems}, 32.
+\url{https://arxiv.org/abs/1912.01703}.
+
+\bibitem[Radford et~al.(2022)]{Radford2022}
+Radford, A., Kim, J.~W., Xu, T., Brockman, G., McLeavey, C., and Sutskever, I.
+(2022). Robust speech recognition via large-scale weak supervision.
+arXiv:2212.04356. \url{https://arxiv.org/abs/2212.04356}.
+
+\bibitem[Reimers and Gurevych(2017)]{Reimers2017}
+Reimers, N., and Gurevych, I. (2017). Reporting score distributions makes a
+difference: Performance study of LSTM-networks for sequence tagging.
+\emph{Proceedings of EMNLP}.
+\url{https://doi.org/10.18653/v1/D17-1035}.
+
+\bibitem[Sennrich et~al.(2016)]{Sennrich2016}
+Sennrich, R., Haddow, B., and Birch, A. (2016).
+Neural machine translation of rare words with subword units.
+\emph{Proceedings of ACL}, 1715--1725.
+\url{https://aclanthology.org/P16-1162/}.
+
+\bibitem[Shannon(1949)]{Shannon1949}
+Shannon, C.~E. (1949). Communication in the presence of noise.
+\emph{Proceedings of the IRE}, 37(1), 10--21.
+\url{https://doi.org/10.1109/JRPROC.1949.232969}.
+
+\bibitem[Stevens et~al.(1937)]{Stevens1937}
+Stevens, S.~S., Volkmann, J., and Newman, E.~B. (1937).
+A scale for the measurement of the psychological magnitude pitch.
+\emph{The Journal of the Acoustical Society of America}, 8(3), 185--190.
+\url{https://doi.org/10.1121/1.1915893}.
+
+\bibitem[Unicode Consortium(n.d.)]{UAX15}
+Unicode Consortium (n.d.). Unicode Standard Annex \#15: Unicode normalization
+forms. \url{https://www.unicode.org/reports/tr15/}.
+
+\bibitem[Vaswani et~al.(2017)]{Vaswani2017}
+Vaswani, A., et~al. (2017). Attention is all you need.
+\emph{Advances in Neural Information Processing Systems}, 30.
+\url{https://arxiv.org/abs/1706.03762}.
+
+\bibitem[Wolf et~al.(2020)]{Wolf2020}
+Wolf, T., et~al. (2020). Transformers: State-of-the-art natural language
+processing. \emph{Proceedings of EMNLP: System Demonstrations}, 38--45.
+\url{https://aclanthology.org/2020.emnlp-demos.6/}.
+
+\bibitem[Yuan et~al.(2006)]{Yuan2006}
+Yuan, J., Liberman, M., and Cieri, C. (2006).
+Towards an integrated understanding of speaking rate in conversation.
+\emph{Proceedings of Interspeech}.
+\url{https://www.isca-archive.org/interspeech_2006/yuan06_interspeech.html}.
+
+% Between Bakhturina2021 and Bengio2009 -> after Amodei, before Bakhturina:
+\bibitem[Amodei et~al.(2016)]{Amodei2015}
+Amodei, D., et~al. (2016). Deep Speech 2: End-to-end speech recognition in
+English and Mandarin. \emph{Proceedings of ICML}.
+\url{https://arxiv.org/abs/1512.02595}.
+
+% After Bengio2009, before Biewald2020 (or after Biewald, alphabetically "Bra" comes after "Bi"):
+\bibitem[Braun et~al.(2017)]{Braun2017}
+Braun, S., Neil, D., and Liu, S.-C. (2017). A curriculum learning method for
+improved noise robustness in automatic speech recognition.
+\emph{Proceedings of EUSIPCO}.
+\url{https://arxiv.org/abs/1606.06864}.
+
+% After Kaufman2012, before Koenecke2024 (alphabetically "Ka" < "Ke" < "Ko"):
+\bibitem[Karakasidis et~al.(2022)]{Karakasidis1382}
+Karakasidis, G., Kurimo, M., Bell, P., and Gr\'osz, T. (2022). Comparison and
+analysis of new curriculum criteria for end-to-end ASR.
+\url{https://arxiv.org/abs/2208.04947}.
+
+% After Koenecke2024, before Lhoest2021:
+\bibitem[Ko et~al.(2017)]{Ko2017}
+Ko, T., Peddinti, V., Povey, D., Seltzer, M.~L., and Khudanpur, S. (2017).
+A study on data augmentation of reverberant speech for robust speech
+recognition. \emph{Proceedings of ICASSP}.
+\url{https://doi.org/10.1109/ICASSP.2017.7953152}.
+
+% After Panayotov2015, before Paszke2019:
+\bibitem[Park et~al.(2019)]{Park2019}
+Park, D.~S., et~al. (2019). SpecAugment: A simple data augmentation method
+for automatic speech recognition. \emph{Proceedings of Interspeech}, 2613--2617.
+\url{https://doi.org/10.21437/Interspeech.2019-2680}.
+
+\end{thebibliography}
+
+\end{document}

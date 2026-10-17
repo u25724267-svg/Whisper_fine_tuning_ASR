@@ -1,0 +1,586 @@
+{
+  "method": "Paired cluster percentile bootstrap, fixed-checkpoint mean over three matched seed records",
+  "interpretation": "Exploratory post-review analysis of 20 existing within-Medium test contrasts; no training-seed population interval. Bonferroni intervals are approximate bootstrap family intervals, not correction for historical adaptive selection.",
+  "seed_test": "Two-sided exact sign-flip sensitivity on three paired seed differences, requiring sign symmetry; minimum attainable p=0.25. Not a replacement for cluster inference.",
+  "evidence_data_sha256": "a2781cfb6a7b2e24b9de622d014110f2daae1c8c967623716bab4534cc4813cb",
+  "source_hashes": {
+    "/ext_data/casper/asr_data/waxal_shona_speaker_disjoint_v2/test.jsonl": "fe7c790d5914c2cf28f0f4bf24316b7b6eb857db39a79ee337052e4d710aef4d",
+    "artifacts/experiment_outputs/medium_a100/rq1/c0_random_seed42_v2/item_predictions/test.jsonl": "f516ea9df9517d04da238e92d4c9855dd0d6497feea9dec3b8509eb2d4c22e86",
+    "artifacts/experiment_outputs/medium_a100/rq1/c0_random_seed43_v2/item_predictions/test.jsonl": "3ec3dc71ac91c227a6bc19fa82b4f5ac7c032c7fcb52d14730fd71d65eb52f3b",
+    "artifacts/experiment_outputs/medium_a100/rq1/c0_random_seed44_v2/item_predictions/test.jsonl": "62ce407b60acb249e602339633adb0de07ec1bf3919556a6cd8778c3ac42a106",
+    "artifacts/experiment_outputs/medium_a100/rq1/c1_sortagrad_seed42/item_predictions/test.jsonl": "2cda2827bf86070636a2a451c66f045931c599f2e95dba917c651dddad69f4e7",
+    "artifacts/experiment_outputs/medium_a100/rq1/c1_sortagrad_seed43/item_predictions/test.jsonl": "f1db084b21eb765d101788f658af01347138980c76c04251ec1f1f63ebade269",
+    "artifacts/experiment_outputs/medium/rq1/c1_sortagrad_seed44/item_predictions/test.jsonl": "d5fa009c9d5205ed37df2f32b7806cae2b0a60360b7a724133733f3344230a36",
+    "artifacts/experiment_outputs/medium/rq1/c3_snr_duration_seed42/item_predictions/test.jsonl": "d60497a647eaf166d8c07c4e45d5d89aebe257bfaef4f30793545d6015b4ff6f",
+    "artifacts/experiment_outputs/medium/rq1/c3_snr_duration_seed43/item_predictions/test.jsonl": "d60497a647eaf166d8c07c4e45d5d89aebe257bfaef4f30793545d6015b4ff6f",
+    "artifacts/experiment_outputs/medium/rq1/c3_snr_duration_seed44/item_predictions/test.jsonl": "d60497a647eaf166d8c07c4e45d5d89aebe257bfaef4f30793545d6015b4ff6f",
+    "artifacts/experiment_outputs/medium/rq2/a2_waveform_random_seed42/item_predictions/test.jsonl": "746835812a098443bcc493d47b73fa787ea7d2dceb4c4fb3e67ea68694c30ab5",
+    "artifacts/experiment_outputs/medium/rq2/a2_waveform_random_seed43/item_predictions/test.jsonl": "8dbf1f3d2d917831a6e20c4d624a1044d34feafc00c62cbb0ea57656094bfa8f",
+    "artifacts/experiment_outputs/medium/rq2/a2_waveform_random_seed44/item_predictions/test.jsonl": "d562e6215ba736796f487a99fec663438083780dd09071e7f566385c5448a959",
+    "artifacts/experiment_outputs/medium/rq2/a3_waveform_c3_seed42/item_predictions/test.jsonl": "29d72ecedc3b6cd177d7b99ae8e0ad7e59d7e505c5e036f64f77fc19ad361a83",
+    "artifacts/experiment_outputs/medium/rq2/a3_waveform_c3_seed43/item_predictions/test.jsonl": "347f7dc25bcc3fe95e70c7965415fc460da719da629cba2d53b6951fc8b1e224",
+    "artifacts/experiment_outputs/medium/rq2/a3_waveform_c3_seed44/item_predictions/test.jsonl": "627c536d2a53c36945a471c9c0383bf78e714181871e9020bc1d38cb2df87a1c",
+    "artifacts/experiment_outputs/medium/rq2/s2_specaug_lb_random_seed42/item_predictions/test.jsonl": "360f932637cd41c75888175746f0486c94660eb371cc31988d082023a3e9dad5",
+    "artifacts/experiment_outputs/medium/rq2/s2_specaug_lb_random_seed43/item_predictions/test.jsonl": "6b7c735cf9bec7efed6d1532743b53f683761d7f20d773645c70e0cbf78e9863",
+    "artifacts/experiment_outputs/medium/rq2/s2_specaug_lb_random_seed44/item_predictions/test.jsonl": "d50344410fe44d19822ac25c5a0a66d7a21c817775d74804d1e397f6e1feb742",
+    "artifacts/experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed42/item_predictions/test.jsonl": "9de5d3ce1fbb4bc44a2c4c21809d2742db39a112ec2a71bff218d6626c452250",
+    "artifacts/experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed43/item_predictions/test.jsonl": "6deebee75fdda839b2d9069d2ab3cabf8dcde6d248d2e77104d72c1eae656b28",
+    "artifacts/experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed44/item_predictions/test.jsonl": "c5983d063421929bd9c7e062ea9c395c177cbfde8c2a98baf423fa5bcc7621f5",
+    "artifacts/experiment_outputs/medium/rq2/s4_specaug_ld_random_seed42/item_predictions/test.jsonl": "49deabc43efe17cb68bcc829db22743adb771f3084aedad76cae576eda41707d",
+    "artifacts/experiment_outputs/medium/rq2/s4_specaug_ld_random_seed43/item_predictions/test.jsonl": "b9738d6096aa9f3d5866ca7a7483f834b6e854fb8d547783a1fb97c23815fe5e",
+    "artifacts/experiment_outputs/medium/rq2/s4_specaug_ld_random_seed44/item_predictions/test.jsonl": "0c39f67825720037781841867ff533558945475af11ff3f5c936c787012bfeee",
+    "artifacts/experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed42/item_predictions/test.jsonl": "153f0a2e01c13f2eeacbc89782c3f394cdfff6684dc54817f7aacaf4c9628abc",
+    "artifacts/experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed43/item_predictions/test.jsonl": "3b6d118669c2e1b3f1cec44c8078da0cf59070317eca7832dfeae06fce45047e",
+    "artifacts/experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed44/item_predictions/test.jsonl": "4246c4ad2fae9a625f2b527d7bdb8b0e2e34bc6605174ecb4edb97625af12d8c",
+    "/ext_data/casper/asr_data/fleurs_shona_corrected_v2/test.jsonl": "eb3683d515840ce6905d979146d1f54ec69e02337ec8328fee22a209b9c923d3",
+    "artifacts/experiment_outputs/medium_a100/rq1/c0_random_seed42_v2/fleurs_corrected_v2/fleurs_test.jsonl": "36b558f38ac51745db9489e4e653ca4f6482fb4aa33370cfb03f527cc98d0b17",
+    "artifacts/experiment_outputs/medium_a100/rq1/c0_random_seed43_v2/fleurs_corrected_v2/fleurs_test.jsonl": "19dcb5258f317a0b7f9705f2ae52b61bf2354f4bc6fa9e07f695437a9ad76f53",
+    "artifacts/experiment_outputs/medium_a100/rq1/c0_random_seed44_v2/fleurs_corrected_v2/fleurs_test.jsonl": "4feea75975dbebf84a1b0c170f78f5e6bf7cba2868d09cc603487edfe64bc3d1",
+    "artifacts/experiment_outputs/medium_a100/rq1/c1_sortagrad_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "c939401ea1117381d52243cbdebf6b552577547407ccc05b32de93c9e95a66af",
+    "artifacts/experiment_outputs/medium_a100/rq1/c1_sortagrad_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "f908ac443e99d5c083d879dfa4ac7b24c1d36d9932fbb99752fa1d4f62fe10b3",
+    "artifacts/experiment_outputs/medium/rq1/c1_sortagrad_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "1929b9266105780cfbe76cfd0608f73cf538cd843db57bc4ac3862e1b81c7e94",
+    "artifacts/experiment_outputs/medium/rq1/c3_snr_duration_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "cf4f94d4914c87c7c6bcc8cb98d342419390b16dc723e9ee8018ad886f89c31a",
+    "artifacts/experiment_outputs/medium/rq1/c3_snr_duration_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "cf4f94d4914c87c7c6bcc8cb98d342419390b16dc723e9ee8018ad886f89c31a",
+    "artifacts/experiment_outputs/medium/rq1/c3_snr_duration_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "cf4f94d4914c87c7c6bcc8cb98d342419390b16dc723e9ee8018ad886f89c31a",
+    "artifacts/experiment_outputs/medium/rq2/a2_waveform_random_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "9c0755baada2e6f714de55a381d416f905bac1d1dbe77111c94956640b6f6ff7",
+    "artifacts/experiment_outputs/medium/rq2/a2_waveform_random_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "4ca814a8f8515aab24209f69fd3b1fe640e97c2c43c7df230ca3edd0774b0d6b",
+    "artifacts/experiment_outputs/medium/rq2/a2_waveform_random_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "31bb83767cc7ca8ce96828dd5a345881e01ce27cfd089f697442be77ac253ec8",
+    "artifacts/experiment_outputs/medium/rq2/a3_waveform_c3_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "d974fc2e1560481f64602b0e080d315278e08d88b0c3d1f2707659ec1dbddd0f",
+    "artifacts/experiment_outputs/medium/rq2/a3_waveform_c3_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "307008e0d5a7f3ea50548a1bbf646550307b21fa82eac8ee88fad33f15e906f5",
+    "artifacts/experiment_outputs/medium/rq2/a3_waveform_c3_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "4a2c79f160776281cf7ca3aad4f203b6d6483f94651814938fd9a23668ccecc1",
+    "artifacts/experiment_outputs/medium/rq2/s2_specaug_lb_random_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "6d61a52fdcf17f663746e208e2501a24c32f1fcb5836a08949215decfeb019f0",
+    "artifacts/experiment_outputs/medium/rq2/s2_specaug_lb_random_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "596d79d27988908556fda2c6a1788fe0ab2ce2a8fc436af3b6134b460b752abb",
+    "artifacts/experiment_outputs/medium/rq2/s2_specaug_lb_random_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "e97b796a9bb53775ad48cb984a5fb7ff17afe753434b3af1deb9f8b82166f167",
+    "artifacts/experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "23cfc970a6a1a2dca6980273b134ef8b274cfff604a8d109c37a0bd3b80ec7db",
+    "artifacts/experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "d059fcda510a2a02a7ea0cdeeec00f911b847f44d0333370a4e0081c92bf26ff",
+    "artifacts/experiment_outputs/medium/rq2/s3_specaug_lb_sortagrad_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "5e9fddc256cb6773c5ebb7031eb8ad5ea7fc15ebbcb0703642f444db603cdb26",
+    "artifacts/experiment_outputs/medium/rq2/s4_specaug_ld_random_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "b42479d3e21baef75a4cee3302d6a3a6d01a097ef6c30d3e3d425ad70090fc6f",
+    "artifacts/experiment_outputs/medium/rq2/s4_specaug_ld_random_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "54f73e264d30cee1034dbc6507293ff1b7a8723121a6d6a512611e720b5c125e",
+    "artifacts/experiment_outputs/medium/rq2/s4_specaug_ld_random_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "bb3d4af357edb4d68b5491ed36a5bffb50c0144738e7ca9b95b2b14d010a0829",
+    "artifacts/experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed42/fleurs_corrected_v2/fleurs_test.jsonl": "8e9e41f88a76ce098e3442041b19d1980f5e5c6d563263fc70727f6592ced7e8",
+    "artifacts/experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed43/fleurs_corrected_v2/fleurs_test.jsonl": "d732c9010b9be4b12edc5d0c53f517b9d092d0807b6b03aca1928c80b0ea182c",
+    "artifacts/experiment_outputs/medium/rq2/s5_specaug_ld_sortagrad_seed44/fleurs_corrected_v2/fleurs_test.jsonl": "084dcf24d8ecf559d46b7c598a05e98916601ef0923369b4cf04fdf5a1806a7d"
+  },
+  "results": [
+    {
+      "split": "test",
+      "treatment": "C1",
+      "control": "C0",
+      "improvement_pp": -0.03548458638278997,
+      "seed_improvements_pp": [
+        -0.023952095808383235,
+        -0.07451763140385895,
+        -0.007984031936127744
+      ],
+      "positive_seeds": 0,
+      "ci95_pp": [
+        -0.3609536676425731,
+        0.3755015321734956
+      ],
+      "ci_bonferroni20_pp": [
+        -0.6163192466169481,
+        0.7741605661588783
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "C3",
+      "control": "C0",
+      "improvement_pp": -0.040807274340208484,
+      "seed_improvements_pp": [
+        0.3273453093812375,
+        -0.2528276779773786,
+        -0.19693945442448438
+      ],
+      "positive_seeds": 1,
+      "ci95_pp": [
+        -0.4019828461397383,
+        0.4132773443125968
+      ],
+      "ci_bonferroni20_pp": [
+        -0.6140073765455286,
+        0.7490161801247827
+      ],
+      "exact_seed_signflip_p": 1.0,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "A2",
+      "control": "C0",
+      "improvement_pp": 0.4781548015080949,
+      "seed_improvements_pp": [
+        0.7345309381237525,
+        0.2980705256154358,
+        0.4018629407850965
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        -0.036990275091733395,
+        0.8866283739006463
+      ],
+      "ci_bonferroni20_pp": [
+        -0.5388341248511987,
+        1.1601587314903494
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "A3",
+      "control": "C3",
+      "improvement_pp": 0.1774229319139499,
+      "seed_improvements_pp": [
+        0.09580838323353294,
+        0.09314703925482369,
+        0.34331337325349304
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        -0.4281809082659885,
+        0.669152038116497
+      ],
+      "ci_bonferroni20_pp": [
+        -0.8909487264019857,
+        0.9665174927317871
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "A3",
+      "control": "A2",
+      "improvement_pp": -0.34153914393435353,
+      "seed_improvements_pp": [
+        -0.31137724550898205,
+        -0.4577511643379907,
+        -0.2554890219560878
+      ],
+      "positive_seeds": 0,
+      "ci95_pp": [
+        -0.8437820109108478,
+        0.29939962067255566
+      ],
+      "ci_bonferroni20_pp": [
+        -1.094326855911224,
+        0.8561187014584862
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "S2",
+      "control": "C0",
+      "improvement_pp": 1.1230871590153026,
+      "seed_improvements_pp": [
+        1.7964071856287425,
+        0.9394544244843646,
+        0.633399866932801
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        0.5629358538704872,
+        1.568738798812257
+      ],
+      "ci_bonferroni20_pp": [
+        0.04005960783904185,
+        1.8620481445854997
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "S3",
+      "control": "C1",
+      "improvement_pp": 1.3883344422266577,
+      "seed_improvements_pp": [
+        1.6899534264803726,
+        1.5169660678642714,
+        0.9580838323353293
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        0.9277308474051088,
+        1.708256706224463
+      ],
+      "ci_bonferroni20_pp": [
+        0.5669991895777791,
+        1.9020736980680657
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "S3",
+      "control": "S2",
+      "improvement_pp": 0.2297626968285651,
+      "seed_improvements_pp": [
+        -0.13040585495675316,
+        0.5029940119760479,
+        0.3166999334664005
+      ],
+      "positive_seeds": 2,
+      "ci95_pp": [
+        -0.08802207367077594,
+        0.5639557445291729
+      ],
+      "ci_bonferroni20_pp": [
+        -0.3119595681185315,
+        0.8800058076407463
+      ],
+      "exact_seed_signflip_p": 0.5,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "S4",
+      "control": "S2",
+      "improvement_pp": 0.20048791306276337,
+      "seed_improvements_pp": [
+        -0.1330671989354624,
+        0.364604125083167,
+        0.3699268130405855
+      ],
+      "positive_seeds": 2,
+      "ci95_pp": [
+        -0.35407491848528105,
+        0.6812127288266229
+      ],
+      "ci_bonferroni20_pp": [
+        -0.6681390258906825,
+        0.9147090882672771
+      ],
+      "exact_seed_signflip_p": 0.5,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "test",
+      "treatment": "S5",
+      "control": "S3",
+      "improvement_pp": -0.012419605233976486,
+      "seed_improvements_pp": [
+        0.1996007984031936,
+        -0.7957418496340652,
+        0.5588822355289421
+      ],
+      "positive_seeds": 2,
+      "ci95_pp": [
+        -0.5246207183818274,
+        0.37205675394604637
+      ],
+      "ci_bonferroni20_pp": [
+        -1.0573105067809891,
+        0.6434170178679819
+      ],
+      "exact_seed_signflip_p": 1.0,
+      "clusters": 24,
+      "cluster_field": "speaker_id",
+      "recordings": 1671,
+      "reference_words": 37575,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "C1",
+      "control": "C0",
+      "improvement_pp": -0.49415149809219994,
+      "seed_improvements_pp": [
+        -0.45662100456621,
+        0.0,
+        -1.0258334897103898
+      ],
+      "positive_seeds": 0,
+      "ci95_pp": [
+        -1.3507390710273393,
+        0.27718357141029304
+      ],
+      "ci_bonferroni20_pp": [
+        -1.8790353707921328,
+        0.6491336421401118
+      ],
+      "exact_seed_signflip_p": 0.5,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "C3",
+      "control": "C0",
+      "improvement_pp": 0.6776339108859282,
+      "seed_improvements_pp": [
+        1.2072308750860075,
+        0.5379370738725214,
+        0.2877337836992556
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        -0.15282901229559057,
+        1.5172416691666768
+      ],
+      "ci_bonferroni20_pp": [
+        -0.5899159737702998,
+        1.9902313100876992
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "A2",
+      "control": "C0",
+      "improvement_pp": 0.7777152269552344,
+      "seed_improvements_pp": [
+        1.1822105460686807,
+        0.2689685369362607,
+        0.8819665978607618
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        -0.014773113213645134,
+        1.5866133267747147
+      ],
+      "ci_bonferroni20_pp": [
+        -0.4464053890695163,
+        2.061581112474561
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "A3",
+      "control": "C3",
+      "improvement_pp": -0.10008131606930627,
+      "seed_improvements_pp": [
+        0.5567023206355164,
+        -0.1125914805779696,
+        -0.7443547882654656
+      ],
+      "positive_seeds": 1,
+      "ci95_pp": [
+        -0.9852739918306255,
+        0.7699447327342531
+      ],
+      "ci_bonferroni20_pp": [
+        -1.46781686974864,
+        1.2496516893275877
+      ],
+      "exact_seed_signflip_p": 0.75,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "A3",
+      "control": "A2",
+      "improvement_pp": -0.2001626321386126,
+      "seed_improvements_pp": [
+        0.5817226496528429,
+        0.1563770563582911,
+        -1.3385876024269718
+      ],
+      "positive_seeds": 2,
+      "ci95_pp": [
+        -0.9841111287414017,
+        0.556486665674744
+      ],
+      "ci_bonferroni20_pp": [
+        -1.4248419712189637,
+        0.9603491857400647
+      ],
+      "exact_seed_signflip_p": 1.0,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "S2",
+      "control": "C0",
+      "improvement_pp": 1.2009757928316758,
+      "seed_improvements_pp": [
+        1.44492400075061,
+        1.3448426846813035,
+        0.8131606930631138
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        0.37109086087063614,
+        2.00267763479738
+      ],
+      "ci_bonferroni20_pp": [
+        -0.10181616027488856,
+        2.443645196082516
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "S3",
+      "control": "C1",
+      "improvement_pp": 1.3323325201726404,
+      "seed_improvements_pp": [
+        1.9453305810971415,
+        0.38781509976856193,
+        1.6638518796522175
+      ],
+      "positive_seeds": 3,
+      "ci95_pp": [
+        0.40234161341112423,
+        2.2765471962206605
+      ],
+      "ci_bonferroni20_pp": [
+        -0.1357706482589597,
+        2.8448136291819424
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "S3",
+      "control": "S2",
+      "improvement_pp": -0.3627947707512354,
+      "seed_improvements_pp": [
+        0.04378557578032151,
+        -0.9570275849127416,
+        -0.17514230312128604
+      ],
+      "positive_seeds": 1,
+      "ci95_pp": [
+        -0.9760519436714731,
+        0.23581366432996761
+      ],
+      "ci_bonferroni20_pp": [
+        -1.3472155834506288,
+        0.5668722533107354
+      ],
+      "exact_seed_signflip_p": 0.5,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "S4",
+      "control": "S2",
+      "improvement_pp": -1.5429202894018055,
+      "seed_improvements_pp": [
+        -0.562957402889848,
+        -3.3714893350847563,
+        -0.6943141302308126
+      ],
+      "positive_seeds": 0,
+      "ci95_pp": [
+        -2.825511223668972,
+        -0.4431612617751601
+      ],
+      "ci_bonferroni20_pp": [
+        -3.6523924485056107,
+        0.04865386714906848
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    },
+    {
+      "split": "fleurs_test",
+      "treatment": "S5",
+      "control": "S3",
+      "improvement_pp": -0.5379370738725214,
+      "seed_improvements_pp": [
+        -0.4316006755488835,
+        -0.13135672734096454,
+        -1.0508538187277163
+      ],
+      "positive_seeds": 0,
+      "ci95_pp": [
+        -1.615173254435115,
+        0.41253177596151425
+      ],
+      "ci_bonferroni20_pp": [
+        -2.296765768965845,
+        0.8766049623570799
+      ],
+      "exact_seed_signflip_p": 0.25,
+      "clusters": 348,
+      "cluster_field": "source_id",
+      "recordings": 925,
+      "reference_words": 15987,
+      "replicates": 100000
+    }
+  ]
+}
